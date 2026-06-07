@@ -8,10 +8,10 @@ import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } f
 import { MOCK_BOOKINGS } from '@/constants/mock-data';
 
 const STATS = [
-  { label: 'Total Rides', value: '45', icon: 'car', color: '#EEF2FF' },
-  { label: 'Savings', value: formatTaka(3240), icon: 'wallet', color: '#ECFDF5' },
-  { label: 'CO₂ Saved', value: '125.5kg', icon: 'leaf', color: '#F0FDF4' },
-  { label: 'Active Plans', value: '2', icon: 'calendar', color: '#FDF4FF' },
+  { label: 'TOTAL RIDES', value: '45', icon: 'car', color: '#EEF2FF', iconColor: Colors.primary },
+  { label: 'SAVINGS', value: formatTaka(3240), icon: 'wallet', color: '#ECFDF5', iconColor: Colors.accentEmerald },
+  { label: 'CO₂ SAVED', value: '125.5kg', icon: 'leaf', color: '#F0FDF4', iconColor: Colors.accentEmerald },
+  { label: 'ACTIVE PLANS', value: '2', icon: 'ticket', color: '#FDF4FF', iconColor: Colors.purple500 },
 ];
 
 export default function HomeScreen() {
@@ -22,11 +22,12 @@ export default function HomeScreen() {
       <DarkHeader>
         <View style={styles.headerRow}>
           <View style={styles.greetingPill}>
-            <Text style={styles.greetingText}>GOOD EVENING</Text>
+            <Text style={styles.greetingText}>✨ GOOD EVENING</Text>
           </View>
           <View style={styles.headerActions}>
             <Pressable accessibilityRole="button" accessibilityLabel="Messages" onPress={() => router.push('/messages')} style={styles.iconBtn}>
               <Ionicons name="chatbubble-outline" size={20} color={Colors.white} />
+              <View style={styles.notifDot} />
             </Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel="Notifications" onPress={() => router.push('/notifications')} style={styles.iconBtn}>
               <Ionicons name="notifications-outline" size={20} color={Colors.white} />
@@ -35,35 +36,39 @@ export default function HomeScreen() {
         </View>
         <View style={styles.headlineRow}>
           <Text style={styles.headline}>Where to </Text>
-          <GradientText style={styles.headlineGradient}>today?</GradientText>
+          <GradientText style={styles.headlineGradient} colors={Gradients.headlineAccent}>
+            today?
+          </GradientText>
         </View>
       </DarkHeader>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Search for rides" onPress={() => router.push('/(tabs)/search')} style={styles.searchBar}>
-          <Ionicons name="location" size={20} color={Colors.primary} />
+        <Pressable accessibilityRole="button" accessibilityLabel="Search for rides" onPress={() => router.push('/(tabs)/search')} style={[styles.searchBar, Shadows.card]}>
+          <View style={styles.searchIconWrap}>
+            <Ionicons name="search" size={18} color={Colors.white} />
+          </View>
           <View style={styles.searchText}>
             <Text style={styles.searchOverline}>CURRENT LOCATION</Text>
             <Text style={styles.searchValue}>Shahbag, Dhaka</Text>
           </View>
-          <LinearGradient colors={[...Gradients.ctaPrimary]} style={styles.findBtn}>
+          <View style={styles.findBtn}>
             <Text style={styles.findBtnText}>Find Ride</Text>
-          </LinearGradient>
+          </View>
         </Pressable>
 
         <View style={styles.statsGrid}>
           {STATS.map((s) => (
             <View key={s.label} style={[styles.statCard, Shadows.card]}>
               <View style={[styles.statIcon, { backgroundColor: s.color }]}>
-                <Ionicons name={s.icon as keyof typeof Ionicons.glyphMap} size={18} color={Colors.primary} />
+                <Ionicons name={s.icon as keyof typeof Ionicons.glyphMap} size={18} color={s.iconColor} />
               </View>
               <Text style={styles.statValue}>{s.value}</Text>
-              <Text style={styles.statLabel}>{s.label.toUpperCase()}</Text>
+              <Text style={styles.statLabel}>{s.label}</Text>
             </View>
           ))}
         </View>
 
-        <LinearGradient colors={[Colors.primary, Colors.primaryDeep]} style={styles.premiumCard}>
+        <LinearGradient colors={[Colors.primaryGradStart, Colors.primaryDeep]} style={styles.premiumCard}>
           <View style={styles.premiumPill}>
             <Text style={styles.premiumPillText}>Monthly Premium</Text>
           </View>
@@ -100,15 +105,23 @@ export default function HomeScreen() {
                 <Text style={styles.driverName}>{b.operator}</Text>
                 <Text style={styles.carModel}>Toyota Corolla • ★ 4.9</Text>
               </View>
+              <View style={styles.timeBadge}>
+                <Text style={styles.timeBadgeText}>{b.departureTime ?? '06:00 PM'}</Text>
+              </View>
             </View>
-            <View style={styles.routeRow}>
-              <View style={styles.routeDot} />
-              <Text style={styles.routeText}>{b.route.from}</Text>
-              <Ionicons name="arrow-forward" size={14} color={Colors.textMuted} />
-              <Text style={styles.routeText}>{b.route.to}</Text>
+            <View style={styles.routeTimeline}>
+              <View style={styles.timelineDot} />
+              <View style={styles.timelineLine} />
+              <View style={[styles.timelineDot, styles.timelineDotEnd]} />
+              <View style={styles.routeLabels}>
+                <Text style={styles.routePoint}>{b.route.from}</Text>
+                <Text style={styles.routePoint}>{b.route.to}</Text>
+              </View>
             </View>
             <View style={styles.rideFooter}>
-              <Text style={styles.arriving}>Arriving in 2h 30m</Text>
+              <View style={styles.arrivingPill}>
+                <Text style={styles.arriving}>Arriving in 2h 30m</Text>
+              </View>
               <Pressable accessibilityRole="button" accessibilityLabel="Track live" onPress={() => router.push('/ride/live-tracking')} style={styles.trackBtn}>
                 <Text style={styles.trackText}>TRACK LIVE</Text>
               </Pressable>
@@ -123,27 +136,136 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  greetingPill: { backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.full },
-  greetingText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.white, letterSpacing: 1 },
+  greetingPill: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.full,
+  },
+  greetingText: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.white,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
   headerActions: { flexDirection: 'row', gap: Spacing.sm },
-  iconBtn: { width: 40, height: 40, borderRadius: Radius.lg, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+  iconBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.lg,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.accentEmerald,
+    borderWidth: 2,
+    borderColor: Colors.darkBgNavy,
+  },
   headlineRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: Spacing.lg },
-  headline: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xl, color: Colors.white },
-  headlineGradient: { fontSize: Typography.fontSizes.xl, lineHeight: 32 },
+  headline: {
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.xl,
+    color: Colors.white,
+    letterSpacing: Typography.letterSpacing.heading,
+    lineHeight: 32,
+  },
+  headlineGradient: { fontSize: Typography.fontSizes.xl, lineHeight: 32, letterSpacing: Typography.letterSpacing.heading },
   scroll: { padding: Spacing.xl, paddingBottom: 100, gap: Spacing.base },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: Radius.full, padding: Spacing.md, gap: Spacing.md, ...Shadows.card },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.full,
+    padding: Spacing.sm,
+    gap: Spacing.md,
+    marginTop: -Spacing.xl,
+  },
+  searchIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.darkBgNavy,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   searchText: { flex: 1 },
-  searchOverline: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1 },
-  searchValue: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.textPrimary },
-  findBtn: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, borderRadius: Radius.full },
-  findBtnText: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xs, color: Colors.white },
+  searchOverline: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.textMuted,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    lineHeight: 10,
+  },
+  searchValue: {
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.base,
+    color: Colors.textPrimary,
+    letterSpacing: Typography.letterSpacing.stat,
+    lineHeight: 20,
+  },
+  findBtn: {
+    backgroundColor: Colors.surfaceMuted,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.full,
+  },
+  findBtnText: {
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.textPrimary,
+    letterSpacing: 0.5,
+  },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
-  statCard: { width: '47%', backgroundColor: Colors.surface, borderRadius: Radius.card, padding: Spacing.base },
-  statIcon: { width: 36, height: 36, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.sm },
-  statValue: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.textPrimary },
-  statLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 0.5, marginTop: 2 },
+  statCard: {
+    width: '47%',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.card,
+    padding: Spacing.base,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.sm,
+  },
+  statValue: {
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.lg,
+    color: Colors.textPrimary,
+    letterSpacing: Typography.letterSpacing.stat,
+  },
+  statLabel: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.textMuted,
+    letterSpacing: 0.5,
+    marginTop: 2,
+    textTransform: 'uppercase',
+  },
   premiumCard: { borderRadius: Radius.card, padding: Spacing.xl },
-  premiumPill: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: Spacing.md, paddingVertical: 4, borderRadius: Radius.full, marginBottom: Spacing.sm },
+  premiumPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 4,
+    borderRadius: Radius.full,
+    marginBottom: Spacing.sm,
+  },
   premiumPillText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.white },
   premiumTitle: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.white },
   premiumRoute: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: 'rgba(255,255,255,0.8)', marginBottom: Spacing.base },
@@ -153,23 +275,37 @@ const styles = StyleSheet.create({
   usageValue: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.sm, color: Colors.white },
   progressTrack: { height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2, marginTop: Spacing.sm },
   progressFill: { height: 4, backgroundColor: Colors.white, borderRadius: 2 },
-  ring: { width: 56, height: 56, borderRadius: 28, borderWidth: 3, borderColor: Colors.white, alignItems: 'center', justifyContent: 'center' },
+  ring: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 3,
+    borderColor: Colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   ringText: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.sm, color: Colors.white },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.md },
-  sectionTitle: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.textPrimary },
-  viewAll: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.primary, letterSpacing: 1 },
-  rideCard: { backgroundColor: Colors.surface, borderRadius: Radius.card, padding: Spacing.base },
-  rideHeader: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.md },
+  sectionTitle: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.textPrimary, letterSpacing: Typography.letterSpacing.h2 },
+  viewAll: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.primary, letterSpacing: 1, textTransform: 'uppercase' },
+  rideCard: { backgroundColor: Colors.surface, borderRadius: Radius.card, padding: Spacing.base, borderWidth: 1, borderColor: Colors.border },
+  rideHeader: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.md, alignItems: 'center' },
   avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontFamily: Typography.fonts.black, color: Colors.white },
   rideInfo: { flex: 1 },
   driverName: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.textPrimary },
   carModel: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
-  routeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.md },
-  routeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.primary },
-  routeText: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
+  timeBadge: { backgroundColor: '#ECFDF5', paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.full },
+  timeBadgeText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.accentEmerald },
+  routeTimeline: { flexDirection: 'row', alignItems: 'stretch', marginBottom: Spacing.md, paddingLeft: 4, minHeight: 48 },
+  timelineDot: { width: 10, height: 10, borderRadius: 5, borderWidth: 2, borderColor: Colors.primary, backgroundColor: Colors.white, marginTop: 4 },
+  timelineDotEnd: { backgroundColor: Colors.purple500, borderColor: Colors.purple500, alignSelf: 'flex-end', marginTop: 0, marginBottom: 4 },
+  timelineLine: { width: 2, backgroundColor: Colors.borderMid, marginHorizontal: 4, flex: 0, height: '100%', position: 'absolute', left: 8, top: 14, bottom: 14 },
+  routeLabels: { flex: 1, justifyContent: 'space-between', paddingLeft: Spacing.md },
+  routePoint: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.sm, color: Colors.textPrimary },
   rideFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  arrivingPill: { backgroundColor: '#ECFDF5', paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.full },
   arriving: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.sm, color: Colors.accentEmerald },
   trackBtn: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, backgroundColor: Colors.surfaceIndigo, borderRadius: Radius.md },
-  trackText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.primary, letterSpacing: 1 },
+  trackText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.primary, letterSpacing: 1, textTransform: 'uppercase' },
 });
