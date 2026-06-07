@@ -13,6 +13,7 @@ interface BookingCardProps {
 
 const STATUS_LABEL: Record<Booking['status'], string> = {
   upcoming: 'Upcoming',
+  ongoing: 'Ongoing',
   completed: 'Completed',
   cancelled: 'Cancelled',
 };
@@ -37,7 +38,7 @@ export function BookingCard({ booking, onViewTicket, onCancel }: BookingCardProp
       <View style={styles.metaGrid}>
         <Meta icon="calendar-outline" label={booking.date} />
         <Meta icon="time-outline" label={`${booking.departureTime} - ${booking.arrivalTime}`} />
-        <Meta icon="ticket-outline" label={`Seat ${booking.seats.join(', ')}`} />
+        <Meta icon="ticket-outline" label={`${booking.seatCount} seat${booking.seatCount > 1 ? 's' : ''}`} />
         <Meta icon="business-outline" label={booking.operator} />
       </View>
 

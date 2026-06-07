@@ -1,5 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { ROUTES } from '@/constants/routes';
+import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -8,331 +11,257 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Input } from '@/components/ui';
-import { Radius, Spacing, Typography } from '@/constants/theme';
+import { AmbientBackground, GradientButton } from '@/components/ui';
+import { SegmentedControl } from '@/components/shared/SegmentedControl';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
-import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
-import { Gender } from '@/types';
+import { UserRole } from '@/types';
 
-const GENDERS: { value: Gender; label: string }[] = [
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'other', label: 'Other' },
-];
+type Step = 'credentials' | 'identity' | 'vehicle' | 'success';
+
+const STEPS: Step[] = ['credentials', 'identity', 'vehicle', 'success'];
 
 export default function RegisterScreen() {
-  const { register, isLoading, error, clearError } = useAuth();
-  const { colors } = useTheme();
-  const styles = useThemedStyles(makeStyles);
+  const { register, isLoading, role, setRole } = useAuth();
+  const [step, setStep] = useState<Step>('credentials');
+  const [selectedRole, setSelectedRole] = useState(role === 'driver' ? 1 : 0);
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [gender, setGender] = useState<Gender>('male');
-  const [agreed, setAgreed] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [localError, setLocalError] = useState<string | null>(null);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [nid, setNid] = useState('');
+  const [vehicleType, setVehicleType] = useState(0);
+  const [regNumber, setRegNumber] = useState('');
 
-  const handleRegister = async () => {
-    clearError();
-    setLocalError(null);
+  const userRole: UserRole = selectedRole === 0 ? 'rider' : 'driver';
+  const stepIndex = STEPS.indexOf(step);
+  const totalSteps = userRole === 'driver' ? 4 : 3;
+  const progressSteps = userRole === 'driver' ? STEPS : STEPS.filter((s) => s !== 'vehicle');
 
-    if (!name || !phone || !email || !password) {
-      setLocalError('Please fill in all required fields.');
-      return;
-    }
-    if (password !== confirm) {
-      setLocalError('Passwords do not match.');
-      return;
-    }
-    if (!agreed) {
-      setLocalError('Please accept the Terms & Conditions.');
-      return;
-    }
+  const handleRoleChange = (index: number) => {
+    setSelectedRole(index);
+    setRole(index === 0 ? 'rider' : 'driver');
+  };
 
-    try {
-      await register({ name, phone, email, password, gender });
-      router.replace('/(tabs)');
-    } catch {
-      // error surfaced via store
-    }
+  const next = () => {
+    if (step === 'credentials') setStep('identity');
+    else if (step === 'identity') setStep(userRole === 'driver' ? 'vehicle' : 'success');
+    else if (step === 'vehicle') setStep('success');
+  };
+
+  const handleFinish = async () => {
+    await register({
+      name: name || 'New User',
+      email: email || 'new@nittojatra.com',
+      phone: '+8801700000000',
+      password: password || 'password123',
+      gender: 'other',
+      role: userRole,
+    });
+    router.replace(userRole === 'driver' ? ROUTES.driverTabs : ROUTES.riderTabs);
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            onPress={() => router.back()}
-            style={styles.back}
-          >
-            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-          </Pressable>
+    <AmbientBackground>
+      <StatusBar style="light" />
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.back}>
+              <Ionicons name="arrow-back" size={22} color={Colors.white} />
+            </Pressable>
 
-          <Text style={styles.title}>Create account</Text>
-          <Text style={styles.subtitle}>Join NittoJatra and travel smarter</Text>
+            <Text style={styles.title}>
+              Create <Text style={styles.titleAccent}>Account</Text>
+            </Text>
 
-          <View style={styles.form}>
-            <Input
-              label="Full Name"
-              placeholder="Rahim Uddin"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              leftIcon={<Ionicons name="person-outline" size={20} color={colors.textMuted} />}
-            />
-            <View style={styles.gap} />
-            <Input
-              label="Phone Number"
-              placeholder="+8801XXXXXXXXX"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              leftIcon={<Ionicons name="call-outline" size={20} color={colors.textMuted} />}
-            />
-            <View style={styles.gap} />
-            <Input
-              label="Email"
-              placeholder="you@example.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              leftIcon={<Ionicons name="mail-outline" size={20} color={colors.textMuted} />}
-            />
-            <View style={styles.gap} />
-            <Input
-              label="Password"
-              placeholder="At least 6 characters"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} />}
-              rightIcon={
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-                  onPress={() => setShowPassword((s) => !s)}
-                >
-                  <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    size={20}
-                    color={colors.textMuted}
-                  />
-                </Pressable>
-              }
-            />
-            <View style={styles.gap} />
-            <Input
-              label="Confirm Password"
-              placeholder="Re-enter password"
-              value={confirm}
-              onChangeText={setConfirm}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} />}
-            />
-
-            <Text style={styles.fieldLabel}>Gender</Text>
-            <View style={styles.segment}>
-              {GENDERS.map((g) => {
-                const active = gender === g.value;
-                return (
-                  <Pressable
-                    key={g.value}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                    accessibilityLabel={`Gender ${g.label}`}
-                    onPress={() => setGender(g.value)}
-                    style={[styles.segmentItem, active && styles.segmentItemActive]}
-                  >
-                    <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                      {g.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+            <View style={styles.progressRow}>
+              {Array.from({ length: totalSteps }).map((_, i) => (
+                <View key={i} style={styles.progressSegment}>
+                  {i <= stepIndex ? (
+                    <LinearGradient colors={['#4F46E5', '#10B981']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.progressFill} />
+                  ) : (
+                    <View style={styles.progressEmpty} />
+                  )}
+                </View>
+              ))}
             </View>
 
-            <Pressable
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: agreed }}
-              accessibilityLabel="Accept Terms and Conditions"
-              onPress={() => setAgreed((a) => !a)}
-              style={styles.termsRow}
-            >
-              <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
-                {agreed ? <Ionicons name="checkmark" size={16} color={colors.white} /> : null}
+            {step === 'credentials' && (
+              <View style={styles.stepContent}>
+                <Text style={styles.stepLabel}>I AM A</Text>
+                <SegmentedControl dark options={['RIDER', 'DRIVER']} selected={selectedRole} onChange={handleRoleChange} />
+                {(['Full Legal Name', 'Email Address'] as const).map((label, i) => (
+                  <View key={label} style={styles.inputWrap}>
+                    <TextInput
+                      accessibilityLabel={label}
+                      placeholder={label}
+                      placeholderTextColor={Colors.textMuted}
+                      value={i === 0 ? name : email}
+                      onChangeText={i === 0 ? setName : setEmail}
+                      style={styles.input}
+                      autoCapitalize={i === 0 ? 'words' : 'none'}
+                    />
+                  </View>
+                ))}
+                {(['Create Password', 'Confirm Password'] as const).map((label, i) => (
+                  <View key={label} style={styles.inputWrap}>
+                    <TextInput
+                      accessibilityLabel={label}
+                      placeholder={label}
+                      placeholderTextColor={Colors.textMuted}
+                      secureTextEntry
+                      value={i === 0 ? password : confirmPassword}
+                      onChangeText={i === 0 ? setPassword : setConfirmPassword}
+                      style={styles.input}
+                    />
+                  </View>
+                ))}
+                <GradientButton title="CONTINUE" variant="register" onPress={next} />
               </View>
-              <Text style={styles.termsText}>
-                I agree to the <Text style={styles.termsLink}>Terms &amp; Conditions</Text> and{' '}
-                <Text style={styles.termsLink}>Privacy Policy</Text>
-              </Text>
-            </Pressable>
+            )}
 
-            {localError || error ? <Text style={styles.error}>{localError ?? error}</Text> : null}
+            {step === 'identity' && (
+              <View style={styles.stepContent}>
+                <Text style={styles.h2}>Identity Check</Text>
+                <Text style={styles.desc}>Verify your NID for a trusted community.</Text>
+                <View style={styles.inputWrap}>
+                  <TextInput accessibilityLabel="NID Number" placeholder="NID Number" placeholderTextColor={Colors.textMuted} value={nid} onChangeText={setNid} style={styles.input} keyboardType="number-pad" />
+                </View>
+                {(['NID (Front)', 'NID (Back)'] as const).map((label) => (
+                  <Pressable key={label} accessibilityRole="button" accessibilityLabel={`Upload ${label}`} style={styles.uploadCard}>
+                    <Ionicons name="cloud-upload-outline" size={24} color={Colors.textMuted} />
+                    <View style={styles.uploadText}>
+                      <Text style={styles.uploadTitle}>{label}</Text>
+                      <Text style={styles.uploadSub}>REQUIRED PHOTO</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+                  </Pressable>
+                ))}
+                <GradientButton title="VERIFY & FINISH" variant="register" onPress={next} />
+              </View>
+            )}
 
-            <Button
-              title="Create Account"
-              size="lg"
-              loading={isLoading}
-              onPress={handleRegister}
-              style={styles.submit}
-            />
-          </View>
+            {step === 'vehicle' && userRole === 'driver' && (
+              <View style={styles.stepContent}>
+                <Text style={styles.stepLabel}>PREFERRED VEHICLE</Text>
+                <SegmentedControl dark options={['CAR', 'BIKE', 'MICRO', 'BUS']} selected={vehicleType} onChange={setVehicleType} />
+                <View style={styles.inputWrap}>
+                  <TextInput accessibilityLabel="Registration Number" placeholder="Registration Number" placeholderTextColor={Colors.textMuted} value={regNumber} onChangeText={setRegNumber} style={styles.input} />
+                </View>
+                <View style={styles.noteCard}>
+                  <Text style={styles.noteText}>Verification takes ~24h. You can start posting routes once approved.</Text>
+                </View>
+                <GradientButton title="SUBMIT REGISTRATION" variant="register" onPress={next} />
+              </View>
+            )}
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Login"
-              onPress={() => router.replace('/(auth)/login')}
-            >
-              <Text style={styles.footerLink}>Login</Text>
-            </Pressable>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            {step === 'success' && (
+              <View style={styles.stepContent}>
+                <View style={styles.successIcon}>
+                  <Ionicons name="checkmark-circle" size={64} color={Colors.accentEmerald} />
+                </View>
+                <Text style={styles.h2}>You&apos;re In!</Text>
+                <Text style={styles.desc}>Your profile is ready for takeoff</Text>
+                <View style={styles.infoCard}>
+                  <Text style={styles.infoLabel}>AUTHENTICATED AS</Text>
+                  <Text style={styles.infoValue}>{name || 'New User'}</Text>
+                </View>
+                <View style={styles.infoCard}>
+                  <Text style={styles.infoLabel}>EMAIL IDENTIFIER</Text>
+                  <Text style={styles.infoValue}>{email || 'new@nittojatra.com'}</Text>
+                </View>
+                <GradientButton title="GET STARTED" variant="register" onPress={handleFinish} loading={isLoading} />
+              </View>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </AmbientBackground>
   );
 }
 
-const makeStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+const styles = StyleSheet.create({
+  safe: { flex: 1 },
   flex: { flex: 1 },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: Spacing.xl,
-  },
-  back: {
-    marginTop: Spacing.sm,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-  },
+  scroll: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.xxl },
+  back: { width: 40, height: 40, justifyContent: 'center', marginTop: Spacing.sm },
   title: {
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.xl,
+    color: Colors.white,
+    marginTop: Spacing.md,
+  },
+  titleAccent: { color: Colors.indigo400 },
+  progressRow: { flexDirection: 'row', gap: Spacing.sm, marginVertical: Spacing.xl },
+  progressSegment: { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden' },
+  progressFill: { flex: 1 },
+  progressEmpty: { flex: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
+  stepContent: { gap: Spacing.base },
+  stepLabel: {
     fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.xxl,
-    color: colors.textPrimary,
-    marginTop: Spacing.sm,
+    fontSize: Typography.fontSizes.xs,
+    letterSpacing: Typography.letterSpacing.eyebrow,
+    color: Colors.textMuted,
   },
-  subtitle: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.base,
-    color: colors.textSecondary,
-    marginTop: Spacing.xs,
+  h2: {
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.lg,
+    color: Colors.white,
   },
-  form: {
-    marginTop: Spacing.lg,
-  },
-  gap: {
-    height: Spacing.base,
-  },
-  fieldLabel: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textSecondary,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.sm,
-  },
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: colors.border,
-    borderRadius: Radius.md,
-    padding: 4,
-  },
-  segmentItem: {
-    flex: 1,
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.sm,
-    alignItems: 'center',
-  },
-  segmentItemActive: {
-    backgroundColor: colors.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  segmentText: {
+  desc: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.base,
-    color: colors.textMuted,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
   },
-  segmentTextActive: {
-    color: colors.primary,
-    fontFamily: Typography.fonts.semibold,
-  },
-  termsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: Radius.sm,
-    borderWidth: 1.5,
-    borderColor: colors.borderMid,
-    alignItems: 'center',
+  inputWrap: {
+    backgroundColor: Colors.glassInput,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.base,
+    height: 56,
     justifyContent: 'center',
-    marginRight: Spacing.md,
   },
-  checkboxChecked: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  termsText: {
-    flex: 1,
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textSecondary,
-    lineHeight: 20,
-  },
-  termsLink: {
-    color: colors.primary,
-    fontFamily: Typography.fonts.semibold,
-  },
-  error: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.danger,
-    marginTop: Spacing.base,
-  },
-  submit: {
-    marginTop: Spacing.lg,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-  },
-  footerText: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.base,
-    color: colors.textSecondary,
-  },
-  footerLink: {
+  input: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.base,
-    color: colors.primary,
+    color: Colors.white,
   },
+  uploadCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    backgroundColor: Colors.glassInput,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    borderRadius: Radius.lg,
+    padding: Spacing.base,
+  },
+  uploadText: { flex: 1 },
+  uploadTitle: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.base, color: Colors.white },
+  uploadSub: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1 },
+  noteCard: {
+    backgroundColor: Colors.glassFillSubtle,
+    borderRadius: Radius.lg,
+    padding: Spacing.base,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+  },
+  noteText: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
+  successIcon: { alignItems: 'center', marginVertical: Spacing.lg },
+  infoCard: {
+    backgroundColor: Colors.glassInput,
+    borderRadius: Radius.lg,
+    padding: Spacing.base,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+  },
+  infoLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1 },
+  infoValue: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.white, marginTop: 4 },
 });

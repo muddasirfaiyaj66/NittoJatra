@@ -37,7 +37,7 @@ export function GradientButton({
 
   const handlePress = () => {
     if (disabled || loading) return;
-    haptics.impact();
+    haptics.medium();
     onPress?.();
   };
 

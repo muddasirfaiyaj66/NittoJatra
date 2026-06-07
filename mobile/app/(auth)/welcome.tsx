@@ -2,145 +2,168 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button } from '@/components/ui';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
-import { Strings } from '@/constants/strings';
+import { AmbientBackground } from '@/components/ui';
+import { Colors, Gradients, Radius, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function WelcomeScreen() {
-  const { loginAsGuest, isLoading } = useAuth();
+  const { setRole } = useAuth();
+  const dot1 = useRef(new Animated.Value(0.3)).current;
+  const dot2 = useRef(new Animated.Value(0.3)).current;
+  const dot3 = useRef(new Animated.Value(0.3)).current;
 
-  const handleGuest = async () => {
-    try {
-      await loginAsGuest();
-      router.replace('/(tabs)');
-    } catch {
-      // handled in store
-    }
+  useEffect(() => {
+    const animate = (dot: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(dot, { toValue: 1, duration: 600, useNativeDriver: true }),
+          Animated.timing(dot, { toValue: 0.3, duration: 600, useNativeDriver: true }),
+        ]),
+      );
+    const a1 = animate(dot1, 0);
+    const a2 = animate(dot2, 200);
+    const a3 = animate(dot3, 400);
+    a1.start();
+    a2.start();
+    a3.start();
+    return () => {
+      a1.stop();
+      a2.stop();
+      a3.stop();
+    };
+  }, [dot1, dot2, dot3]);
+
+  const goLogin = (role: 'rider' | 'driver') => {
+    setRole(role);
+    router.push('/(auth)/login');
   };
 
   return (
-    <View style={styles.root}>
+    <AmbientBackground>
       <StatusBar style="light" />
-      <LinearGradient
-        colors={[Colors.primary, Colors.primaryDark, Colors.accent]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
       <SafeAreaView style={styles.safe}>
         <View style={styles.hero}>
-          <View style={styles.logoBadge}>
-            <Ionicons name="bus" size={44} color={Colors.white} />
-          </View>
-          <Text style={styles.wordmark}>{Strings.appName.en}</Text>
-          <Text style={styles.wordmarkBn}>{Strings.appName.bn}</Text>
-          <Text style={styles.tagline}>{Strings.tagline.bn}</Text>
-          <Text style={styles.taglineEn}>{Strings.tagline.en}</Text>
+          <LinearGradient colors={[...Gradients.appIcon]} style={styles.logo}>
+            <Ionicons name="car-sport" size={36} color={Colors.white} />
+          </LinearGradient>
+          <Text style={styles.wordmark}>NittoJatra</Text>
+          <Text style={styles.headline}>Commute</Text>
+          <Text style={styles.headlineAccent}>Without Limits</Text>
+        </View>
+
+        <View style={styles.dots}>
+          {[dot1, dot2, dot3].map((dot, i) => (
+            <Animated.View key={i} style={[styles.dot, { opacity: dot }]} />
+          ))}
         </View>
 
         <View style={styles.actions}>
-          <Button
-            title={Strings.login.en}
-            variant="primary"
-            size="lg"
-            style={styles.loginBtn}
-            textColor={Colors.primary}
-            onPress={() => router.push('/(auth)/login')}
-          />
-          <Button
-            title={Strings.register.en}
-            variant="outline"
-            size="lg"
-            style={styles.registerBtn}
-            onPress={() => router.push('/(auth)/register')}
-          />
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={Strings.continueGuest.en}
-            onPress={handleGuest}
-            disabled={isLoading}
-            style={styles.guestLink}
+            accessibilityLabel="I'm a Rider"
+            onPress={() => goLogin('rider')}
+            style={styles.roleBtn}
           >
-            <Text style={styles.guestText}>{Strings.continueGuest.en}</Text>
+            <Ionicons name="person" size={20} color={Colors.white} />
+            <Text style={styles.roleText}>I&apos;m a Rider</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="I'm a Captain"
+            onPress={() => goLogin('driver')}
+            style={[styles.roleBtn, styles.roleBtnAlt]}
+          >
+            <Ionicons name="car" size={20} color={Colors.indigo400} />
+            <Text style={[styles.roleText, styles.roleTextAlt]}>I&apos;m a Captain</Text>
           </Pressable>
         </View>
       </SafeAreaView>
-    </View>
+    </AmbientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-  },
   safe: {
     flex: 1,
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
-    paddingBottom: Spacing.xl,
+    paddingBottom: Spacing.xxxl,
   },
   hero: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoBadge: {
-    width: 96,
-    height: 96,
-    borderRadius: Radius.xl,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+  logo: {
+    width: 72,
+    height: 72,
+    borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    transform: [{ rotate: '1.06deg' }],
     marginBottom: Spacing.lg,
   },
   wordmark: {
-    fontFamily: Typography.fonts.extrabold,
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.lg,
+    color: Colors.primary,
+    marginBottom: Spacing.xl,
+  },
+  headline: {
+    fontFamily: Typography.fonts.black,
     fontSize: Typography.fontSizes.display,
+    letterSpacing: Typography.letterSpacing.tight,
     color: Colors.white,
-    letterSpacing: 0.5,
+    lineHeight: 40,
   },
-  wordmarkBn: {
-    fontFamily: Typography.fonts.bengaliBold,
-    fontSize: Typography.fontSizes.xl,
-    color: 'rgba(255,255,255,0.92)',
-    marginTop: Spacing.xs,
+  headlineAccent: {
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.display,
+    letterSpacing: Typography.letterSpacing.tight,
+    color: Colors.indigo400,
+    lineHeight: 40,
   },
-  tagline: {
-    fontFamily: Typography.fonts.bengali,
-    fontSize: Typography.fontSizes.md,
-    color: 'rgba(255,255,255,0.95)',
-    textAlign: 'center',
-    marginTop: Spacing.lg,
-    lineHeight: 26,
+  dots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xxl,
   },
-  taglineEn: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.sm,
-    color: 'rgba(255,255,255,0.75)',
-    textAlign: 'center',
-    marginTop: Spacing.xs,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primary,
   },
   actions: {
     gap: Spacing.md,
   },
-  loginBtn: {
-    backgroundColor: Colors.white,
-  },
-  registerBtn: {
-    borderColor: Colors.white,
-  },
-  guestLink: {
+  roleBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.base,
+    borderRadius: Radius.lg,
   },
-  guestText: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.base,
-    color: 'rgba(255,255,255,0.9)',
-    textDecorationLine: 'underline',
+  roleBtnAlt: {
+    backgroundColor: Colors.glassInput,
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+  },
+  roleText: {
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.sm,
+    letterSpacing: Typography.letterSpacing.button,
+    color: Colors.white,
+    textTransform: 'uppercase',
+  },
+  roleTextAlt: {
+    color: Colors.indigo400,
   },
 });

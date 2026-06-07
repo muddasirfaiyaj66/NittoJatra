@@ -1,354 +1,123 @@
 import { Ionicons } from '@expo/vector-icons';
-import { format } from 'date-fns';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ReactNode } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Avatar } from '@/components/ui';
-import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Colors, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
-import { useSettingsStore } from '@/store/settings.store';
-import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
-export { ErrorBoundary } from '@/components/shared/RouteError';
+const ACCOUNT_ITEMS = [
+  { icon: 'person-outline', title: 'Personal Details', sub: 'Name, email, phone' },
+  { icon: 'location-outline', title: 'Saved Places', sub: 'Home, office & more', route: '/modals/saved-places' },
+  { icon: 'shield-checkmark-outline', title: 'Verification Info', sub: 'NID verified', route: '/modals/verification-info' },
+  { icon: 'lock-closed-outline', title: 'Account Security', sub: 'Password & PIN' },
+  { icon: 'gift-outline', title: 'Refer & Earn', sub: 'Invite friends' },
+];
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
-  const { colors } = useTheme();
-  const styles = useThemedStyles(makeStyles);
-  const language = useSettingsStore((s) => s.language);
-  const notifications = useSettingsStore((s) => s.notifications);
-  const themeMode = useSettingsStore((s) => s.themeMode);
-  const toggleLanguage = useSettingsStore((s) => s.toggleLanguage);
-  const setNotifications = useSettingsStore((s) => s.setNotifications);
-  const toggleDarkMode = useSettingsStore((s) => s.toggleDarkMode);
-
-  const memberSince = user?.memberSince
-    ? format(new Date(user.memberSince), 'MMM yyyy')
-    : '—';
-
-  const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: () => {
-          logout();
-          router.replace('/(auth)/welcome');
-        },
-      },
-    ]);
-  };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.headerCard}>
-          <View style={styles.avatarWrap}>
-            <Avatar uri={user?.avatar} name={user?.name} size={84} />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Edit profile photo"
-              style={styles.editOverlay}
-            >
-              <Ionicons name="camera" size={16} color={colors.white} />
-            </Pressable>
-          </View>
-          <Text style={styles.name}>{user?.name ?? 'Guest User'}</Text>
-          <Text style={styles.phone}>{user?.phone ?? '—'}</Text>
-          <Text style={styles.memberSince}>Member since {memberSince}</Text>
-
-          <View style={styles.statsRow}>
-            <Stat label="Trips" value={String(user?.totalTrips ?? 0)} />
-            <View style={styles.statDivider} />
-            <Stat label="Total Spent" value={`৳${user?.totalSpent ?? 0}`} />
-            <View style={styles.statDivider} />
-            <Stat label="Points" value={String(user?.points ?? 0)} />
+    <ScrollView style={styles.root} contentContainerStyle={styles.scroll}>
+      <LinearGradient colors={[...Gradients.navyHeader]} style={styles.header}>
+        <View style={styles.headerActions}>
+          <View />
+          <Pressable accessibilityRole="button" accessibilityLabel="Logout" onPress={() => { logout(); router.replace('/(auth)/welcome'); }}>
+            <Ionicons name="log-out-outline" size={22} color={Colors.danger} />
+          </Pressable>
+        </View>
+        <View style={styles.avatarFrame}>
+          <LinearGradient colors={[...Gradients.avatar]} style={styles.avatar}>
+            <Text style={styles.avatarText}>{(user?.name ?? 'A')[0]}</Text>
+          </LinearGradient>
+          <View style={styles.tierPill}>
+            <Text style={styles.tierText}>{user?.tier ?? 'GOLD'}</Text>
           </View>
         </View>
+        <Text style={styles.name}>{user?.name ?? 'Ahmed Rahman'}</Text>
+        <Text style={styles.email}>{user?.email ?? 'rider@example.com'}</Text>
+        <View style={styles.statsRow}>
+          {[
+            { label: 'RATING', value: `★${user?.rating ?? 4.8}` },
+            { label: 'RIDES', value: String(user?.totalTrips ?? 42) },
+            { label: 'POINTS', value: String(user?.points ?? 1250) },
+          ].map((s) => (
+            <View key={s.label} style={styles.statItem}>
+              <Text style={styles.statValue}>{s.value}</Text>
+              <Text style={styles.statLabel}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+      </LinearGradient>
 
-        {/* Account */}
-        <Section title="Account">
-          <MenuRow icon="person-outline" label="Edit Profile" />
-          <MenuRow icon="lock-closed-outline" label="Change Password" />
-          <MenuRow icon="bookmark-outline" label="Saved Addresses" last />
-        </Section>
+      <Pressable accessibilityRole="button" accessibilityLabel="Go Premium">
+        <LinearGradient colors={[Colors.primary, Colors.primaryAlt]} style={styles.premiumCard}>
+          <Ionicons name="diamond" size={24} color={Colors.white} />
+          <View style={styles.premiumText}>
+            <Text style={styles.premiumTitle}>Go Premium</Text>
+            <Text style={styles.premiumSub}>Get 10% off every ride + priority</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={Colors.white} />
+        </LinearGradient>
+      </Pressable>
 
-        {/* Preferences */}
-        <Section title="Preferences">
-          <MenuRow
-            icon="language-outline"
-            label="Language"
-            right={
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Toggle language"
-                onPress={toggleLanguage}
-                style={styles.langToggle}
-              >
-                <Text style={styles.langText}>{language === 'en' ? 'English' : 'বাংলা'}</Text>
-                <Ionicons name="swap-horizontal" size={16} color={colors.primary} />
-              </Pressable>
-            }
-          />
-          <MenuRow
-            icon="notifications-outline"
-            label="Notifications"
-            right={
-              <Switch
-                value={notifications}
-                onValueChange={setNotifications}
-                trackColor={{ true: colors.primary, false: colors.borderMid }}
-                thumbColor={colors.white}
-              />
-            }
-          />
-          <MenuRow
-            icon="moon-outline"
-            label="Dark Mode"
-            last
-            right={
-              <Switch
-                value={themeMode === 'dark'}
-                onValueChange={toggleDarkMode}
-                trackColor={{ true: colors.primary, false: colors.borderMid }}
-                thumbColor={colors.white}
-              />
-            }
-          />
-        </Section>
-
-        {/* Support */}
-        <Section title="Support">
-          <MenuRow icon="help-circle-outline" label="Help Center" />
-          <MenuRow icon="document-text-outline" label="Terms & Conditions" />
-          <MenuRow icon="shield-checkmark-outline" label="Privacy Policy" />
-          <MenuRow icon="star-outline" label="Rate the App" last />
-        </Section>
-
-        {/* Danger */}
+      <Text style={styles.sectionLabel}>ACCOUNT</Text>
+      {ACCOUNT_ITEMS.map((item) => (
         <Pressable
+          key={item.title}
           accessibilityRole="button"
-          accessibilityLabel="Logout"
-          onPress={handleLogout}
-          style={styles.logoutBtn}
+          accessibilityLabel={item.title}
+          onPress={() => item.route && router.push(item.route as '/modals/saved-places')}
+          style={[styles.listItem, Shadows.card]}
         >
-          <Ionicons name="log-out-outline" size={20} color={colors.danger} />
-          <Text style={styles.logoutText}>Logout</Text>
+          <View style={styles.listIcon}>
+            <Ionicons name={item.icon as keyof typeof Ionicons.glyphMap} size={20} color={Colors.primary} />
+          </View>
+          <View style={styles.listText}>
+            <Text style={styles.listTitle}>{item.title}</Text>
+            <Text style={styles.listSub}>{item.sub}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
         </Pressable>
+      ))}
 
-        <Text style={styles.version}>NittoJatra v1.0.0</Text>
-      </ScrollView>
-    </SafeAreaView>
+      <Pressable accessibilityRole="button" accessibilityLabel="Wallet" onPress={() => router.push('/wallet')} style={[styles.listItem, Shadows.card]}>
+        <View style={styles.listIcon}>
+          <Ionicons name="wallet-outline" size={20} color={Colors.primary} />
+        </View>
+        <View style={styles.listText}>
+          <Text style={styles.listTitle}>Wallet</Text>
+          <Text style={styles.listSub}>Balance & payment methods</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+      </Pressable>
+    </ScrollView>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  const styles = useThemedStyles(makeStyles);
-  return (
-    <View style={styles.stat}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  const styles = useThemedStyles(makeStyles);
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.sectionCard}>{children}</View>
-    </View>
-  );
-}
-
-function MenuRow({
-  icon,
-  label,
-  right,
-  last,
-  onPress,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  right?: ReactNode;
-  last?: boolean;
-  onPress?: () => void;
-}) {
-  const { colors } = useTheme();
-  const styles = useThemedStyles(makeStyles);
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={onPress}
-      style={[styles.menuRow, !last && styles.menuBorder]}
-    >
-      <View style={styles.menuIcon}>
-        <Ionicons name={icon} size={20} color={colors.primary} />
-      </View>
-      <Text style={styles.menuLabel}>{label}</Text>
-      {right ?? <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />}
-    </Pressable>
-  );
-}
-
-const makeStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  scroll: { paddingBottom: Spacing.section },
-  headerCard: {
-    alignItems: 'center',
-    paddingTop: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-  },
-  avatarWrap: {
-    position: 'relative',
-  },
-  editOverlay: {
-    position: 'absolute',
-    right: -2,
-    bottom: -2,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: colors.background,
-  },
-  name: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.xl,
-    color: colors.textPrimary,
-    marginTop: Spacing.md,
-  },
-  phone: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.base,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  memberSince: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.xs,
-    color: colors.textMuted,
-    marginTop: Spacing.xs,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: Spacing.base,
-    marginTop: Spacing.lg,
-    alignSelf: 'stretch',
-    ...Shadows.card,
-  },
-  stat: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontFamily: Typography.fonts.extrabold,
-    fontSize: Typography.fontSizes.lg,
-    color: colors.textPrimary,
-  },
-  statLabel: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.xs,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  statDivider: {
-    width: StyleSheet.hairlineWidth,
-    height: 32,
-    backgroundColor: colors.borderMid,
-  },
-  section: {
-    paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.lg,
-  },
-  sectionTitle: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textMuted,
-    marginBottom: Spacing.md,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  sectionCard: {
-    backgroundColor: colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: Spacing.base,
-    ...Shadows.card,
-  },
-  menuRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.base,
-  },
-  menuBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  menuIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: Radius.sm,
-    backgroundColor: colors.accentLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-  },
-  menuLabel: {
-    flex: 1,
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.base,
-    color: colors.textPrimary,
-  },
-  langToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  langText: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.primary,
-  },
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    marginHorizontal: Spacing.lg,
-    marginTop: Spacing.xl,
-    paddingVertical: Spacing.base,
-    borderRadius: Radius.lg,
-    borderWidth: 1.5,
-    borderColor: colors.danger,
-    backgroundColor: colors.surface,
-  },
-  logoutText: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.base,
-    color: colors.danger,
-  },
-  version: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.xs,
-    color: colors.textMuted,
-    textAlign: 'center',
-    marginTop: Spacing.lg,
-  },
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: Colors.background },
+  scroll: { paddingBottom: 100 },
+  header: { paddingTop: 60, paddingHorizontal: Spacing.xl, paddingBottom: Spacing.xxxl, alignItems: 'center' },
+  headerActions: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: Spacing.lg },
+  avatarFrame: { position: 'relative' },
+  avatar: { width: 80, height: 80, borderRadius: Radius.lg, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: Colors.white },
+  avatarText: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xl, color: Colors.white },
+  tierPill: { position: 'absolute', bottom: -8, alignSelf: 'center', backgroundColor: Colors.gold, paddingHorizontal: Spacing.sm, paddingVertical: 2, borderRadius: Radius.full },
+  tierText: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xs, color: Colors.white },
+  name: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xl, color: Colors.white, marginTop: Spacing.lg },
+  email: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textMuted, marginTop: 4 },
+  statsRow: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg },
+  statItem: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: Radius.lg, paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, alignItems: 'center' },
+  statValue: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.white },
+  statLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1 },
+  premiumCard: { flexDirection: 'row', alignItems: 'center', marginHorizontal: Spacing.xl, marginTop: -Spacing.xl, borderRadius: Radius.card, padding: Spacing.base, gap: Spacing.md },
+  premiumText: { flex: 1 },
+  premiumTitle: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.white },
+  premiumSub: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: 'rgba(255,255,255,0.8)' },
+  sectionLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1, marginHorizontal: Spacing.xl, marginTop: Spacing.xl, marginBottom: Spacing.md },
+  listItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.base, marginHorizontal: Spacing.xl, marginBottom: Spacing.sm, gap: Spacing.md },
+  listIcon: { width: 40, height: 40, borderRadius: Radius.md, backgroundColor: Colors.surfaceIndigo, alignItems: 'center', justifyContent: 'center' },
+  listText: { flex: 1 },
+  listTitle: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.base, color: Colors.textPrimary },
+  listSub: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
 });

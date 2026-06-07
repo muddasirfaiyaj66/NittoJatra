@@ -40,7 +40,7 @@ export function MiniBookingCard({ booking, onPress }: MiniBookingCardProps) {
         </View>
         <View style={styles.metaItem}>
           <Ionicons name="ticket-outline" size={14} color={colors.textMuted} />
-          <Text style={styles.metaText}>{booking.seats.join(', ')}</Text>
+          <Text style={styles.metaText}>{booking.seatCount} seat{booking.seatCount > 1 ? 's' : ''}</Text>
         </View>
       </View>
     </Pressable>

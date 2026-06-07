@@ -1,385 +1,175 @@
 import { Ionicons } from '@expo/vector-icons';
-import { FlashList } from '@shopify/flash-list';
-import { format } from 'date-fns';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MiniBookingCard } from '@/components/home/MiniBookingCard';
-import { QuickAction, QuickActionChip } from '@/components/home/QuickActionChip';
-import { RouteCard } from '@/components/home/RouteCard';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { Button, Input } from '@/components/ui';
-import { MOCK_ROUTES } from '@/constants/mock-data';
-import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { getGreeting } from '@/hooks/useGreeting';
+import { DarkHeader } from '@/components/shared/DarkHeader';
+import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { MOCK_BOOKINGS } from '@/constants/mock-data';
 import { useAuth } from '@/hooks/useAuth';
-import { useBookings } from '@/hooks/useBookings';
-import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
-import { RouteItem } from '@/types';
 
-export { ErrorBoundary } from '@/components/shared/RouteError';
-
-const QUICK_ACTIONS: QuickAction[] = [
-  { id: 'bus', emoji: '🚌', label: 'Bus' },
-  { id: 'train', emoji: '🚂', label: 'Train' },
-  { id: 'minibus', emoji: '🚐', label: 'Minibus' },
-  { id: 'car', emoji: '🚗', label: 'Car' },
-  { id: 'women', emoji: '👩', label: 'Women Only' },
-  { id: 'express', emoji: '⚡', label: 'Express' },
+const STATS = [
+  { label: 'Total Rides', value: '45', icon: 'car', color: '#EEF2FF' },
+  { label: 'Savings', value: formatTaka(3240), icon: 'wallet', color: '#ECFDF5' },
+  { label: 'CO₂ Saved', value: '125.5kg', icon: 'leaf', color: '#F0FDF4' },
+  { label: 'Active Plans', value: '2', icon: 'calendar', color: '#FDF4FF' },
 ];
 
 export default function HomeScreen() {
   const { user } = useAuth();
-  const { colors } = useTheme();
-  const styles = useThemedStyles(makeStyles);
-  const greeting = useMemo(() => getGreeting(), []);
-  const now = useMemo(() => new Date(), []);
-
-  const [from, setFrom] = useState('Mirpur');
-  const [to, setTo] = useState('Motijheel');
-  const [activeAction, setActiveAction] = useState('bus');
-  const [refreshing, setRefreshing] = useState(false);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 900);
-  }, []);
-
-  const firstName = (user?.name ?? 'Traveller').split(' ')[0];
-  const { bookings: upcoming } = useBookings('upcoming');
-
-  const handleSwap = () => {
-    setFrom(to);
-    setTo(from);
-  };
-
-  const goToSearch = () => router.push('/(tabs)/search');
-  const handleBookRoute = (route: RouteItem) => router.push(`/ride/${route.id}`);
+  const upcoming = MOCK_BOOKINGS.filter((b) => b.status === 'ongoing' || b.status === 'upcoming');
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.greeting}>
-              {greeting.bn}, {firstName}! {greeting.emoji}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Current location Dhaka"
-              style={styles.locationPill}
-            >
-              <Ionicons name="location" size={14} color={colors.primary} />
-              <Text style={styles.locationText}>Dhaka</Text>
-              <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
+    <View style={styles.root}>
+      <DarkHeader>
+        <View style={styles.headerRow}>
+          <View style={styles.greetingPill}>
+            <Text style={styles.greetingText}>GOOD EVENING</Text>
+          </View>
+          <View style={styles.headerActions}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Messages" onPress={() => router.push('/messages')} style={styles.iconBtn}>
+              <Ionicons name="chatbubble-outline" size={20} color={Colors.white} />
+            </Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel="Notifications" onPress={() => router.push('/notifications')} style={styles.iconBtn}>
+              <Ionicons name="notifications-outline" size={20} color={Colors.white} />
             </Pressable>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Notifications, 2 unread"
-            style={styles.bell}
-          >
-            <Ionicons name="notifications-outline" size={22} color={colors.textPrimary} />
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>2</Text>
+        </View>
+        <Text style={styles.headline}>
+          Where to <Text style={styles.headlineAccent}>today?</Text>
+        </Text>
+      </DarkHeader>
+
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Search for rides" onPress={() => router.push('/(tabs)/search')} style={styles.searchBar}>
+          <Ionicons name="location" size={20} color={Colors.primary} />
+          <View style={styles.searchText}>
+            <Text style={styles.searchOverline}>CURRENT LOCATION</Text>
+            <Text style={styles.searchValue}>Shahbag, Dhaka</Text>
+          </View>
+          <LinearGradient colors={[...Gradients.ctaPrimary]} style={styles.findBtn}>
+            <Text style={styles.findBtnText}>Find Ride</Text>
+          </LinearGradient>
+        </Pressable>
+
+        <View style={styles.statsGrid}>
+          {STATS.map((s) => (
+            <View key={s.label} style={[styles.statCard, Shadows.card]}>
+              <View style={[styles.statIcon, { backgroundColor: s.color }]}>
+                <Ionicons name={s.icon as keyof typeof Ionicons.glyphMap} size={18} color={Colors.primary} />
+              </View>
+              <Text style={styles.statValue}>{s.value}</Text>
+              <Text style={styles.statLabel}>{s.label.toUpperCase()}</Text>
             </View>
-          </Pressable>
-        </View>
-
-        {/* Search card */}
-        <View style={styles.searchCard}>
-          <View style={styles.searchInputs}>
-            <Input
-              value={from}
-              onChangeText={setFrom}
-              placeholder="From"
-              containerStyle={styles.searchField}
-              leftIcon={<Ionicons name="radio-button-on" size={18} color={colors.primary} />}
-            />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Swap locations"
-              onPress={handleSwap}
-              style={styles.swapBtn}
-            >
-              <Ionicons name="swap-vertical" size={18} color={colors.white} />
-            </Pressable>
-            <Input
-              value={to}
-              onChangeText={setTo}
-              placeholder="To"
-              containerStyle={styles.searchField}
-              leftIcon={<Ionicons name="location" size={18} color={colors.accent} />}
-            />
-          </View>
-
-          <View style={styles.dateTimeRow}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Select date"
-              style={styles.dateTimePill}
-            >
-              <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
-              <Text style={styles.dateTimeText}>{format(now, 'EEE, dd MMM')}</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Select time"
-              style={styles.dateTimePill}
-            >
-              <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
-              <Text style={styles.dateTimeText}>{format(now, 'hh:mm a')}</Text>
-            </Pressable>
-          </View>
-
-          <Button title="Search Rides" size="lg" onPress={goToSearch} style={styles.searchBtn} />
-        </View>
-
-        {/* Quick actions */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsRow}
-        >
-          {QUICK_ACTIONS.map((action) => (
-            <QuickActionChip
-              key={action.id}
-              action={action}
-              active={activeAction === action.id}
-              onPress={(a) => setActiveAction(a.id)}
-            />
           ))}
-        </ScrollView>
+        </View>
 
-        {/* Popular routes */}
+        <LinearGradient colors={[Colors.primary, Colors.primaryDeep]} style={styles.premiumCard}>
+          <View style={styles.premiumPill}>
+            <Text style={styles.premiumPillText}>Monthly Premium</Text>
+          </View>
+          <Text style={styles.premiumTitle}>Office Route</Text>
+          <Text style={styles.premiumRoute}>Shahbag → Motijheel</Text>
+          <View style={styles.usageRow}>
+            <View style={styles.usageLeft}>
+              <Text style={styles.usageLabel}>USAGE</Text>
+              <Text style={styles.usageValue}>8 / 20 RIDES</Text>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: '40%' }]} />
+              </View>
+            </View>
+            <View style={styles.ring}>
+              <Text style={styles.ringText}>40%</Text>
+            </View>
+          </View>
+        </LinearGradient>
+
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Popular Routes</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="See all routes" onPress={goToSearch}>
-            <Text style={styles.seeAll}>See all</Text>
+          <Text style={styles.sectionTitle}>On Schedule</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="View all schedules" onPress={() => router.push('/(tabs)/my-rides')}>
+            <Text style={styles.viewAll}>VIEW ALL</Text>
           </Pressable>
         </View>
-        <View style={styles.routesList}>
-          <FlashList
-            data={MOCK_ROUTES}
-            horizontal
-            keyExtractor={(item) => item.id}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item, index }) => (
-              <RouteCard route={item} index={index} onBook={handleBookRoute} />
-            )}
-            ItemSeparatorComponent={() => <View style={styles.hGap} />}
-            contentContainerStyle={styles.routesContent}
-          />
-        </View>
 
-        {/* Upcoming bookings */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Trips</Text>
-          {upcoming.length > 0 ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="See all bookings"
-              onPress={() => router.push('/(tabs)/bookings')}
-            >
-              <Text style={styles.seeAll}>See all</Text>
-            </Pressable>
-          ) : null}
-        </View>
-
-        {upcoming.length > 0 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.bookingsRow}
-          >
-            {upcoming.map((booking) => (
-              <MiniBookingCard
-                key={booking.id}
-                booking={booking}
-                onPress={() => router.push('/(tabs)/bookings')}
-              />
-            ))}
-          </ScrollView>
-        ) : (
-          <EmptyState
-            compact
-            icon="bus-outline"
-            title="No upcoming trips"
-            message="Search and book a ride to see it here."
-          />
-        )}
+        {upcoming.map((b) => (
+          <View key={b.id} style={[styles.rideCard, Shadows.card]}>
+            <View style={styles.rideHeader}>
+              <LinearGradient colors={[...Gradients.avatar]} style={styles.avatar}>
+                <Text style={styles.avatarText}>K</Text>
+              </LinearGradient>
+              <View style={styles.rideInfo}>
+                <Text style={styles.driverName}>{b.operator}</Text>
+                <Text style={styles.carModel}>Toyota Corolla • ★ 4.9</Text>
+              </View>
+            </View>
+            <View style={styles.routeRow}>
+              <View style={styles.routeDot} />
+              <Text style={styles.routeText}>{b.route.from}</Text>
+              <Ionicons name="arrow-forward" size={14} color={Colors.textMuted} />
+              <Text style={styles.routeText}>{b.route.to}</Text>
+            </View>
+            <View style={styles.rideFooter}>
+              <Text style={styles.arriving}>Arriving in 2h 30m</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel="Track live" onPress={() => router.push('/ride/live-tracking')} style={styles.trackBtn}>
+                <Text style={styles.trackText}>TRACK LIVE</Text>
+              </Pressable>
+            </View>
+          </View>
+        ))}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const makeStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scroll: {
-    paddingBottom: Spacing.section,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.base,
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  greeting: {
-    fontFamily: Typography.fonts.bengaliBold,
-    fontSize: Typography.fontSizes.lg,
-    color: colors.textPrimary,
-  },
-  locationPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: Spacing.xs,
-    alignSelf: 'flex-start',
-  },
-  locationText: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textSecondary,
-  },
-  bell: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.full,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...Shadows.card,
-  },
-  badge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    minWidth: 18,
-    height: 18,
-    paddingHorizontal: 4,
-    borderRadius: 9,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: {
-    color: colors.white,
-    fontFamily: Typography.fonts.bold,
-    fontSize: 10,
-  },
-  searchCard: {
-    marginHorizontal: Spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: Spacing.base,
-    ...Shadows.card,
-  },
-  searchInputs: {
-    position: 'relative',
-    gap: Spacing.md,
-  },
-  searchField: {
-    flex: 0,
-  },
-  swapBtn: {
-    position: 'absolute',
-    right: Spacing.base,
-    top: '50%',
-    marginTop: -18,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
-    ...Shadows.float,
-  },
-  dateTimeRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginTop: Spacing.base,
-  },
-  dateTimePill: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.base,
-    borderRadius: Radius.md,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  dateTimeText: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textSecondary,
-  },
-  searchBtn: {
-    marginTop: Spacing.base,
-  },
-  chipsRow: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    gap: Spacing.md,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.base,
-  },
-  sectionTitle: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.lg,
-    color: colors.textPrimary,
-  },
-  seeAll: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.primary,
-  },
-  routesList: {
-    height: 244,
-  },
-  routesContent: {
-    paddingHorizontal: Spacing.lg,
-  },
-  hGap: {
-    width: Spacing.base,
-  },
-  bookingsRow: {
-    paddingHorizontal: Spacing.lg,
-    gap: Spacing.base,
-  },
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: Colors.background },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  greetingPill: { backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.full },
+  greetingText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.white, letterSpacing: 1 },
+  headerActions: { flexDirection: 'row', gap: Spacing.sm },
+  iconBtn: { width: 40, height: 40, borderRadius: Radius.lg, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+  headline: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xl, color: Colors.white, marginTop: Spacing.lg },
+  headlineAccent: { color: Colors.indigo400 },
+  scroll: { padding: Spacing.xl, paddingBottom: 100, gap: Spacing.base },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: Radius.full, padding: Spacing.md, gap: Spacing.md, ...Shadows.card },
+  searchText: { flex: 1 },
+  searchOverline: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1 },
+  searchValue: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.textPrimary },
+  findBtn: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, borderRadius: Radius.full },
+  findBtnText: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xs, color: Colors.white },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
+  statCard: { width: '47%', backgroundColor: Colors.surface, borderRadius: Radius.card, padding: Spacing.base },
+  statIcon: { width: 36, height: 36, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.sm },
+  statValue: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.textPrimary },
+  statLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 0.5, marginTop: 2 },
+  premiumCard: { borderRadius: Radius.card, padding: Spacing.xl },
+  premiumPill: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: Spacing.md, paddingVertical: 4, borderRadius: Radius.full, marginBottom: Spacing.sm },
+  premiumPillText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.white },
+  premiumTitle: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.white },
+  premiumRoute: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: 'rgba(255,255,255,0.8)', marginBottom: Spacing.base },
+  usageRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  usageLeft: { flex: 1 },
+  usageLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: 'rgba(255,255,255,0.6)', letterSpacing: 1 },
+  usageValue: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.sm, color: Colors.white },
+  progressTrack: { height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2, marginTop: Spacing.sm },
+  progressFill: { height: 4, backgroundColor: Colors.white, borderRadius: 2 },
+  ring: { width: 56, height: 56, borderRadius: 28, borderWidth: 3, borderColor: Colors.white, alignItems: 'center', justifyContent: 'center' },
+  ringText: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.sm, color: Colors.white },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.md },
+  sectionTitle: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.textPrimary },
+  viewAll: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.primary, letterSpacing: 1 },
+  rideCard: { backgroundColor: Colors.surface, borderRadius: Radius.card, padding: Spacing.base },
+  rideHeader: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.md },
+  avatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontFamily: Typography.fonts.black, color: Colors.white },
+  rideInfo: { flex: 1 },
+  driverName: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.textPrimary },
+  carModel: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
+  routeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.md },
+  routeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.primary },
+  routeText: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
+  rideFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  arriving: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.sm, color: Colors.accentEmerald },
+  trackBtn: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, backgroundColor: Colors.surfaceIndigo, borderRadius: Radius.md },
+  trackText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.primary, letterSpacing: 1 },
 });

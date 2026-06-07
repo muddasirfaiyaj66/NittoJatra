@@ -9,7 +9,7 @@ export interface CreateBookingInput {
   date: string;
   departureTime: string;
   arrivalTime: string;
-  seats: string[];
+  seatCount: number;
   operator: string;
   amount: number;
 }

@@ -58,10 +58,18 @@ function RootNavigator() {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <ToastProvider>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+          <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(driver)" />
           <Stack.Screen name="ride/[id]" options={{ presentation: 'card' }} />
-          <Stack.Screen name="ride/confirm" options={{ presentation: 'card' }} />
+          <Stack.Screen name="ride/results" options={{ presentation: 'card' }} />
+          <Stack.Screen name="ride/live-tracking" options={{ presentation: 'card' }} />
+          <Stack.Screen name="ride/subscription-tracker" options={{ presentation: 'card' }} />
+          <Stack.Screen name="wallet" options={{ presentation: 'card' }} />
+          <Stack.Screen name="messages" options={{ presentation: 'card' }} />
+          <Stack.Screen name="notifications" options={{ presentation: 'card' }} />
+          <Stack.Screen name="modals" options={{ presentation: 'modal' }} />
         </Stack>
       </ToastProvider>
     </NavThemeProvider>

@@ -1,279 +1,111 @@
 import { Ionicons } from '@expo/vector-icons';
-import { FlashList } from '@shopify/flash-list';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { RideResultCard } from '@/components/booking/RideResultCard';
-import { DEFAULT_FILTERS, FilterSheet, SearchFilters } from '@/components/search/FilterSheet';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { RideCardSkeleton } from '@/components/shared/Skeleton';
-import { Button } from '@/components/ui';
-import { MOCK_SEARCH_RESULTS } from '@/constants/mock-data';
-import { Radius, Spacing, Typography } from '@/constants/theme';
-import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
-import { SearchResult } from '@/types';
+import { GradientButton } from '@/components/ui';
+import { Colors, Gradients, Radius, Spacing, Typography } from '@/constants/theme';
+import { RECENT_PLACES } from '@/constants/mock-data';
 
-export { ErrorBoundary } from '@/components/shared/RouteError';
+export default function FindScreen() {
+  const [from, setFrom] = useState('Shahbag, Dhaka');
+  const [to, setTo] = useState('');
 
-type SortKey = 'price' | 'departure' | 'duration';
-
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: 'price', label: 'Price' },
-  { key: 'departure', label: 'Departure' },
-  { key: 'duration', label: 'Duration' },
-];
-
-const parseMinutes = (duration: string) => parseInt(duration.replace(/\D/g, ''), 10) || 0;
-const departureHour = (time: string) => parseInt(time.split(':')[0], 10) || 0;
-
-function matchesFilters(result: SearchResult, filters: SearchFilters): boolean {
-  if (filters.ac === 'ac' && result.type !== 'AC') return false;
-  if (filters.ac === 'nonac' && result.type !== 'Non-AC') return false;
-  if (filters.gender === 'women' && result.type !== 'Women Special') return false;
-  if (filters.departure !== 'any') {
-    const hour = departureHour(result.departure);
-    const ranges: Record<string, [number, number]> = {
-      morning: [5, 12],
-      afternoon: [12, 17],
-      evening: [17, 21],
-      night: [21, 29],
-    };
-    const [start, end] = ranges[filters.departure];
-    const normalized = hour < 5 ? hour + 24 : hour;
-    if (normalized < start || normalized >= end) return false;
-  }
-  return true;
-}
-
-export default function SearchScreen() {
-  const { colors } = useTheme();
-  const styles = useThemedStyles(makeStyles);
-  const [loading, setLoading] = useState(true);
-  const [sort, setSort] = useState<SortKey>('departure');
-  const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
-  const [filterVisible, setFilterVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const results = useMemo(() => {
-    const filtered = MOCK_SEARCH_RESULTS.filter((r) => matchesFilters(r, filters));
-    const sorted = [...filtered].sort((a, b) => {
-      switch (sort) {
-        case 'price':
-          return a.price - b.price;
-        case 'duration':
-          return parseMinutes(a.duration) - parseMinutes(b.duration);
-        case 'departure':
-        default:
-          return departureHour(a.departure) - departureHour(b.departure);
-      }
-    });
-    return sorted;
-  }, [filters, sort]);
-
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (filters.ac !== 'all') count++;
-    if (filters.gender !== 'all') count++;
-    if (filters.departure !== 'any') count++;
-    if (filters.seatClass !== 'economy') count++;
-    return count;
-  }, [filters]);
-
-  const handleBook = (result: SearchResult) => router.push(`/ride/${result.id}`);
-  const handleDetails = (result: SearchResult) => router.push(`/ride/${result.id}`);
+  const search = () => {
+    router.push({ pathname: '/ride/results', params: { from, to: to || 'Motijheel' } });
+  };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.routeHeader}>
-          <Text style={styles.routeTitle}>Mirpur</Text>
-          <Ionicons name="arrow-forward" size={16} color={colors.textMuted} />
-          <Text style={styles.routeTitle}>Motijheel</Text>
-        </View>
-        <Text style={styles.resultCount}>
-          {loading ? 'Searching…' : `${results.length} rides found`}
-        </Text>
-      </View>
+    <View style={styles.root}>
+      <LinearGradient colors={[...Gradients.navyHeader]} style={styles.mapHeader}>
+        <SafeAreaView edges={['top']}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.back}>
+            <Ionicons name="arrow-back" size={22} color={Colors.white} />
+          </Pressable>
+          <View style={styles.mapPlaceholder}>
+            <Ionicons name="map" size={48} color="rgba(255,255,255,0.3)" />
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
 
-      {/* Sort + filter bar */}
-      <View style={styles.filterBar}>
-        <View style={styles.sortRow}>
-          {SORTS.map((s) => {
-            const active = sort === s.key;
-            return (
-              <Pressable
-                key={s.key}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                accessibilityLabel={`Sort by ${s.label}`}
-                onPress={() => setSort(s.key)}
-                style={[styles.sortItem, active && styles.sortItemActive]}
-              >
-                <Text style={[styles.sortText, active && styles.sortTextActive]}>{s.label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open filters"
-          onPress={() => setFilterVisible(true)}
-          style={styles.filterBtn}
-        >
-          <Ionicons name="options-outline" size={20} color={colors.primary} />
-          {activeFilterCount > 0 ? (
-            <View style={styles.filterCount}>
-              <Text style={styles.filterCountText}>{activeFilterCount}</Text>
+      <View style={styles.sheet}>
+        <View style={styles.handle} />
+        <Text style={styles.title}>Where do you want to go?</Text>
+
+        <View style={styles.routeGroup}>
+          <View style={styles.routeRow}>
+            <View style={styles.hollowDot} />
+            <View style={styles.routeInput}>
+              <Text style={styles.routeLabel}>FROM</Text>
+              <TextInput accessibilityLabel="From location" value={from} onChangeText={setFrom} style={styles.input} />
             </View>
-          ) : null}
-        </Pressable>
-      </View>
-
-      {/* Results */}
-      {loading ? (
-        <View style={styles.listContent}>
-          {[0, 1, 2, 3].map((i) => (
-            <RideCardSkeleton key={i} />
-          ))}
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.routeRow}>
+            <View style={styles.filledDot} />
+            <View style={styles.routeInput}>
+              <Text style={styles.routeLabel}>TO</Text>
+              <TextInput accessibilityLabel="To location" placeholder="Enter destination" placeholderTextColor={Colors.textMuted} value={to} onChangeText={setTo} style={styles.input} />
+            </View>
+          </View>
         </View>
-      ) : results.length === 0 ? (
-        <EmptyState
-          icon="search-outline"
-          title="No rides found"
-          message="Try adjusting your filters to see more results."
-          action={
-            <Button
-              title="Reset Filters"
-              variant="outline"
-              onPress={() => setFilters(DEFAULT_FILTERS)}
-            />
-          }
-        />
-      ) : (
-        <FlashList
-          data={results}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <RideResultCard result={item} onBook={handleBook} onViewDetails={handleDetails} />
-          )}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
 
-      <FilterSheet
-        visible={filterVisible}
-        initial={filters}
-        onClose={() => setFilterVisible(false)}
-        onApply={(f) => {
-          setFilters(f);
-          setFilterVisible(false);
-        }}
-      />
-    </SafeAreaView>
+        <Text style={styles.sectionLabel}>RECENT PLACES</Text>
+        <ScrollView style={styles.recentList}>
+          {RECENT_PLACES.map((p) => (
+            <Pressable
+              key={p.id}
+              accessibilityRole="button"
+              accessibilityLabel={`${p.name}, ${p.label}`}
+              onPress={() => setTo(p.name)}
+              style={styles.recentRow}
+            >
+              <Ionicons name="time-outline" size={18} color={Colors.textMuted} />
+              <View style={styles.recentText}>
+                <Text style={styles.recentName}>{p.name}</Text>
+                <Text style={styles.recentLabel}>{p.label}</Text>
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        <GradientButton title="SEARCH AVAILABLE RIDE" onPress={search} style={styles.searchBtn} />
+      </View>
+    </View>
   );
 }
 
-const makeStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-  safe: {
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: Colors.background },
+  mapHeader: { height: 280 },
+  back: { margin: Spacing.xl, width: 40, height: 40, borderRadius: Radius.lg, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
+  mapPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  sheet: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: Radius.card,
+    borderTopRightRadius: Radius.card,
+    marginTop: -32,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.md,
+    paddingBottom: 100,
   },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.md,
-  },
-  routeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  routeTitle: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.xl,
-    color: colors.textPrimary,
-  },
-  resultCount: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  filterBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.borderMid,
-  },
-  sortRow: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: colors.border,
-    borderRadius: Radius.md,
-    padding: 4,
-  },
-  sortItem: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.sm,
-    alignItems: 'center',
-  },
-  sortItemActive: {
-    backgroundColor: colors.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sortText: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textMuted,
-  },
-  sortTextActive: {
-    color: colors.primary,
-    fontFamily: Typography.fonts.semibold,
-  },
-  filterBtn: {
-    width: 48,
-    height: 44,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.borderMid,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface,
-  },
-  filterCount: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  filterCountText: {
-    color: colors.white,
-    fontFamily: Typography.fonts.bold,
-    fontSize: 10,
-  },
-  listContent: {
-    padding: Spacing.lg,
-  },
+  handle: { width: 40, height: 4, backgroundColor: Colors.borderMid, borderRadius: 2, alignSelf: 'center', marginBottom: Spacing.base },
+  title: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.textPrimary, marginBottom: Spacing.lg },
+  routeGroup: { backgroundColor: Colors.surfaceMuted, borderRadius: Radius.lg, padding: Spacing.base, marginBottom: Spacing.lg },
+  routeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  hollowDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: Colors.primary },
+  filledDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.primaryAlt },
+  routeInput: { flex: 1 },
+  routeLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1 },
+  input: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.textPrimary, paddingVertical: 4 },
+  divider: { height: 1, backgroundColor: Colors.borderMid, marginVertical: Spacing.md, marginLeft: 28 },
+  sectionLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1, marginBottom: Spacing.md },
+  recentList: { flex: 1 },
+  recentRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md },
+  recentText: { flex: 1 },
+  recentName: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.base, color: Colors.textPrimary },
+  recentLabel: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
+  searchBtn: { marginTop: Spacing.base },
 });

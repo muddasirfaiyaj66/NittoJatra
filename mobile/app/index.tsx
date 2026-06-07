@@ -1,10 +1,11 @@
 import { Redirect } from 'expo-router';
+import { ROUTES } from '@/constants/routes';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
 export default function Index() {
-  const { isAuthenticated, hasHydrated } = useAuth();
+  const { isAuthenticated, hasHydrated, role } = useAuth();
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
@@ -16,7 +17,11 @@ export default function Index() {
     );
   }
 
-  return <Redirect href={isAuthenticated ? '/(tabs)' : '/(auth)/welcome'} />;
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/welcome" />;
+  }
+
+  return <Redirect href={role === 'driver' ? ROUTES.driverTabs : ROUTES.riderTabs} />;
 }
 
 const makeStyles = (colors: ThemeColors) =>

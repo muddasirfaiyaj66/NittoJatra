@@ -1,466 +1,209 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { generateSeats, SeatMap } from '@/components/booking/SeatMap';
-import { Badge, serviceTypeToBadge } from '@/components/ui';
-import { getOperatorById, MOCK_SEARCH_RESULTS } from '@/constants/mock-data';
-import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { haptics } from '@/hooks/useHaptics';
-import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
-
-const CONVENIENCE_FEE = 5;
-const MAX_SEATS = 2;
-
-const AMENITIES = [
-  { icon: 'snow-outline', label: 'AC' },
-  { icon: 'wifi-outline', label: 'WiFi' },
-  { icon: 'battery-charging-outline', label: 'Charging' },
-  { icon: 'film-outline', label: 'Movies' },
-] as const;
+import { GradientButton } from '@/components/ui';
+import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { getOperatorById, getRideDetail } from '@/constants/mock-data';
+import { usePaymentStore } from '@/store/payment.store';
 
 export default function RideDetailScreen() {
-  const { colors } = useTheme();
-  const styles = useThemedStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const rideId = id ?? 'r1';
+  const detail = useMemo(() => getRideDetail(rideId), [rideId]);
+  const operator = getOperatorById(detail.operatorId);
+  const [selectedPlan, setSelectedPlan] = useState(detail.subscriptionPlans.find((p) => p.selected)?.id ?? 'sp2');
+  const { setTotal, setRideId, reset } = usePaymentStore();
 
-  const result = useMemo(
-    () => MOCK_SEARCH_RESULTS.find((r) => r.id === rideId) ?? MOCK_SEARCH_RESULTS[0],
-    [rideId],
-  );
-  const operator = getOperatorById(result.operatorId);
-  const seats = useMemo(() => generateSeats(result.id), [result.id]);
-  const [selected, setSelected] = useState<string[]>([]);
+  const selectedPlanData = detail.subscriptionPlans.find((p) => p.id === selectedPlan);
+  const bookPrice = selectedPlanData?.price ?? detail.price;
 
-  const toggleSeat = (seatId: string) => {
-    haptics.selection();
-    setSelected((prev) => {
-      if (prev.includes(seatId)) return prev.filter((s) => s !== seatId);
-      if (prev.length >= MAX_SEATS) return [prev[prev.length - 1], seatId];
-      return [...prev, seatId];
-    });
-  };
-
-  const subtotal = selected.length * result.price;
-  const total = selected.length > 0 ? subtotal + CONVENIENCE_FEE : 0;
-
-  const handleConfirm = () => {
-    if (selected.length === 0) return;
-    router.push({
-      pathname: '/ride/confirm',
-      params: {
-        rideId: result.id,
-        seats: selected.join(','),
-        total: String(total),
-        subtotal: String(subtotal),
-        fee: String(CONVENIENCE_FEE),
-      },
-    });
+  const handleBook = () => {
+    reset();
+    setRideId(rideId);
+    setTotal(bookPrice);
+    router.push('/modals/payment-method');
   };
 
   return (
     <View style={styles.root}>
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.navBar}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            onPress={() => router.back()}
-            style={styles.iconBtn}
-          >
-            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+      <LinearGradient colors={[...Gradients.navyHeader]} style={styles.mapArea}>
+        <SafeAreaView edges={['top']} style={styles.mapNav}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.iconBtn}>
+            <Ionicons name="arrow-back" size={22} color={Colors.white} />
           </Pressable>
-          <Text style={styles.navTitle}>Ride Details</Text>
-          <View style={styles.iconBtn} />
+          <View style={styles.mapActions}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Favorite" style={styles.iconBtn}>
+              <Ionicons name="heart-outline" size={22} color={Colors.white} />
+            </Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel="Share" style={styles.iconBtn}>
+              <Ionicons name="share-outline" size={22} color={Colors.white} />
+            </Pressable>
+          </View>
+        </SafeAreaView>
+        <View style={styles.badges}>
+          <View style={styles.badgeIndigo}><Text style={styles.badgeText}>{detail.badge}</Text></View>
+          <View style={styles.badgeDark}><Text style={styles.badgeTextDark}>{detail.slot}</Text></View>
+          {detail.womenOnly && (
+            <View style={styles.badgePink}><Text style={styles.badgeTextPink}>WOMEN ONLY</Text></View>
+          )}
+        </View>
+      </LinearGradient>
+
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={[styles.detailCard, Shadows.card]}>
+          <View style={styles.priceRow}>
+            <Text style={styles.routeName}>{detail.routeName}</Text>
+            <View>
+              <Text style={styles.price}>{formatTaka(detail.price)}</Text>
+              <Text style={styles.perTrip}>PER TRIP</Text>
+            </View>
+          </View>
+          <Text style={styles.timeRow}>🕐 {detail.departure} – {detail.arrival} • {detail.duration}</Text>
+          <View style={styles.chips}>
+            <View style={styles.chip}><Text style={styles.chipText}>{detail.seatsAvailable} Left</Text></View>
+            <View style={styles.chip}><Text style={styles.chipText}>{detail.distance}</Text></View>
+            <View style={[styles.chip, styles.chipVerified]}><Ionicons name="checkmark-circle" size={14} color={Colors.accentEmerald} /><Text style={styles.chipVerifiedText}>Verified</Text></View>
+          </View>
+
+          <Text style={styles.sectionTitle}>Route Timeline</Text>
+          {detail.stops.map((stop, i) => (
+            <View key={stop.name} style={styles.stopRow}>
+              <View style={styles.timeline}>
+                <View style={[styles.stopDot, i === detail.stops.length - 1 && styles.stopDotEnd]} />
+                {i < detail.stops.length - 1 && <View style={styles.stopLine} />}
+              </View>
+              <View style={styles.stopInfo}>
+                <Text style={styles.stopName}>{stop.name}</Text>
+                <Text style={styles.stopLabel}>{stop.label} — {stop.time}</Text>
+              </View>
+            </View>
+          ))}
         </View>
 
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          {/* Hero */}
-          <View style={styles.hero}>
-            <View style={[styles.logo, { backgroundColor: operator?.color ?? colors.primary }]}>
-              <Text style={styles.logoText}>{operator?.name.charAt(0) ?? 'N'}</Text>
-            </View>
-            <View style={styles.flex}>
-              <Text style={styles.operatorName}>{operator?.name}</Text>
-              <View style={styles.heroMeta}>
-                <Badge label={result.type} variant={serviceTypeToBadge(result.type)} small />
-                <View style={styles.ratingRow}>
-                  <Ionicons name="star" size={13} color={colors.warning} />
-                  <Text style={styles.ratingText}>{result.rating.toFixed(1)}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Journey card */}
-          <View style={styles.card}>
-            <View style={styles.journeyRow}>
-              <View>
-                <Text style={styles.time}>{result.departure}</Text>
-                <Text style={styles.city}>{result.from}</Text>
-              </View>
-              <View style={styles.journeyMid}>
-                <Text style={styles.duration}>{result.duration}</Text>
-                <View style={styles.dashLine} />
-                <Ionicons name="bus" size={16} color={colors.primary} />
-              </View>
-              <View style={styles.alignEnd}>
-                <Text style={styles.time}>{result.arrival}</Text>
-                <Text style={styles.city}>{result.to}</Text>
-              </View>
-            </View>
-            <View style={styles.dateRow}>
-              <Ionicons name="calendar-outline" size={14} color={colors.textMuted} />
-              <Text style={styles.dateText}>Today, departs {result.departure}</Text>
-            </View>
-          </View>
-
-          {/* Amenities */}
-          <Text style={styles.sectionTitle}>Amenities</Text>
-          <View style={styles.amenitiesRow}>
-            {AMENITIES.map((a) => (
-              <View key={a.label} style={styles.amenity}>
-                <View style={styles.amenityIcon}>
-                  <Ionicons name={a.icon} size={20} color={colors.primary} />
-                </View>
-                <Text style={styles.amenityLabel}>{a.label}</Text>
+        <View style={[styles.facilitiesCard, Shadows.card]}>
+          <Text style={styles.sectionTitle}>Ride Facilities</Text>
+          <View style={styles.facilityRow}>
+            {detail.facilities.map((f) => (
+              <View key={f} style={styles.facilityChip}>
+                <Ionicons name="checkmark-circle" size={14} color={Colors.accentEmerald} />
+                <Text style={styles.facilityText}>{f}</Text>
               </View>
             ))}
           </View>
+        </View>
 
-          {/* Seat map */}
-          <Text style={styles.sectionTitle}>Select Seats</Text>
-          <Text style={styles.sectionHint}>Choose up to {MAX_SEATS} seats</Text>
-          <View style={styles.card}>
-            <SeatMap seats={seats} selected={selected} onToggle={toggleSeat} />
-          </View>
-
-          {/* Selected list */}
-          {selected.length > 0 ? (
-            <View style={styles.selectedRow}>
-              <Text style={styles.selectedLabel}>Selected:</Text>
-              {selected.map((s) => (
-                <View key={s} style={styles.selectedChip}>
-                  <Text style={styles.selectedChipText}>{s}</Text>
-                </View>
-              ))}
-            </View>
-          ) : null}
-
-          {/* Price summary */}
-          <View style={styles.card}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>
-                {selected.length} seat{selected.length === 1 ? '' : 's'} × ৳{result.price}
-              </Text>
-              <Text style={styles.summaryValue}>৳ {subtotal}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Convenience fee</Text>
-              <Text style={styles.summaryValue}>৳ {selected.length > 0 ? CONVENIENCE_FEE : 0}</Text>
-            </View>
-            <View style={styles.summaryDivider} />
-            <View style={styles.summaryRow}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>৳ {total}</Text>
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-
-      {/* Sticky bottom bar */}
-      <SafeAreaView style={styles.bottomBar} edges={['bottom']}>
-        <View style={styles.bottomContent}>
-          <View>
-            <Text style={styles.bottomLabel}>Total</Text>
-            <Text style={styles.bottomTotal}>৳ {total}</Text>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Confirm booking"
-            accessibilityState={{ disabled: selected.length === 0 }}
-            disabled={selected.length === 0}
-            onPress={handleConfirm}
-            style={({ pressed }) => [
-              styles.confirmBtn,
-              selected.length === 0 && styles.confirmDisabled,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Text style={styles.confirmText}>CONFIRM BOOKING</Text>
-            <Ionicons name="arrow-forward" size={18} color={colors.white} />
+        <View style={styles.actionRow}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Chat driver" style={styles.darkBtn}>
+            <Ionicons name="chatbubble-outline" size={18} color={Colors.white} />
+            <Text style={styles.darkBtnText}>Chat</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Call driver" style={styles.darkBtn}>
+            <Ionicons name="call-outline" size={18} color={Colors.white} />
+            <Text style={styles.darkBtnText}>Call</Text>
           </Pressable>
         </View>
-      </SafeAreaView>
+
+        {detail.reviews.length > 0 && (
+          <View style={[styles.reviewsCard, Shadows.card]}>
+            <Text style={styles.sectionTitle}>Rider Review</Text>
+            {detail.reviews.map((r) => (
+              <View key={r.id} style={styles.reviewRow}>
+                <View style={styles.reviewAvatar}><Text style={styles.reviewInitial}>{r.initial}</Text></View>
+                <View style={styles.reviewContent}>
+                  <View style={styles.reviewHeader}>
+                    <Text style={styles.reviewAuthor}>{r.author}</Text>
+                    <Text style={styles.reviewTime}>{r.timeAgo}</Text>
+                  </View>
+                  <Text style={styles.reviewStars}>{'★'.repeat(r.rating)}</Text>
+                  <Text style={styles.reviewQuote}>&ldquo;{r.quote}&rdquo;</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        <Text style={styles.sectionTitle}>Subscription Plans</Text>
+        <View style={styles.plansRow}>
+          {detail.subscriptionPlans.map((p) => (
+            <Pressable
+              key={p.id}
+              accessibilityRole="button"
+              accessibilityLabel={`${p.name} plan ${formatTaka(p.price)}`}
+              onPress={() => setSelectedPlan(p.id)}
+              style={[styles.planCard, selectedPlan === p.id && styles.planSelected]}
+            >
+              <Text style={styles.planName}>{p.name}</Text>
+              <Text style={styles.planPrice}>{formatTaka(p.price)}</Text>
+              <Text style={styles.planDiscount}>(−{p.discount}%)</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <GradientButton title="BOOK THIS RIDE" onPress={handleBook} style={styles.bookBtn} />
+      </ScrollView>
     </View>
   );
 }
 
-const makeStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  safe: {
-    flex: 1,
-  },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navTitle: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.md,
-    color: colors.textPrimary,
-  },
-  scroll: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.section,
-  },
-  hero: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.base,
-    marginBottom: Spacing.lg,
-  },
-  logo: {
-    width: 56,
-    height: 56,
-    borderRadius: Radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoText: {
-    color: colors.white,
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.lg,
-  },
-  flex: {
-    flex: 1,
-  },
-  operatorName: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.lg,
-    color: colors.textPrimary,
-  },
-  heroMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    marginTop: Spacing.sm,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  ratingText: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textSecondary,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: Spacing.base,
-    marginBottom: Spacing.base,
-    ...Shadows.card,
-  },
-  journeyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  journeyMid: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  duration: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.xs,
-    color: colors.textMuted,
-    marginBottom: 4,
-  },
-  dashLine: {
-    width: '70%',
-    height: 1.5,
-    backgroundColor: colors.borderMid,
-    marginBottom: Spacing.sm,
-  },
-  time: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.lg,
-    color: colors.textPrimary,
-  },
-  city: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  alignEnd: {
-    alignItems: 'flex-end',
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginTop: Spacing.base,
-    paddingTop: Spacing.base,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.borderMid,
-  },
-  dateText: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textSecondary,
-  },
-  sectionTitle: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.md,
-    color: colors.textPrimary,
-    marginTop: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  sectionHint: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textMuted,
-    marginTop: -Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  amenitiesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.base,
-  },
-  amenity: {
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  amenityIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: Radius.md,
-    backgroundColor: colors.accentLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  amenityLabel: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.xs,
-    color: colors.textSecondary,
-  },
-  selectedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-    marginBottom: Spacing.base,
-  },
-  selectedLabel: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.sm,
-    color: colors.textSecondary,
-  },
-  selectedChip: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: Radius.full,
-  },
-  selectedChipText: {
-    color: colors.white,
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.xs,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-  },
-  summaryLabel: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.base,
-    color: colors.textSecondary,
-  },
-  summaryValue: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.base,
-    color: colors.textPrimary,
-  },
-  summaryDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.borderMid,
-    marginVertical: Spacing.sm,
-  },
-  totalLabel: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.md,
-    color: colors.textPrimary,
-  },
-  totalValue: {
-    fontFamily: Typography.fonts.extrabold,
-    fontSize: Typography.fontSizes.lg,
-    color: colors.primary,
-  },
-  bottomBar: {
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    ...Shadows.float,
-  },
-  bottomContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  bottomLabel: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.xs,
-    color: colors.textMuted,
-  },
-  bottomTotal: {
-    fontFamily: Typography.fonts.extrabold,
-    fontSize: Typography.fontSizes.xl,
-    color: colors.textPrimary,
-  },
-  confirmBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    backgroundColor: colors.primary,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.base,
-    borderRadius: Radius.md,
-  },
-  confirmDisabled: {
-    backgroundColor: colors.textMuted,
-  },
-  pressed: {
-    opacity: 0.9,
-  },
-  confirmText: {
-    color: colors.white,
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.base,
-    letterSpacing: 0.5,
-  },
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: Colors.background },
+  mapArea: { height: 220 },
+  mapNav: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.sm },
+  mapActions: { flexDirection: 'row', gap: Spacing.sm },
+  iconBtn: { width: 40, height: 40, borderRadius: Radius.lg, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
+  badges: { flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.xl, marginTop: Spacing.md },
+  badgeIndigo: { backgroundColor: Colors.primary, paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.full },
+  badgeDark: { backgroundColor: Colors.darkBgNavy, paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.full },
+  badgePink: { backgroundColor: Colors.accentLight, paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.full },
+  badgeText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.white },
+  badgeTextDark: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.white },
+  badgeTextPink: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.accent },
+  scroll: { padding: Spacing.xl, paddingBottom: 40, gap: Spacing.base },
+  detailCard: { backgroundColor: Colors.surface, borderRadius: Radius.card, padding: Spacing.xl, marginTop: -Spacing.xxl },
+  priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  routeName: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.textPrimary, flex: 1 },
+  price: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xl, color: Colors.primary },
+  perTrip: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, textAlign: 'right' },
+  timeRow: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary, marginVertical: Spacing.md },
+  chips: { flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' },
+  chip: { backgroundColor: Colors.surfaceMuted, paddingHorizontal: Spacing.md, paddingVertical: 4, borderRadius: Radius.full },
+  chipText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textSecondary },
+  chipVerified: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#ECFDF5' },
+  chipVerifiedText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.accentEmerald },
+  sectionTitle: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.textPrimary, marginTop: Spacing.md, marginBottom: Spacing.sm },
+  stopRow: { flexDirection: 'row', gap: Spacing.md },
+  timeline: { alignItems: 'center', width: 16 },
+  stopDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.primary },
+  stopDotEnd: { backgroundColor: Colors.primaryAlt },
+  stopLine: { flex: 1, width: 2, backgroundColor: Colors.borderMid, minHeight: 24 },
+  stopInfo: { flex: 1, paddingBottom: Spacing.md },
+  stopName: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.base, color: Colors.textPrimary },
+  stopLabel: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
+  facilitiesCard: { backgroundColor: Colors.surface, borderRadius: Radius.card, padding: Spacing.base },
+  facilityRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  facilityChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.surfaceMuted, paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.full },
+  facilityText: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
+  actionRow: { flexDirection: 'row', gap: Spacing.md },
+  darkBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: Colors.darkBgNavy, paddingVertical: Spacing.md, borderRadius: Radius.lg },
+  darkBtnText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.sm, color: Colors.white },
+  reviewsCard: { backgroundColor: Colors.surface, borderRadius: Radius.card, padding: Spacing.base },
+  reviewRow: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.md },
+  reviewAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.surfaceIndigo, alignItems: 'center', justifyContent: 'center' },
+  reviewInitial: { fontFamily: Typography.fonts.black, color: Colors.primary },
+  reviewContent: { flex: 1 },
+  reviewHeader: { flexDirection: 'row', justifyContent: 'space-between' },
+  reviewAuthor: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.sm, color: Colors.textPrimary },
+  reviewTime: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.xs, color: Colors.textMuted },
+  reviewStars: { color: Colors.gold, fontSize: 12, marginVertical: 2 },
+  reviewQuote: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary, fontStyle: 'italic' },
+  plansRow: { flexDirection: 'row', gap: Spacing.sm },
+  planCard: { flex: 1, backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.md, borderWidth: 2, borderColor: Colors.border, alignItems: 'center' },
+  planSelected: { borderColor: Colors.primary },
+  planName: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.sm, color: Colors.textPrimary },
+  planPrice: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.primary, marginVertical: 4 },
+  planDiscount: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.xs, color: Colors.accentEmerald },
+  bookBtn: { marginTop: Spacing.md },
 });
