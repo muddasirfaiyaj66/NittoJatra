@@ -1,8 +1,10 @@
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { Colors, Spacing, Typography } from '@/constants/theme';
+import { Spacing, Typography } from '@/constants/theme';
+import { ThemeColors, useThemedStyles } from '@/theme/ThemeContext';
 
 export default function NotFoundScreen() {
+  const styles = useThemedStyles(makeStyles);
   return (
     <>
       <Stack.Screen options={{ title: 'Oops!' }} />
@@ -16,26 +18,27 @@ export default function NotFoundScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.lg,
-    backgroundColor: Colors.background,
-  },
-  title: {
-    fontSize: Typography.fontSizes.lg,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-  },
-  link: {
-    marginTop: Spacing.base,
-    paddingVertical: Spacing.base,
-  },
-  linkText: {
-    color: Colors.primary,
-    fontSize: Typography.fontSizes.base,
-    fontWeight: '600',
-  },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: Spacing.lg,
+      backgroundColor: colors.background,
+    },
+    title: {
+      fontSize: Typography.fontSizes.lg,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    link: {
+      marginTop: Spacing.base,
+      paddingVertical: Spacing.base,
+    },
+    linkText: {
+      color: colors.primary,
+      fontSize: Typography.fontSizes.base,
+      fontWeight: '600',
+    },
+  });

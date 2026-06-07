@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ComponentProps, ReactNode } from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
 interface EmptyStateProps {
   icon?: ComponentProps<typeof Ionicons>['name'];
@@ -20,10 +21,12 @@ export function EmptyState({
   style,
   compact = false,
 }: EmptyStateProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={[styles.container, compact && styles.compact, style]}>
       <View style={styles.iconWrap}>
-        <Ionicons name={icon} size={compact ? 28 : 40} color={Colors.primary} />
+        <Ionicons name={icon} size={compact ? 28 : 40} color={colors.primary} />
       </View>
       <Text style={styles.title}>{title}</Text>
       {message ? <Text style={styles.message}>{message}</Text> : null}
@@ -32,41 +35,42 @@ export function EmptyState({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.section,
-    paddingHorizontal: Spacing.lg,
-  },
-  compact: {
-    paddingVertical: Spacing.xl,
-  },
-  iconWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.accentLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.base,
-  },
-  title: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.md,
-    color: Colors.textPrimary,
-    textAlign: 'center',
-  },
-  message: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.textMuted,
-    textAlign: 'center',
-    marginTop: Spacing.xs,
-    maxWidth: 260,
-  },
-  action: {
-    marginTop: Spacing.lg,
-    alignSelf: 'stretch',
-  },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: Spacing.section,
+      paddingHorizontal: Spacing.lg,
+    },
+    compact: {
+      paddingVertical: Spacing.xl,
+    },
+    iconWrap: {
+      width: 80,
+      height: 80,
+      borderRadius: Radius.full,
+      backgroundColor: colors.accentLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: Spacing.base,
+    },
+    title: {
+      fontFamily: Typography.fonts.semibold,
+      fontSize: Typography.fontSizes.md,
+      color: colors.textPrimary,
+      textAlign: 'center',
+    },
+    message: {
+      fontFamily: Typography.fonts.regular,
+      fontSize: Typography.fontSizes.sm,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginTop: Spacing.xs,
+      maxWidth: 260,
+    },
+    action: {
+      marginTop: Spacing.lg,
+      alignSelf: 'stretch',
+    },
+  });

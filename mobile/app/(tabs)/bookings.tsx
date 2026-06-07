@@ -1,12 +1,15 @@
 import { FlashList } from '@shopify/flash-list';
-import { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BookingCard } from '@/components/booking/BookingCard';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
 import { useBookings } from '@/hooks/useBookings';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { Booking, BookingStatus } from '@/types';
+
+export { ErrorBoundary } from '@/components/shared/RouteError';
 
 const TABS: { key: BookingStatus; label: string }[] = [
   { key: 'upcoming', label: 'Upcoming' },
@@ -21,8 +24,16 @@ const EMPTY_COPY: Record<BookingStatus, { title: string; message: string }> = {
 };
 
 export default function BookingsScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [tab, setTab] = useState<BookingStatus>('upcoming');
+  const [refreshing, setRefreshing] = useState(false);
   const { allBookings, cancelBooking } = useBookings();
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 900);
+  }, []);
 
   const filtered = useMemo(
     () => allBookings.filter((b) => b.status === tab),
@@ -90,16 +101,25 @@ export default function BookingsScreen() {
           )}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
         />
       )}
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: Spacing.lg,
@@ -109,12 +129,12 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.xxl,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   tabs: {
     flexDirection: 'row',
     marginHorizontal: Spacing.lg,
-    backgroundColor: Colors.border,
+    backgroundColor: colors.border,
     borderRadius: Radius.md,
     padding: 4,
     marginBottom: Spacing.base,
@@ -126,7 +146,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabActive: {
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -136,10 +156,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textMuted,
+    color: colors.textMuted,
   },
   tabTextActive: {
-    color: Colors.primary,
+    color: colors.primary,
     fontFamily: Typography.fonts.semibold,
   },
   list: {

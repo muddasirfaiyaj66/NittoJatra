@@ -6,7 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { generateSeats, SeatMap } from '@/components/booking/SeatMap';
 import { Badge, serviceTypeToBadge } from '@/components/ui';
 import { getOperatorById, MOCK_SEARCH_RESULTS } from '@/constants/mock-data';
-import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { haptics } from '@/hooks/useHaptics';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
 const CONVENIENCE_FEE = 5;
 const MAX_SEATS = 2;
@@ -19,6 +21,8 @@ const AMENITIES = [
 ] as const;
 
 export default function RideDetailScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const rideId = id ?? 'r1';
 
@@ -31,6 +35,7 @@ export default function RideDetailScreen() {
   const [selected, setSelected] = useState<string[]>([]);
 
   const toggleSeat = (seatId: string) => {
+    haptics.selection();
     setSelected((prev) => {
       if (prev.includes(seatId)) return prev.filter((s) => s !== seatId);
       if (prev.length >= MAX_SEATS) return [prev[prev.length - 1], seatId];
@@ -65,7 +70,7 @@ export default function RideDetailScreen() {
             onPress={() => router.back()}
             style={styles.iconBtn}
           >
-            <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </Pressable>
           <Text style={styles.navTitle}>Ride Details</Text>
           <View style={styles.iconBtn} />
@@ -74,7 +79,7 @@ export default function RideDetailScreen() {
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {/* Hero */}
           <View style={styles.hero}>
-            <View style={[styles.logo, { backgroundColor: operator?.color ?? Colors.primary }]}>
+            <View style={[styles.logo, { backgroundColor: operator?.color ?? colors.primary }]}>
               <Text style={styles.logoText}>{operator?.name.charAt(0) ?? 'N'}</Text>
             </View>
             <View style={styles.flex}>
@@ -82,7 +87,7 @@ export default function RideDetailScreen() {
               <View style={styles.heroMeta}>
                 <Badge label={result.type} variant={serviceTypeToBadge(result.type)} small />
                 <View style={styles.ratingRow}>
-                  <Ionicons name="star" size={13} color={Colors.warning} />
+                  <Ionicons name="star" size={13} color={colors.warning} />
                   <Text style={styles.ratingText}>{result.rating.toFixed(1)}</Text>
                 </View>
               </View>
@@ -99,7 +104,7 @@ export default function RideDetailScreen() {
               <View style={styles.journeyMid}>
                 <Text style={styles.duration}>{result.duration}</Text>
                 <View style={styles.dashLine} />
-                <Ionicons name="bus" size={16} color={Colors.primary} />
+                <Ionicons name="bus" size={16} color={colors.primary} />
               </View>
               <View style={styles.alignEnd}>
                 <Text style={styles.time}>{result.arrival}</Text>
@@ -107,7 +112,7 @@ export default function RideDetailScreen() {
               </View>
             </View>
             <View style={styles.dateRow}>
-              <Ionicons name="calendar-outline" size={14} color={Colors.textMuted} />
+              <Ionicons name="calendar-outline" size={14} color={colors.textMuted} />
               <Text style={styles.dateText}>Today, departs {result.departure}</Text>
             </View>
           </View>
@@ -118,7 +123,7 @@ export default function RideDetailScreen() {
             {AMENITIES.map((a) => (
               <View key={a.label} style={styles.amenity}>
                 <View style={styles.amenityIcon}>
-                  <Ionicons name={a.icon} size={20} color={Colors.primary} />
+                  <Ionicons name={a.icon} size={20} color={colors.primary} />
                 </View>
                 <Text style={styles.amenityLabel}>{a.label}</Text>
               </View>
@@ -185,7 +190,7 @@ export default function RideDetailScreen() {
             ]}
           >
             <Text style={styles.confirmText}>CONFIRM BOOKING</Text>
-            <Ionicons name="arrow-forward" size={18} color={Colors.white} />
+            <Ionicons name="arrow-forward" size={18} color={colors.white} />
           </Pressable>
         </View>
       </SafeAreaView>
@@ -193,10 +198,11 @@ export default function RideDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   safe: {
     flex: 1,
@@ -217,7 +223,7 @@ const styles = StyleSheet.create({
   navTitle: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.md,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   scroll: {
     paddingHorizontal: Spacing.lg,
@@ -237,7 +243,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoText: {
-    color: Colors.white,
+    color: colors.white,
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.lg,
   },
@@ -247,7 +253,7 @@ const styles = StyleSheet.create({
   operatorName: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.lg,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   heroMeta: {
     flexDirection: 'row',
@@ -263,13 +269,13 @@ const styles = StyleSheet.create({
   ratingText: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     padding: Spacing.base,
     marginBottom: Spacing.base,
     ...Shadows.card,
@@ -286,24 +292,24 @@ const styles = StyleSheet.create({
   duration: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.xs,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     marginBottom: 4,
   },
   dashLine: {
     width: '70%',
     height: 1.5,
-    backgroundColor: Colors.borderMid,
+    backgroundColor: colors.borderMid,
     marginBottom: Spacing.sm,
   },
   time: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.lg,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   city: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     marginTop: 2,
   },
   alignEnd: {
@@ -316,24 +322,24 @@ const styles = StyleSheet.create({
     marginTop: Spacing.base,
     paddingTop: Spacing.base,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.borderMid,
+    borderTopColor: colors.borderMid,
   },
   dateText: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   sectionTitle: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.md,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     marginTop: Spacing.md,
     marginBottom: Spacing.md,
   },
   sectionHint: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     marginTop: -Spacing.sm,
     marginBottom: Spacing.md,
   },
@@ -350,14 +356,14 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: Radius.md,
-    backgroundColor: Colors.accentLight,
+    backgroundColor: colors.accentLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   amenityLabel: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.xs,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   selectedRow: {
     flexDirection: 'row',
@@ -369,16 +375,16 @@ const styles = StyleSheet.create({
   selectedLabel: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   selectedChip: {
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: Spacing.md,
     paddingVertical: 6,
     borderRadius: Radius.full,
   },
   selectedChipText: {
-    color: Colors.white,
+    color: colors.white,
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.xs,
   },
@@ -391,32 +397,32 @@ const styles = StyleSheet.create({
   summaryLabel: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   summaryValue: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   summaryDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.borderMid,
+    backgroundColor: colors.borderMid,
     marginVertical: Spacing.sm,
   },
   totalLabel: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.md,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   totalValue: {
     fontFamily: Typography.fonts.extrabold,
     fontSize: Typography.fontSizes.lg,
-    color: Colors.primary,
+    color: colors.primary,
   },
   bottomBar: {
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: colors.border,
     ...Shadows.float,
   },
   bottomContent: {
@@ -429,30 +435,30 @@ const styles = StyleSheet.create({
   bottomLabel: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.xs,
-    color: Colors.textMuted,
+    color: colors.textMuted,
   },
   bottomTotal: {
     fontFamily: Typography.fonts.extrabold,
     fontSize: Typography.fontSizes.xl,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   confirmBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.base,
     borderRadius: Radius.md,
   },
   confirmDisabled: {
-    backgroundColor: Colors.textMuted,
+    backgroundColor: colors.textMuted,
   },
   pressed: {
     opacity: 0.9,
   },
   confirmText: {
-    color: Colors.white,
+    color: colors.white,
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.base,
     letterSpacing: 0.5,

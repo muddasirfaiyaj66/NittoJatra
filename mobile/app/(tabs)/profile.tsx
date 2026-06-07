@@ -5,12 +5,17 @@ import { ReactNode } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/ui';
-import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettingsStore } from '@/store/settings.store';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
+
+export { ErrorBoundary } from '@/components/shared/RouteError';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const language = useSettingsStore((s) => s.language);
   const notifications = useSettingsStore((s) => s.notifications);
   const themeMode = useSettingsStore((s) => s.themeMode);
@@ -48,7 +53,7 @@ export default function ProfileScreen() {
               accessibilityLabel="Edit profile photo"
               style={styles.editOverlay}
             >
-              <Ionicons name="camera" size={16} color={Colors.white} />
+              <Ionicons name="camera" size={16} color={colors.white} />
             </Pressable>
           </View>
           <Text style={styles.name}>{user?.name ?? 'Guest User'}</Text>
@@ -84,7 +89,7 @@ export default function ProfileScreen() {
                 style={styles.langToggle}
               >
                 <Text style={styles.langText}>{language === 'en' ? 'English' : 'বাংলা'}</Text>
-                <Ionicons name="swap-horizontal" size={16} color={Colors.primary} />
+                <Ionicons name="swap-horizontal" size={16} color={colors.primary} />
               </Pressable>
             }
           />
@@ -95,8 +100,8 @@ export default function ProfileScreen() {
               <Switch
                 value={notifications}
                 onValueChange={setNotifications}
-                trackColor={{ true: Colors.primary, false: Colors.borderMid }}
-                thumbColor={Colors.white}
+                trackColor={{ true: colors.primary, false: colors.borderMid }}
+                thumbColor={colors.white}
               />
             }
           />
@@ -108,8 +113,8 @@ export default function ProfileScreen() {
               <Switch
                 value={themeMode === 'dark'}
                 onValueChange={toggleDarkMode}
-                trackColor={{ true: Colors.primary, false: Colors.borderMid }}
-                thumbColor={Colors.white}
+                trackColor={{ true: colors.primary, false: colors.borderMid }}
+                thumbColor={colors.white}
               />
             }
           />
@@ -130,7 +135,7 @@ export default function ProfileScreen() {
           onPress={handleLogout}
           style={styles.logoutBtn}
         >
-          <Ionicons name="log-out-outline" size={20} color={Colors.danger} />
+          <Ionicons name="log-out-outline" size={20} color={colors.danger} />
           <Text style={styles.logoutText}>Logout</Text>
         </Pressable>
 
@@ -141,6 +146,7 @@ export default function ProfileScreen() {
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.stat}>
       <Text style={styles.statValue}>{value}</Text>
@@ -150,6 +156,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -171,6 +178,8 @@ function MenuRow({
   last?: boolean;
   onPress?: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       accessibilityRole="button"
@@ -179,16 +188,17 @@ function MenuRow({
       style={[styles.menuRow, !last && styles.menuBorder]}
     >
       <View style={styles.menuIcon}>
-        <Ionicons name={icon} size={20} color={Colors.primary} />
+        <Ionicons name={icon} size={20} color={colors.primary} />
       </View>
       <Text style={styles.menuLabel}>{label}</Text>
-      {right ?? <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />}
+      {right ?? <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />}
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.background },
   scroll: { paddingBottom: Spacing.section },
   headerCard: {
     alignItems: 'center',
@@ -206,37 +216,37 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: Colors.background,
+    borderColor: colors.background,
   },
   name: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.xl,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     marginTop: Spacing.md,
   },
   phone: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   memberSince: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.xs,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     marginTop: Spacing.xs,
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     paddingVertical: Spacing.base,
     marginTop: Spacing.lg,
     alignSelf: 'stretch',
@@ -249,18 +259,18 @@ const styles = StyleSheet.create({
   statValue: {
     fontFamily: Typography.fonts.extrabold,
     fontSize: Typography.fontSizes.lg,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   statLabel: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.xs,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     marginTop: 2,
   },
   statDivider: {
     width: StyleSheet.hairlineWidth,
     height: 32,
-    backgroundColor: Colors.borderMid,
+    backgroundColor: colors.borderMid,
   },
   section: {
     paddingHorizontal: Spacing.lg,
@@ -269,16 +279,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     marginBottom: Spacing.md,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   sectionCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     paddingHorizontal: Spacing.base,
     ...Shadows.card,
   },
@@ -289,13 +299,13 @@ const styles = StyleSheet.create({
   },
   menuBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: colors.border,
   },
   menuIcon: {
     width: 36,
     height: 36,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.accentLight,
+    backgroundColor: colors.accentLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
@@ -304,7 +314,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   langToggle: {
     flexDirection: 'row',
@@ -314,7 +324,7 @@ const styles = StyleSheet.create({
   langText: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.primary,
+    color: colors.primary,
   },
   logoutBtn: {
     flexDirection: 'row',
@@ -326,18 +336,18 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.base,
     borderRadius: Radius.lg,
     borderWidth: 1.5,
-    borderColor: Colors.danger,
-    backgroundColor: Colors.surface,
+    borderColor: colors.danger,
+    backgroundColor: colors.surface,
   },
   logoutText: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.base,
-    color: Colors.danger,
+    color: colors.danger,
   },
   version: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.xs,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     textAlign: 'center',
     marginTop: Spacing.lg,
   },

@@ -1,6 +1,7 @@
 import { Image, ImageStyle } from 'expo-image';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { Colors, Typography } from '@/constants/theme';
+import { Typography } from '@/constants/theme';
+import { ThemeColors, useThemedStyles } from '@/theme/ThemeContext';
 
 interface AvatarProps {
   uri?: string | null;
@@ -17,6 +18,7 @@ function getInitials(name?: string): string {
 }
 
 export function Avatar({ uri, name, size = 48, style }: AvatarProps) {
+  const styles = useThemedStyles(makeStyles);
   const dimensions = { width: size, height: size, borderRadius: size / 2 };
 
   if (uri) {
@@ -37,18 +39,19 @@ export function Avatar({ uri, name, size = 48, style }: AvatarProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  image: {
-    backgroundColor: Colors.border,
-  },
-  fallback: {
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initials: {
-    color: Colors.white,
-    fontFamily: Typography.fonts.bold,
-    fontWeight: '700',
-  },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    image: {
+      backgroundColor: colors.border,
+    },
+    fallback: {
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    initials: {
+      color: colors.white,
+      fontFamily: Typography.fonts.bold,
+      fontWeight: '700',
+    },
+  });

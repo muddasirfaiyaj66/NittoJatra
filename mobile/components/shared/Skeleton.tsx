@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
 interface SkeletonProps {
   width?: number | `${number}%`;
@@ -10,6 +11,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ width = '100%', height = 16, radius = Radius.sm, style }: SkeletonProps) {
+  const { colors } = useTheme();
   const opacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export function Skeleton({ width = '100%', height = 16, radius = Radius.sm, styl
   return (
     <Animated.View
       style={[
-        { width, height, borderRadius: radius, backgroundColor: Colors.borderMid, opacity },
+        { width, height, borderRadius: radius, backgroundColor: colors.borderMid, opacity },
         style,
       ]}
     />
@@ -34,6 +36,7 @@ export function Skeleton({ width = '100%', height = 16, radius = Radius.sm, styl
 }
 
 export function RideCardSkeleton() {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.card}>
       <View style={styles.row}>
@@ -54,28 +57,29 @@ export function RideCardSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.base,
-    marginBottom: Spacing.base,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    justifyContent: 'space-between',
-  },
-  flex: {
-    flex: 1,
-  },
-  mt8: {
-    marginTop: Spacing.sm,
-  },
-  mt16: {
-    marginTop: Spacing.base,
-  },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: Radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: Spacing.base,
+      marginBottom: Spacing.base,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.md,
+      justifyContent: 'space-between',
+    },
+    flex: {
+      flex: 1,
+    },
+    mt8: {
+      marginTop: Spacing.sm,
+    },
+    mt16: {
+      marginTop: Spacing.base,
+    },
+  });

@@ -3,6 +3,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Stack } from 'expo-router';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider as NavThemeProvider,
+} from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import {
   useFonts,
@@ -16,8 +21,52 @@ import {
   NotoSansBengali_400Regular,
   NotoSansBengali_700Bold,
 } from '@expo-google-fonts/noto-sans-bengali';
+import { ToastProvider } from '@/components/shared/Toast';
+import { ThemeProvider, useTheme } from '@/theme/ThemeContext';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+function RootNavigator() {
+  const { colors, isDark } = useTheme();
+
+  const navTheme = isDark
+    ? {
+        ...DarkTheme,
+        colors: {
+          ...DarkTheme.colors,
+          background: colors.background,
+          card: colors.surface,
+          text: colors.textPrimary,
+          border: colors.border,
+          primary: colors.primary,
+        },
+      }
+    : {
+        ...DefaultTheme,
+        colors: {
+          ...DefaultTheme.colors,
+          background: colors.background,
+          card: colors.surface,
+          text: colors.textPrimary,
+          border: colors.border,
+          primary: colors.primary,
+        },
+      };
+
+  return (
+    <NavThemeProvider value={navTheme}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <ToastProvider>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="ride/[id]" options={{ presentation: 'card' }} />
+          <Stack.Screen name="ride/confirm" options={{ presentation: 'card' }} />
+        </Stack>
+      </ToastProvider>
+    </NavThemeProvider>
+  );
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -43,13 +92,9 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar style="auto" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="ride/[id]" options={{ presentation: 'card' }} />
-          <Stack.Screen name="ride/confirm" options={{ presentation: 'card' }} />
-        </Stack>
+        <ThemeProvider>
+          <RootNavigator />
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

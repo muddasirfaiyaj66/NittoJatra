@@ -12,11 +12,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Input } from '@/components/ui';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
 export default function LoginScreen() {
   const { login, isLoading, error, clearError } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [email, setEmail] = useState('demo@nittojatra.com');
   const [password, setPassword] = useState('demo1234');
   const [showPassword, setShowPassword] = useState(false);
@@ -48,12 +51,12 @@ export default function LoginScreen() {
             onPress={() => router.back()}
             style={styles.back}
           >
-            <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </Pressable>
 
           <View style={styles.logoRow}>
             <View style={styles.logoBadge}>
-              <Ionicons name="bus" size={28} color={Colors.white} />
+              <Ionicons name="bus" size={28} color={colors.white} />
             </View>
           </View>
 
@@ -69,7 +72,7 @@ export default function LoginScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
-              leftIcon={<Ionicons name="mail-outline" size={20} color={Colors.textMuted} />}
+              leftIcon={<Ionicons name="mail-outline" size={20} color={colors.textMuted} />}
             />
             <View style={styles.gap} />
             <Input
@@ -79,7 +82,7 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
-              leftIcon={<Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} />}
+              leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} />}
               rightIcon={
                 <Pressable
                   accessibilityRole="button"
@@ -89,7 +92,7 @@ export default function LoginScreen() {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color={Colors.textMuted}
+                    color={colors.textMuted}
                   />
                 </Pressable>
               }
@@ -149,8 +152,9 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   scroll: {
     flexGrow: 1,
@@ -170,20 +174,20 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: Radius.lg,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.xxl,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     marginTop: Spacing.lg,
   },
   subtitle: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: Spacing.xs,
   },
   form: {
@@ -199,12 +203,12 @@ const styles = StyleSheet.create({
   forgotText: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.primary,
+    color: colors.primary,
   },
   error: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.danger,
+    color: colors.danger,
     marginBottom: Spacing.md,
   },
   dividerRow: {
@@ -215,13 +219,13 @@ const styles = StyleSheet.create({
   line: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.borderMid,
+    backgroundColor: colors.borderMid,
   },
   orText: {
     marginHorizontal: Spacing.md,
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textMuted,
+    color: colors.textMuted,
   },
   socialRow: {
     flexDirection: 'row',
@@ -236,13 +240,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1.5,
-    borderColor: Colors.borderMid,
-    backgroundColor: Colors.surface,
+    borderColor: colors.borderMid,
+    backgroundColor: colors.surface,
   },
   socialText: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   footer: {
     flexDirection: 'row',
@@ -253,11 +257,11 @@ const styles = StyleSheet.create({
   footerText: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   footerLink: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.base,
-    color: Colors.primary,
+    color: colors.primary,
   },
 });

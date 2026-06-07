@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Badge, statusToBadge } from '@/components/ui';
-import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { Booking } from '@/types';
 
 interface BookingCardProps {
@@ -17,6 +18,7 @@ const STATUS_LABEL: Record<Booking['status'], string> = {
 };
 
 export function BookingCard({ booking, onViewTicket, onCancel }: BookingCardProps) {
+  const styles = useThemedStyles(makeStyles);
   const isUpcoming = booking.status === 'upcoming';
 
   return (
@@ -28,7 +30,7 @@ export function BookingCard({ booking, onViewTicket, onCancel }: BookingCardProp
 
       <View style={styles.routeRow}>
         <Text style={styles.city}>{booking.route.from}</Text>
-        <Ionicons name="arrow-forward" size={16} color={Colors.textMuted} />
+        <ArrowIcon />
         <Text style={styles.city}>{booking.route.to}</Text>
       </View>
 
@@ -71,10 +73,17 @@ export function BookingCard({ booking, onViewTicket, onCancel }: BookingCardProp
   );
 }
 
+function ArrowIcon() {
+  const { colors } = useTheme();
+  return <Ionicons name="arrow-forward" size={16} color={colors.textMuted} />;
+}
+
 function Meta({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label: string }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.metaItem}>
-      <Ionicons name={icon} size={14} color={Colors.textMuted} />
+      <Ionicons name={icon} size={14} color={colors.textMuted} />
       <Text style={styles.metaText} numberOfLines={1}>
         {label}
       </Text>
@@ -82,99 +91,100 @@ function Meta({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label: st
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.base,
-    marginBottom: Spacing.base,
-    ...Shadows.card,
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  bookingId: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.textMuted,
-  },
-  routeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
-  },
-  city: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.md,
-    color: Colors.textPrimary,
-  },
-  metaGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: Spacing.md,
-  },
-  metaItem: {
-    width: '50%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 4,
-  },
-  metaText: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.textSecondary,
-    flex: 1,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.borderMid,
-    marginVertical: Spacing.base,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  amountLabel: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.xs,
-    color: Colors.textMuted,
-  },
-  amount: {
-    fontFamily: Typography.fonts.extrabold,
-    fontSize: Typography.fontSizes.lg,
-    color: Colors.textPrimary,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  actionBtn: {
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
-  },
-  cancelBtn: {
-    borderWidth: 1.5,
-    borderColor: Colors.danger,
-  },
-  cancelText: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.danger,
-  },
-  ticketBtn: {
-    backgroundColor: Colors.primary,
-  },
-  ticketText: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.white,
-  },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: Radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: Spacing.base,
+      marginBottom: Spacing.base,
+      ...Shadows.card,
+    },
+    topRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    bookingId: {
+      fontFamily: Typography.fonts.medium,
+      fontSize: Typography.fontSizes.xs,
+      color: colors.textMuted,
+    },
+    routeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+      marginTop: Spacing.md,
+    },
+    city: {
+      fontFamily: Typography.fonts.bold,
+      fontSize: Typography.fontSizes.md,
+      color: colors.textPrimary,
+    },
+    metaGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginTop: Spacing.md,
+    },
+    metaItem: {
+      width: '50%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 4,
+    },
+    metaText: {
+      fontFamily: Typography.fonts.medium,
+      fontSize: Typography.fontSizes.xs,
+      color: colors.textSecondary,
+      flex: 1,
+    },
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.borderMid,
+      marginVertical: Spacing.base,
+    },
+    bottomRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    amountLabel: {
+      fontFamily: Typography.fonts.regular,
+      fontSize: Typography.fontSizes.xs,
+      color: colors.textMuted,
+    },
+    amount: {
+      fontFamily: Typography.fonts.extrabold,
+      fontSize: Typography.fontSizes.lg,
+      color: colors.textPrimary,
+    },
+    actions: {
+      flexDirection: 'row',
+      gap: Spacing.sm,
+    },
+    actionBtn: {
+      paddingHorizontal: Spacing.base,
+      paddingVertical: Spacing.sm,
+      borderRadius: Radius.md,
+    },
+    cancelBtn: {
+      borderWidth: 1.5,
+      borderColor: colors.danger,
+    },
+    cancelText: {
+      fontFamily: Typography.fonts.semibold,
+      fontSize: Typography.fontSizes.sm,
+      color: colors.danger,
+    },
+    ticketBtn: {
+      backgroundColor: colors.primary,
+    },
+    ticketText: {
+      fontFamily: Typography.fonts.semibold,
+      fontSize: Typography.fontSizes.sm,
+      color: colors.white,
+    },
+  });

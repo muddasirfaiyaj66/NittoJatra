@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 
 export interface SearchFilters {
   ac: 'all' | 'ac' | 'nonac';
@@ -34,6 +35,7 @@ interface OptionGroupProps<T extends string> {
 }
 
 function OptionGroup<T extends string>({ label, value, options, onChange }: OptionGroupProps<T>) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.group}>
       <Text style={styles.groupLabel}>{label}</Text>
@@ -59,6 +61,8 @@ function OptionGroup<T extends string>({ label, value, options, onChange }: Opti
 }
 
 export function FilterSheet({ visible, initial, onClose, onApply }: FilterSheetProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [filters, setFilters] = useState<SearchFilters>(initial);
 
   const update = <K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) =>
@@ -128,7 +132,7 @@ export function FilterSheet({ visible, initial, onClose, onApply }: FilterSheetP
             size="lg"
             style={styles.apply}
             onPress={() => onApply(filters)}
-            icon={<Ionicons name="options-outline" size={18} color={Colors.white} />}
+            icon={<Ionicons name="options-outline" size={18} color={colors.white} />}
           />
         </SafeAreaView>
       </View>
@@ -136,78 +140,79 @@ export function FilterSheet({ visible, initial, onClose, onApply }: FilterSheetP
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.5)',
-  },
-  sheet: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: Radius.xl,
-    borderTopRightRadius: Radius.xl,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: 44,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: Colors.borderMid,
-    marginBottom: Spacing.base,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.base,
-  },
-  title: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: Typography.fontSizes.xl,
-    color: Colors.textPrimary,
-  },
-  reset: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.base,
-    color: Colors.primary,
-  },
-  group: {
-    marginBottom: Spacing.lg,
-  },
-  groupLabel: {
-    fontFamily: Typography.fonts.semibold,
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.md,
-  },
-  optionsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  option: {
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    borderWidth: 1.5,
-    borderColor: Colors.borderMid,
-    backgroundColor: Colors.surface,
-  },
-  optionActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  optionText: {
-    fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
-  },
-  optionTextActive: {
-    color: Colors.white,
-  },
-  apply: {
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.base,
-  },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(15,23,42,0.5)',
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: Radius.xl,
+      borderTopRightRadius: Radius.xl,
+      paddingHorizontal: Spacing.lg,
+      paddingTop: Spacing.md,
+    },
+    handle: {
+      alignSelf: 'center',
+      width: 44,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: colors.borderMid,
+      marginBottom: Spacing.base,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: Spacing.base,
+    },
+    title: {
+      fontFamily: Typography.fonts.bold,
+      fontSize: Typography.fontSizes.xl,
+      color: colors.textPrimary,
+    },
+    reset: {
+      fontFamily: Typography.fonts.semibold,
+      fontSize: Typography.fontSizes.base,
+      color: colors.primary,
+    },
+    group: {
+      marginBottom: Spacing.lg,
+    },
+    groupLabel: {
+      fontFamily: Typography.fonts.semibold,
+      fontSize: Typography.fontSizes.sm,
+      color: colors.textSecondary,
+      marginBottom: Spacing.md,
+    },
+    optionsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Spacing.sm,
+    },
+    option: {
+      paddingHorizontal: Spacing.base,
+      paddingVertical: Spacing.sm,
+      borderRadius: Radius.full,
+      borderWidth: 1.5,
+      borderColor: colors.borderMid,
+      backgroundColor: colors.surface,
+    },
+    optionActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    optionText: {
+      fontFamily: Typography.fonts.medium,
+      fontSize: Typography.fontSizes.sm,
+      color: colors.textSecondary,
+    },
+    optionTextActive: {
+      color: colors.white,
+    },
+    apply: {
+      marginTop: Spacing.sm,
+      marginBottom: Spacing.base,
+    },
+  });

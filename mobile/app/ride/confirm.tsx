@@ -13,19 +13,22 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Input } from '@/components/ui';
+import { useToast } from '@/components/shared/Toast';
 import { getOperatorById, MOCK_SEARCH_RESULTS } from '@/constants/mock-data';
-import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useBookings } from '@/hooks/useBookings';
+import { haptics } from '@/hooks/useHaptics';
 import { bookingService } from '@/services/booking.service';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { Booking, PaymentMethod } from '@/types';
 
 const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: keyof typeof Ionicons.glyphMap; color: string }[] = [
   { id: 'bkash', label: 'bKash', icon: 'phone-portrait-outline', color: '#E2136E' },
   { id: 'nagad', label: 'Nagad', icon: 'wallet-outline', color: '#F6921E' },
   { id: 'rocket', label: 'Rocket', icon: 'rocket-outline', color: '#8C3494' },
-  { id: 'card', label: 'Card', icon: 'card-outline', color: Colors.primary },
-  { id: 'cash', label: 'Cash on Counter', icon: 'cash-outline', color: Colors.success },
+  { id: 'card', label: 'Card', icon: 'card-outline', color: '#4F46E5' },
+  { id: 'cash', label: 'Cash on Counter', icon: 'cash-outline', color: '#10B981' },
 ];
 
 const PROMO_CODE = 'NITTO10';
@@ -41,6 +44,9 @@ export default function ConfirmScreen() {
   }>();
   const { user } = useAuth();
   const { addBooking } = useBookings();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+  const toast = useToast();
 
   const result = useMemo(
     () => MOCK_SEARCH_RESULTS.find((r) => r.id === params.rideId) ?? MOCK_SEARCH_RESULTS[0],
@@ -71,8 +77,10 @@ export default function ConfirmScreen() {
     if (promo.trim().toUpperCase() === PROMO_CODE) {
       setPromoApplied(true);
       setError(null);
+      toast.show('Promo code applied!', 'success');
     } else {
       setError('Invalid promo code. Try NITTO10');
+      toast.show('Invalid promo code', 'error');
     }
   };
 
@@ -98,9 +106,11 @@ export default function ConfirmScreen() {
         amount: total,
       });
       addBooking(booking);
+      haptics.success();
       setSuccess(booking);
     } catch {
       setError('Something went wrong. Please try again.');
+      toast.show('Booking failed. Try again.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -116,7 +126,7 @@ export default function ConfirmScreen() {
             onPress={() => router.back()}
             style={styles.iconBtn}
           >
-            <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </Pressable>
           <Text style={styles.navTitle}>Confirm Booking</Text>
           <View style={styles.iconBtn} />
@@ -160,18 +170,18 @@ export default function ConfirmScreen() {
               </View>
               <View style={styles.routeRow}>
                 <Text style={styles.routeText}>{result.from}</Text>
-                <Ionicons name="arrow-forward" size={14} color={Colors.textMuted} />
+                <Ionicons name="arrow-forward" size={14} color={colors.textMuted} />
                 <Text style={styles.routeText}>{result.to}</Text>
               </View>
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <Ionicons name="time-outline" size={14} color={Colors.textMuted} />
+                  <Ionicons name="time-outline" size={14} color={colors.textMuted} />
                   <Text style={styles.metaText}>
                     {result.departure} - {result.arrival}
                   </Text>
                 </View>
                 <View style={styles.metaItem}>
-                  <Ionicons name="ticket-outline" size={14} color={Colors.textMuted} />
+                  <Ionicons name="ticket-outline" size={14} color={colors.textMuted} />
                   <Text style={styles.metaText}>Seats {seats.join(', ')}</Text>
                 </View>
               </View>
@@ -243,7 +253,7 @@ export default function ConfirmScreen() {
               style={styles.termsRow}
             >
               <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
-                {agreed ? <Ionicons name="checkmark" size={16} color={Colors.white} /> : null}
+                {agreed ? <Ionicons name="checkmark" size={16} color={colors.white} /> : null}
               </View>
               <Text style={styles.termsText}>
                 I agree to the booking <Text style={styles.termsLink}>Terms &amp; Conditions</Text>
@@ -272,7 +282,7 @@ export default function ConfirmScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <View style={styles.checkCircle}>
-              <Ionicons name="checkmark" size={48} color={Colors.white} />
+              <Ionicons name="checkmark" size={48} color={colors.white} />
             </View>
             <Text style={styles.modalTitle}>Booking Confirmed!</Text>
             <Text style={styles.modalSubtitle}>Your seats are reserved. Have a safe journey.</Text>
@@ -319,6 +329,7 @@ function Row({
   bold?: boolean;
   positive?: boolean;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.fareRow}>
       <Text style={[styles.fareLabel, bold && styles.fareBold]}>{label}</Text>
@@ -335,8 +346,9 @@ function Row({
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.background },
   safe: { flex: 1 },
   flex: { flex: 1 },
   navBar: {
@@ -350,21 +362,21 @@ const styles = StyleSheet.create({
   navTitle: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.md,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   scroll: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.xxl },
   sectionTitle: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.md,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     marginTop: Spacing.lg,
     marginBottom: Spacing.md,
   },
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     padding: Spacing.base,
     ...Shadows.card,
   },
@@ -377,12 +389,12 @@ const styles = StyleSheet.create({
   operatorName: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   badgeType: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.xs,
-    color: Colors.primary,
+    color: colors.primary,
   },
   routeRow: {
     flexDirection: 'row',
@@ -393,7 +405,7 @@ const styles = StyleSheet.create({
   routeText: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   metaRow: {
     flexDirection: 'row',
@@ -404,7 +416,7 @@ const styles = StyleSheet.create({
   metaText: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.xs,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   fareRow: {
     flexDirection: 'row',
@@ -414,23 +426,23 @@ const styles = StyleSheet.create({
   fareLabel: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   fareValue: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
-  fareBold: { fontFamily: Typography.fonts.bold, color: Colors.textPrimary },
+  fareBold: { fontFamily: Typography.fonts.bold, color: colors.textPrimary },
   fareBoldValue: {
     fontFamily: Typography.fonts.extrabold,
     fontSize: Typography.fontSizes.lg,
-    color: Colors.primary,
+    color: colors.primary,
   },
-  farePositive: { color: Colors.success },
+  farePositive: { color: colors.success },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: Colors.borderMid,
+    backgroundColor: colors.borderMid,
     marginVertical: Spacing.sm,
   },
   promoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
@@ -444,7 +456,7 @@ const styles = StyleSheet.create({
   },
   paymentBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: colors.border,
   },
   paymentIcon: {
     width: 40,
@@ -457,23 +469,23 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   radio: {
     width: 22,
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: Colors.borderMid,
+    borderColor: colors.borderMid,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  radioActive: { borderColor: Colors.primary },
+  radioActive: { borderColor: colors.primary },
   radioDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
   },
   termsRow: {
     flexDirection: 'row',
@@ -485,29 +497,29 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: Radius.sm,
     borderWidth: 1.5,
-    borderColor: Colors.borderMid,
+    borderColor: colors.borderMid,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
   },
-  checkboxChecked: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  checkboxChecked: { backgroundColor: colors.primary, borderColor: colors.primary },
   termsText: {
     flex: 1,
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
-  termsLink: { color: Colors.primary, fontFamily: Typography.fonts.semibold },
+  termsLink: { color: colors.primary, fontFamily: Typography.fonts.semibold },
   error: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.danger,
+    color: colors.danger,
     marginTop: Spacing.base,
   },
   bottomBar: {
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: colors.border,
     ...Shadows.float,
   },
   bottomContent: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
@@ -520,7 +532,7 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: Radius.xl,
     padding: Spacing.xl,
     alignItems: 'center',
@@ -529,7 +541,7 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: Colors.success,
+    backgroundColor: colors.success,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.lg,
@@ -537,17 +549,17 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: Typography.fonts.extrabold,
     fontSize: Typography.fontSizes.xl,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   modalSubtitle: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: Spacing.sm,
   },
   bookingIdBox: {
-    backgroundColor: Colors.accentLight,
+    backgroundColor: colors.accentLight,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
@@ -557,12 +569,12 @@ const styles = StyleSheet.create({
   bookingIdLabel: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.xs,
-    color: Colors.textMuted,
+    color: colors.textMuted,
   },
   bookingId: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.md,
-    color: Colors.primary,
+    color: colors.primary,
     marginTop: 2,
   },
   modalBtn: { marginTop: Spacing.md },

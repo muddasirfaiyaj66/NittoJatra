@@ -10,8 +10,11 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { RideCardSkeleton } from '@/components/shared/Skeleton';
 import { Button } from '@/components/ui';
 import { MOCK_SEARCH_RESULTS } from '@/constants/mock-data';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { SearchResult } from '@/types';
+
+export { ErrorBoundary } from '@/components/shared/RouteError';
 
 type SortKey = 'price' | 'departure' | 'duration';
 
@@ -44,6 +47,8 @@ function matchesFilters(result: SearchResult, filters: SearchFilters): boolean {
 }
 
 export default function SearchScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<SortKey>('departure');
   const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
@@ -88,7 +93,7 @@ export default function SearchScreen() {
       <View style={styles.header}>
         <View style={styles.routeHeader}>
           <Text style={styles.routeTitle}>Mirpur</Text>
-          <Ionicons name="arrow-forward" size={16} color={Colors.textMuted} />
+          <Ionicons name="arrow-forward" size={16} color={colors.textMuted} />
           <Text style={styles.routeTitle}>Motijheel</Text>
         </View>
         <Text style={styles.resultCount}>
@@ -121,7 +126,7 @@ export default function SearchScreen() {
           onPress={() => setFilterVisible(true)}
           style={styles.filterBtn}
         >
-          <Ionicons name="options-outline" size={20} color={Colors.primary} />
+          <Ionicons name="options-outline" size={20} color={colors.primary} />
           {activeFilterCount > 0 ? (
             <View style={styles.filterCount}>
               <Text style={styles.filterCountText}>{activeFilterCount}</Text>
@@ -175,10 +180,11 @@ export default function SearchScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: Spacing.lg,
@@ -193,12 +199,12 @@ const styles = StyleSheet.create({
   routeTitle: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.xl,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   resultCount: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     marginTop: 2,
   },
   filterBar: {
@@ -208,12 +214,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.borderMid,
+    borderBottomColor: colors.borderMid,
   },
   sortRow: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: Colors.border,
+    backgroundColor: colors.border,
     borderRadius: Radius.md,
     padding: 4,
   },
@@ -224,7 +230,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sortItemActive: {
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -234,10 +240,10 @@ const styles = StyleSheet.create({
   sortText: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textMuted,
+    color: colors.textMuted,
   },
   sortTextActive: {
-    color: Colors.primary,
+    color: colors.primary,
     fontFamily: Typography.fonts.semibold,
   },
   filterBtn: {
@@ -245,10 +251,10 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: Radius.md,
     borderWidth: 1.5,
-    borderColor: Colors.borderMid,
+    borderColor: colors.borderMid,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
   },
   filterCount: {
     position: 'absolute',
@@ -257,13 +263,13 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: Colors.accent,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
   filterCountText: {
-    color: Colors.white,
+    color: colors.white,
     fontFamily: Typography.fonts.bold,
     fontSize: 10,
   },

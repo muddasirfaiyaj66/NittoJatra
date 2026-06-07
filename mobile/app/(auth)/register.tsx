@@ -12,8 +12,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Input } from '@/components/ui';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { Gender } from '@/types';
 
 const GENDERS: { value: Gender; label: string }[] = [
@@ -24,6 +25,8 @@ const GENDERS: { value: Gender; label: string }[] = [
 
 export default function RegisterScreen() {
   const { register, isLoading, error, clearError } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -76,7 +79,7 @@ export default function RegisterScreen() {
             onPress={() => router.back()}
             style={styles.back}
           >
-            <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </Pressable>
 
           <Text style={styles.title}>Create account</Text>
@@ -89,7 +92,7 @@ export default function RegisterScreen() {
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
-              leftIcon={<Ionicons name="person-outline" size={20} color={Colors.textMuted} />}
+              leftIcon={<Ionicons name="person-outline" size={20} color={colors.textMuted} />}
             />
             <View style={styles.gap} />
             <Input
@@ -98,7 +101,7 @@ export default function RegisterScreen() {
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
-              leftIcon={<Ionicons name="call-outline" size={20} color={Colors.textMuted} />}
+              leftIcon={<Ionicons name="call-outline" size={20} color={colors.textMuted} />}
             />
             <View style={styles.gap} />
             <Input
@@ -108,7 +111,7 @@ export default function RegisterScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              leftIcon={<Ionicons name="mail-outline" size={20} color={Colors.textMuted} />}
+              leftIcon={<Ionicons name="mail-outline" size={20} color={colors.textMuted} />}
             />
             <View style={styles.gap} />
             <Input
@@ -118,7 +121,7 @@ export default function RegisterScreen() {
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
-              leftIcon={<Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} />}
+              leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} />}
               rightIcon={
                 <Pressable
                   accessibilityRole="button"
@@ -128,7 +131,7 @@ export default function RegisterScreen() {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color={Colors.textMuted}
+                    color={colors.textMuted}
                   />
                 </Pressable>
               }
@@ -141,7 +144,7 @@ export default function RegisterScreen() {
               onChangeText={setConfirm}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
-              leftIcon={<Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} />}
+              leftIcon={<Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} />}
             />
 
             <Text style={styles.fieldLabel}>Gender</Text>
@@ -173,7 +176,7 @@ export default function RegisterScreen() {
               style={styles.termsRow}
             >
               <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
-                {agreed ? <Ionicons name="checkmark" size={16} color={Colors.white} /> : null}
+                {agreed ? <Ionicons name="checkmark" size={16} color={colors.white} /> : null}
               </View>
               <Text style={styles.termsText}>
                 I agree to the <Text style={styles.termsLink}>Terms &amp; Conditions</Text> and{' '}
@@ -208,8 +211,9 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   scroll: {
     flexGrow: 1,
@@ -225,13 +229,13 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.xxl,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     marginTop: Spacing.sm,
   },
   subtitle: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: Spacing.xs,
   },
   form: {
@@ -243,13 +247,13 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: Spacing.lg,
     marginBottom: Spacing.sm,
   },
   segment: {
     flexDirection: 'row',
-    backgroundColor: Colors.border,
+    backgroundColor: colors.border,
     borderRadius: Radius.md,
     padding: 4,
   },
@@ -260,7 +264,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   segmentItemActive: {
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -270,10 +274,10 @@ const styles = StyleSheet.create({
   segmentText: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textMuted,
+    color: colors.textMuted,
   },
   segmentTextActive: {
-    color: Colors.primary,
+    color: colors.primary,
     fontFamily: Typography.fonts.semibold,
   },
   termsRow: {
@@ -286,30 +290,30 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: Radius.sm,
     borderWidth: 1.5,
-    borderColor: Colors.borderMid,
+    borderColor: colors.borderMid,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
   },
   checkboxChecked: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   termsText: {
     flex: 1,
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
     lineHeight: 20,
   },
   termsLink: {
-    color: Colors.primary,
+    color: colors.primary,
     fontFamily: Typography.fonts.semibold,
   },
   error: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.danger,
+    color: colors.danger,
     marginTop: Spacing.base,
   },
   submit: {
@@ -324,11 +328,11 @@ const styles = StyleSheet.create({
   footerText: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.base,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   footerLink: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.base,
-    color: Colors.primary,
+    color: colors.primary,
   },
 });

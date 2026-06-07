@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { format } from 'date-fns';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MiniBookingCard } from '@/components/home/MiniBookingCard';
 import { QuickAction, QuickActionChip } from '@/components/home/QuickActionChip';
@@ -11,11 +11,14 @@ import { RouteCard } from '@/components/home/RouteCard';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button, Input } from '@/components/ui';
 import { MOCK_ROUTES } from '@/constants/mock-data';
-import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { getGreeting } from '@/hooks/useGreeting';
 import { useAuth } from '@/hooks/useAuth';
 import { useBookings } from '@/hooks/useBookings';
+import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { RouteItem } from '@/types';
+
+export { ErrorBoundary } from '@/components/shared/RouteError';
 
 const QUICK_ACTIONS: QuickAction[] = [
   { id: 'bus', emoji: '🚌', label: 'Bus' },
@@ -28,12 +31,20 @@ const QUICK_ACTIONS: QuickAction[] = [
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const greeting = useMemo(() => getGreeting(), []);
   const now = useMemo(() => new Date(), []);
 
   const [from, setFrom] = useState('Mirpur');
   const [to, setTo] = useState('Motijheel');
   const [activeAction, setActiveAction] = useState('bus');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 900);
+  }, []);
 
   const firstName = (user?.name ?? 'Traveller').split(' ')[0];
   const { bookings: upcoming } = useBookings('upcoming');
@@ -51,6 +62,14 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       >
         {/* Header */}
         <View style={styles.header}>
@@ -63,9 +82,9 @@ export default function HomeScreen() {
               accessibilityLabel="Current location Dhaka"
               style={styles.locationPill}
             >
-              <Ionicons name="location" size={14} color={Colors.primary} />
+              <Ionicons name="location" size={14} color={colors.primary} />
               <Text style={styles.locationText}>Dhaka</Text>
-              <Ionicons name="chevron-down" size={14} color={Colors.textMuted} />
+              <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
             </Pressable>
           </View>
           <Pressable
@@ -73,7 +92,7 @@ export default function HomeScreen() {
             accessibilityLabel="Notifications, 2 unread"
             style={styles.bell}
           >
-            <Ionicons name="notifications-outline" size={22} color={Colors.textPrimary} />
+            <Ionicons name="notifications-outline" size={22} color={colors.textPrimary} />
             <View style={styles.badge}>
               <Text style={styles.badgeText}>2</Text>
             </View>
@@ -88,7 +107,7 @@ export default function HomeScreen() {
               onChangeText={setFrom}
               placeholder="From"
               containerStyle={styles.searchField}
-              leftIcon={<Ionicons name="radio-button-on" size={18} color={Colors.primary} />}
+              leftIcon={<Ionicons name="radio-button-on" size={18} color={colors.primary} />}
             />
             <Pressable
               accessibilityRole="button"
@@ -96,14 +115,14 @@ export default function HomeScreen() {
               onPress={handleSwap}
               style={styles.swapBtn}
             >
-              <Ionicons name="swap-vertical" size={18} color={Colors.white} />
+              <Ionicons name="swap-vertical" size={18} color={colors.white} />
             </Pressable>
             <Input
               value={to}
               onChangeText={setTo}
               placeholder="To"
               containerStyle={styles.searchField}
-              leftIcon={<Ionicons name="location" size={18} color={Colors.accent} />}
+              leftIcon={<Ionicons name="location" size={18} color={colors.accent} />}
             />
           </View>
 
@@ -113,7 +132,7 @@ export default function HomeScreen() {
               accessibilityLabel="Select date"
               style={styles.dateTimePill}
             >
-              <Ionicons name="calendar-outline" size={16} color={Colors.textSecondary} />
+              <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
               <Text style={styles.dateTimeText}>{format(now, 'EEE, dd MMM')}</Text>
             </Pressable>
             <Pressable
@@ -121,7 +140,7 @@ export default function HomeScreen() {
               accessibilityLabel="Select time"
               style={styles.dateTimePill}
             >
-              <Ionicons name="time-outline" size={16} color={Colors.textSecondary} />
+              <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
               <Text style={styles.dateTimeText}>{format(now, 'hh:mm a')}</Text>
             </Pressable>
           </View>
@@ -207,10 +226,11 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
   },
   scroll: {
     paddingBottom: Spacing.section,
@@ -229,7 +249,7 @@ const styles = StyleSheet.create({
   greeting: {
     fontFamily: Typography.fonts.bengaliBold,
     fontSize: Typography.fontSizes.lg,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   locationPill: {
     flexDirection: 'row',
@@ -241,17 +261,17 @@ const styles = StyleSheet.create({
   locationText: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   bell: {
     width: 44,
     height: 44,
     borderRadius: Radius.full,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     ...Shadows.card,
   },
   badge: {
@@ -262,21 +282,21 @@ const styles = StyleSheet.create({
     height: 18,
     paddingHorizontal: 4,
     borderRadius: 9,
-    backgroundColor: Colors.accent,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
   badgeText: {
-    color: Colors.white,
+    color: colors.white,
     fontFamily: Typography.fonts.bold,
     fontSize: 10,
   },
   searchCard: {
     marginHorizontal: Spacing.lg,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
     padding: Spacing.base,
     ...Shadows.card,
   },
@@ -295,7 +315,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
@@ -314,14 +334,14 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.base,
     borderRadius: Radius.md,
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: colors.border,
   },
   dateTimeText: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   searchBtn: {
     marginTop: Spacing.base,
@@ -342,12 +362,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.lg,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   seeAll: {
     fontFamily: Typography.fonts.semibold,
     fontSize: Typography.fontSizes.sm,
-    color: Colors.primary,
+    color: colors.primary,
   },
   routesList: {
     height: 244,

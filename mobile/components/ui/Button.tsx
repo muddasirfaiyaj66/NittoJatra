@@ -8,7 +8,9 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Spacing, Typography } from '@/constants/theme';
+import { haptics } from '@/hooks/useHaptics';
+import { ThemeColors, useTheme } from '@/theme/ThemeContext';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -38,16 +40,22 @@ export function Button({
   style,
   textColor,
 }: ButtonProps) {
+  const { colors } = useTheme();
   const isDisabled = disabled || loading;
-  const variantStyle = variantStyles[variant];
+  const variantStyle = getVariant(colors)[variant];
   const resolvedTextColor = textColor ?? variantStyle.text.color;
+
+  const handlePress = () => {
+    haptics.light();
+    onPress?.();
+  };
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={title}
       accessibilityState={{ disabled: isDisabled, busy: loading }}
-      onPress={onPress}
+      onPress={handlePress}
       disabled={isDisabled}
       style={({ pressed }) => [
         styles.base,
@@ -119,25 +127,27 @@ const sizeStyles: Record<ButtonSize, { container: ViewStyle; text: { fontSize: n
   },
 };
 
-const variantStyles: Record<ButtonVariant, { container: ViewStyle; text: { color: string } }> = {
+const getVariant = (
+  colors: ThemeColors,
+): Record<ButtonVariant, { container: ViewStyle; text: { color: string } }> => ({
   primary: {
-    container: { backgroundColor: Colors.primary },
-    text: { color: Colors.white },
+    container: { backgroundColor: colors.primary },
+    text: { color: colors.white },
   },
   secondary: {
-    container: { backgroundColor: Colors.accent },
-    text: { color: Colors.white },
+    container: { backgroundColor: colors.accent },
+    text: { color: colors.white },
   },
   outline: {
-    container: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: Colors.primary },
-    text: { color: Colors.primary },
+    container: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.primary },
+    text: { color: colors.primary },
   },
   ghost: {
     container: { backgroundColor: 'transparent' },
-    text: { color: Colors.primary },
+    text: { color: colors.primary },
   },
   danger: {
-    container: { backgroundColor: Colors.danger },
-    text: { color: Colors.white },
+    container: { backgroundColor: colors.danger },
+    text: { color: colors.white },
   },
-};
+});

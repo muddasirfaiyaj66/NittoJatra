@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { StyleProp, StyleSheet, Text, TextProps, TextStyle } from 'react-native';
-import { Colors, Typography as Type } from '@/constants/theme';
+import { Typography as Type } from '@/constants/theme';
+import { ThemeColors, useThemedStyles } from '@/theme/ThemeContext';
 
 type Variant = 'display' | 'h1' | 'h2' | 'h3' | 'body' | 'bodyLg' | 'caption' | 'label';
 
@@ -21,6 +22,7 @@ function Base({
   center,
   ...rest
 }: BaseTextProps & { variant: Variant }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Text
       style={[
@@ -48,51 +50,52 @@ export const BodyLarge = (props: BaseTextProps) => <Base variant="bodyLg" {...pr
 export const Caption = (props: BaseTextProps) => <Base variant="caption" {...props} />;
 export const Label = (props: BaseTextProps) => <Base variant="label" {...props} />;
 
-const styles = StyleSheet.create({
-  display: {
-    fontFamily: Type.fonts.extrabold,
-    fontSize: Type.fontSizes.display,
-    color: Colors.textPrimary,
-  },
-  h1: {
-    fontFamily: Type.fonts.bold,
-    fontSize: Type.fontSizes.xxl,
-    color: Colors.textPrimary,
-  },
-  h2: {
-    fontFamily: Type.fonts.bold,
-    fontSize: Type.fontSizes.xl,
-    color: Colors.textPrimary,
-  },
-  h3: {
-    fontFamily: Type.fonts.semibold,
-    fontSize: Type.fontSizes.lg,
-    color: Colors.textPrimary,
-  },
-  bodyLg: {
-    fontFamily: Type.fonts.regular,
-    fontSize: Type.fontSizes.md,
-    color: Colors.textSecondary,
-  },
-  body: {
-    fontFamily: Type.fonts.regular,
-    fontSize: Type.fontSizes.base,
-    color: Colors.textSecondary,
-  },
-  caption: {
-    fontFamily: Type.fonts.regular,
-    fontSize: Type.fontSizes.sm,
-    color: Colors.textMuted,
-  },
-  label: {
-    fontFamily: Type.fonts.medium,
-    fontSize: Type.fontSizes.sm,
-    color: Colors.textSecondary,
-  },
-  bengali: {
-    fontFamily: Type.fonts.bengali,
-  },
-  center: {
-    textAlign: 'center',
-  },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    display: {
+      fontFamily: Type.fonts.extrabold,
+      fontSize: Type.fontSizes.display,
+      color: colors.textPrimary,
+    },
+    h1: {
+      fontFamily: Type.fonts.bold,
+      fontSize: Type.fontSizes.xxl,
+      color: colors.textPrimary,
+    },
+    h2: {
+      fontFamily: Type.fonts.bold,
+      fontSize: Type.fontSizes.xl,
+      color: colors.textPrimary,
+    },
+    h3: {
+      fontFamily: Type.fonts.semibold,
+      fontSize: Type.fontSizes.lg,
+      color: colors.textPrimary,
+    },
+    bodyLg: {
+      fontFamily: Type.fonts.regular,
+      fontSize: Type.fontSizes.md,
+      color: colors.textSecondary,
+    },
+    body: {
+      fontFamily: Type.fonts.regular,
+      fontSize: Type.fontSizes.base,
+      color: colors.textSecondary,
+    },
+    caption: {
+      fontFamily: Type.fonts.regular,
+      fontSize: Type.fontSizes.sm,
+      color: colors.textMuted,
+    },
+    label: {
+      fontFamily: Type.fonts.medium,
+      fontSize: Type.fontSizes.sm,
+      color: colors.textSecondary,
+    },
+    bengali: {
+      fontFamily: Type.fonts.bengali,
+    },
+    center: {
+      textAlign: 'center',
+    },
+  });
