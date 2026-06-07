@@ -23,6 +23,7 @@ interface ButtonProps {
   icon?: ReactNode;
   fullWidth?: boolean;
   style?: StyleProp<ViewStyle>;
+  textColor?: string;
 }
 
 export function Button({
@@ -35,9 +36,11 @@ export function Button({
   icon,
   fullWidth = true,
   style,
+  textColor,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
   const variantStyle = variantStyles[variant];
+  const resolvedTextColor = textColor ?? variantStyle.text.color;
 
   return (
     <Pressable
@@ -57,11 +60,13 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variantStyle.text.color} size="small" />
+        <ActivityIndicator color={resolvedTextColor} size="small" />
       ) : (
         <View style={styles.content}>
           {icon ? <View style={styles.icon}>{icon}</View> : null}
-          <Text style={[styles.text, sizeStyles[size].text, variantStyle.text]}>{title}</Text>
+          <Text style={[styles.text, sizeStyles[size].text, { color: resolvedTextColor }]}>
+            {title}
+          </Text>
         </View>
       )}
     </Pressable>
