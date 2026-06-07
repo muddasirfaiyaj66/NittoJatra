@@ -6,6 +6,11 @@ export { Badge, serviceTypeToBadge, statusToBadge } from './Badge';
 export { Avatar } from './Avatar';
 export { Divider } from './Divider';
 export { Spacer } from './Spacer';
+export { GlassCard } from './GlassCard';
+export { GradientButton } from './GradientButton';
+export type { GradientVariant } from './GradientButton';
+export { AmbientBackground } from './AmbientBackground';
+export { StatusDot } from './StatusDot';
 export {
   Display,
   Heading,

@@ -53,23 +53,26 @@ export const Label = (props: BaseTextProps) => <Base variant="label" {...props} 
 const makeStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     display: {
-      fontFamily: Type.fonts.extrabold,
+      fontFamily: Type.fonts.black,
       fontSize: Type.fontSizes.display,
+      letterSpacing: Type.letterSpacing.tight,
       color: colors.textPrimary,
     },
     h1: {
-      fontFamily: Type.fonts.bold,
-      fontSize: Type.fontSizes.xxl,
+      fontFamily: Type.fonts.black,
+      fontSize: Type.fontSizes.xl,
+      letterSpacing: Type.letterSpacing.heading,
       color: colors.textPrimary,
     },
     h2: {
-      fontFamily: Type.fonts.bold,
-      fontSize: Type.fontSizes.xl,
+      fontFamily: Type.fonts.black,
+      fontSize: Type.fontSizes.lg,
+      letterSpacing: Type.letterSpacing.h2,
       color: colors.textPrimary,
     },
     h3: {
-      fontFamily: Type.fonts.semibold,
-      fontSize: Type.fontSizes.lg,
+      fontFamily: Type.fonts.bold,
+      fontSize: Type.fontSizes.md,
       color: colors.textPrimary,
     },
     bodyLg: {

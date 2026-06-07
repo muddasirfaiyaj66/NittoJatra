@@ -23,7 +23,7 @@ export const useSettingsStore = create<SettingsStore>()(
     (set, get) => ({
       language: 'en',
       notifications: true,
-      themeMode: 'system',
+      themeMode: 'dark',
       hasHydrated: false,
 
       setLanguage: (language) => set({ language }),
