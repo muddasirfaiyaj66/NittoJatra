@@ -1,8 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { MapHeader } from '@/components/shared/MapHeader';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { getOperatorById, MOCK_SEARCH_RESULTS } from '@/constants/mock-data';
 
@@ -12,13 +11,7 @@ export default function SearchResultsScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={[...Gradients.navyHeader]} style={styles.mapHeader}>
-        <SafeAreaView edges={['top']}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.back}>
-            <Ionicons name="arrow-back" size={22} color={Colors.white} />
-          </Pressable>
-        </SafeAreaView>
-      </LinearGradient>
+      <MapHeader height={200} onBack={() => router.back()} />
 
       <View style={styles.sheet}>
         <View style={styles.handle} />
@@ -83,8 +76,6 @@ export default function SearchResultsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  mapHeader: { height: 200 },
-  back: { margin: Spacing.xl, width: 40, height: 40, borderRadius: Radius.lg, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
   sheet: { flex: 1, backgroundColor: Colors.surface, borderTopLeftRadius: Radius.card, borderTopRightRadius: Radius.card, marginTop: -24 },
   handle: { width: 40, height: 4, backgroundColor: Colors.borderMid, borderRadius: 2, alignSelf: 'center', marginTop: Spacing.md },
   sheetHeader: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.base },

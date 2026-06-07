@@ -15,7 +15,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AmbientBackground, GradientButton } from '@/components/ui';
+import { AmbientBackground, GradientButton, GradientText } from '@/components/ui';
 import { SegmentedControl } from '@/components/shared/SegmentedControl';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
@@ -74,9 +74,10 @@ export default function RegisterScreen() {
               <Ionicons name="arrow-back" size={22} color={Colors.white} />
             </Pressable>
 
-            <Text style={styles.title}>
-              Create <Text style={styles.titleAccent}>Account</Text>
-            </Text>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>Create </Text>
+              <GradientText style={styles.titleGradient}>Account</GradientText>
+            </View>
 
             <View style={styles.progressRow}>
               {Array.from({ length: totalSteps }).map((_, i) => (
@@ -189,13 +190,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.xxl },
   back: { width: 40, height: 40, justifyContent: 'center', marginTop: Spacing.sm },
-  title: {
-    fontFamily: Typography.fonts.black,
-    fontSize: Typography.fontSizes.xl,
-    color: Colors.white,
-    marginTop: Spacing.md,
-  },
-  titleAccent: { color: Colors.indigo400 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: Spacing.md },
+  title: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xl, color: Colors.white },
+  titleGradient: { fontSize: Typography.fontSizes.xl, lineHeight: 32 },
   progressRow: { flexDirection: 'row', gap: Spacing.sm, marginVertical: Spacing.xl },
   progressSegment: { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden' },
   progressFill: { flex: 1 },

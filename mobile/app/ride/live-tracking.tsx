@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { MapHeader } from '@/components/shared/MapHeader';
 import { StatusDot } from '@/components/ui';
 import { Colors, Gradients, Radius, Spacing, Typography } from '@/constants/theme';
 import { getOperatorById } from '@/constants/mock-data';
@@ -12,20 +12,15 @@ export default function LiveTrackingScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={[...Gradients.navyHeader]} style={styles.map}>
-        <SafeAreaView edges={['top']} style={styles.mapOverlay}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.back}>
-            <Ionicons name="arrow-back" size={22} color={Colors.white} />
-          </Pressable>
-          <View style={styles.livePill}>
-            <StatusDot size={8} />
-            <Text style={styles.liveText}>LIVE TRACKING</Text>
-          </View>
-        </SafeAreaView>
+      <MapHeader height={320} onBack={() => router.back()}>
+        <View style={styles.livePill}>
+          <StatusDot size={8} />
+          <Text style={styles.liveText}>LIVE TRACKING</Text>
+        </View>
         <View style={styles.mapCenter}>
           <Ionicons name="navigate" size={32} color={Colors.primary} />
         </View>
-      </LinearGradient>
+      </MapHeader>
 
       <View style={styles.sheet}>
         <View style={styles.handle} />
@@ -80,12 +75,20 @@ export default function LiveTrackingScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  map: { flex: 1 },
-  mapOverlay: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.sm },
-  back: { width: 40, height: 40, borderRadius: Radius.lg, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
-  livePill: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: 'rgba(16,185,129,0.2)', paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.full },
+  livePill: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: 'rgba(16,185,129,0.2)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.full,
+  },
   liveText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.accentEmerald, letterSpacing: 1 },
-  mapCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  mapCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xxl },
   sheet: { backgroundColor: Colors.surface, borderTopLeftRadius: Radius.card, borderTopRightRadius: Radius.card, padding: Spacing.xl, paddingBottom: 40 },
   handle: { width: 40, height: 4, backgroundColor: Colors.borderMid, borderRadius: 2, alignSelf: 'center', marginBottom: Spacing.base },
   etaLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1 },

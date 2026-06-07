@@ -67,6 +67,7 @@ function RootNavigator() {
           <Stack.Screen name="ride/live-tracking" options={{ presentation: 'card' }} />
           <Stack.Screen name="ride/subscription-tracker" options={{ presentation: 'card' }} />
           <Stack.Screen name="wallet" options={{ presentation: 'card' }} />
+          <Stack.Screen name="personal-details" options={{ presentation: 'card' }} />
           <Stack.Screen name="messages" options={{ presentation: 'card' }} />
           <Stack.Screen name="notifications" options={{ presentation: 'card' }} />
           <Stack.Screen name="modals" options={{ presentation: 'modal' }} />

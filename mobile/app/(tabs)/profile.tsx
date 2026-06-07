@@ -6,7 +6,7 @@ import { Colors, Gradients, Radius, Shadows, Spacing, Typography } from '@/const
 import { useAuth } from '@/hooks/useAuth';
 
 const ACCOUNT_ITEMS = [
-  { icon: 'person-outline', title: 'Personal Details', sub: 'Name, email, phone' },
+  { icon: 'person-outline', title: 'Personal Details', sub: 'Name, email, phone', route: '/personal-details' },
   { icon: 'location-outline', title: 'Saved Places', sub: 'Home, office & more', route: '/modals/saved-places' },
   { icon: 'shield-checkmark-outline', title: 'Verification Info', sub: 'NID verified', route: '/modals/verification-info' },
   { icon: 'lock-closed-outline', title: 'Account Security', sub: 'Password & PIN' },
@@ -66,7 +66,7 @@ export default function ProfileScreen() {
           key={item.title}
           accessibilityRole="button"
           accessibilityLabel={item.title}
-          onPress={() => item.route && router.push(item.route as '/modals/saved-places')}
+          onPress={() => item.route && router.push(item.route as '/personal-details' | '/modals/saved-places' | '/modals/verification-info')}
           style={[styles.listItem, Shadows.card]}
         >
           <View style={styles.listIcon}>

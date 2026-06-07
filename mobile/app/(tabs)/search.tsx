@@ -1,11 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientButton } from '@/components/ui';
-import { Colors, Gradients, Radius, Spacing, Typography } from '@/constants/theme';
+import { MapHeader } from '@/components/shared/MapHeader';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { RECENT_PLACES } from '@/constants/mock-data';
 
 export default function FindScreen() {
@@ -18,16 +17,7 @@ export default function FindScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={[...Gradients.navyHeader]} style={styles.mapHeader}>
-        <SafeAreaView edges={['top']}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.back}>
-            <Ionicons name="arrow-back" size={22} color={Colors.white} />
-          </Pressable>
-          <View style={styles.mapPlaceholder}>
-            <Ionicons name="map" size={48} color="rgba(255,255,255,0.3)" />
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
+      <MapHeader height={280} onBack={() => router.back()} />
 
       <View style={styles.sheet}>
         <View style={styles.handle} />
@@ -78,9 +68,6 @@ export default function FindScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  mapHeader: { height: 280 },
-  back: { margin: Spacing.xl, width: 40, height: 40, borderRadius: Radius.lg, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
-  mapPlaceholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   sheet: {
     flex: 1,
     backgroundColor: Colors.surface,

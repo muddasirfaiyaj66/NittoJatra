@@ -2,15 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AmbientBackground } from '@/components/ui';
+import { AmbientBackground, GradientText } from '@/components/ui';
 import { Colors, Gradients, Radius, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function WelcomeScreen() {
   const { setRole } = useAuth();
+  const [showActions, setShowActions] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const dot1 = useRef(new Animated.Value(0.3)).current;
   const dot2 = useRef(new Animated.Value(0.3)).current;
   const dot3 = useRef(new Animated.Value(0.3)).current;
@@ -30,12 +32,19 @@ export default function WelcomeScreen() {
     a1.start();
     a2.start();
     a3.start();
+
+    const timer = setTimeout(() => {
+      setShowActions(true);
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+    }, 2200);
+
     return () => {
       a1.stop();
       a2.stop();
       a3.stop();
+      clearTimeout(timer);
     };
-  }, [dot1, dot2, dot3]);
+  }, [dot1, dot2, dot3, fadeAnim]);
 
   const goLogin = (role: 'rider' | 'driver') => {
     setRole(role);
@@ -52,7 +61,7 @@ export default function WelcomeScreen() {
           </LinearGradient>
           <Text style={styles.wordmark}>NittoJatra</Text>
           <Text style={styles.headline}>Commute</Text>
-          <Text style={styles.headlineAccent}>Without Limits</Text>
+          <GradientText>Without Limits</GradientText>
         </View>
 
         <View style={styles.dots}>
@@ -61,26 +70,30 @@ export default function WelcomeScreen() {
           ))}
         </View>
 
-        <View style={styles.actions}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="I'm a Rider"
-            onPress={() => goLogin('rider')}
-            style={styles.roleBtn}
-          >
-            <Ionicons name="person" size={20} color={Colors.white} />
-            <Text style={styles.roleText}>I&apos;m a Rider</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="I'm a Captain"
-            onPress={() => goLogin('driver')}
-            style={[styles.roleBtn, styles.roleBtnAlt]}
-          >
-            <Ionicons name="car" size={20} color={Colors.indigo400} />
-            <Text style={[styles.roleText, styles.roleTextAlt]}>I&apos;m a Captain</Text>
-          </Pressable>
-        </View>
+        {showActions ? (
+          <Animated.View style={[styles.actions, { opacity: fadeAnim }]}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="I'm a Rider"
+              onPress={() => goLogin('rider')}
+              style={styles.roleBtn}
+            >
+              <Ionicons name="person" size={20} color={Colors.white} />
+              <Text style={styles.roleText}>I&apos;m a Rider</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="I'm a Captain"
+              onPress={() => goLogin('driver')}
+              style={[styles.roleBtn, styles.roleBtnAlt]}
+            >
+              <Ionicons name="car" size={20} color={Colors.indigo400} />
+              <Text style={[styles.roleText, styles.roleTextAlt]}>I&apos;m a Captain</Text>
+            </Pressable>
+          </Animated.View>
+        ) : (
+          <View style={styles.actionsPlaceholder} />
+        )}
       </SafeAreaView>
     </AmbientBackground>
   );
@@ -120,13 +133,6 @@ const styles = StyleSheet.create({
     color: Colors.white,
     lineHeight: 40,
   },
-  headlineAccent: {
-    fontFamily: Typography.fonts.black,
-    fontSize: Typography.fontSizes.display,
-    letterSpacing: Typography.letterSpacing.tight,
-    color: Colors.indigo400,
-    lineHeight: 40,
-  },
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -141,6 +147,9 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: Spacing.md,
+  },
+  actionsPlaceholder: {
+    height: 120,
   },
   roleBtn: {
     flexDirection: 'row',

@@ -1,11 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { MapHeader } from '@/components/shared/MapHeader';
 import { GradientButton } from '@/components/ui';
-import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Colors, formatTaka, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { getRideDetail } from '@/constants/mock-data';
 import { usePaymentStore } from '@/store/payment.store';
 
@@ -28,20 +27,16 @@ export default function RideDetailScreen() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={[...Gradients.navyHeader]} style={styles.mapArea}>
-        <SafeAreaView edges={['top']} style={styles.mapNav}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.iconBtn}>
-            <Ionicons name="arrow-back" size={22} color={Colors.white} />
+      <MapHeader height={220} onBack={() => router.back()}>
+        <View style={styles.mapActions}>
+          <View style={{ flex: 1 }} />
+          <Pressable accessibilityRole="button" accessibilityLabel="Favorite" style={styles.iconBtn}>
+            <Ionicons name="heart-outline" size={22} color={Colors.white} />
           </Pressable>
-          <View style={styles.mapActions}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Favorite" style={styles.iconBtn}>
-              <Ionicons name="heart-outline" size={22} color={Colors.white} />
-            </Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel="Share" style={styles.iconBtn}>
-              <Ionicons name="share-outline" size={22} color={Colors.white} />
-            </Pressable>
-          </View>
-        </SafeAreaView>
+          <Pressable accessibilityRole="button" accessibilityLabel="Share" style={styles.iconBtn}>
+            <Ionicons name="share-outline" size={22} color={Colors.white} />
+          </Pressable>
+        </View>
         <View style={styles.badges}>
           <View style={styles.badgeIndigo}><Text style={styles.badgeText}>{detail.badge}</Text></View>
           <View style={styles.badgeDark}><Text style={styles.badgeTextDark}>{detail.slot}</Text></View>
@@ -49,7 +44,7 @@ export default function RideDetailScreen() {
             <View style={styles.badgePink}><Text style={styles.badgeTextPink}>WOMEN ONLY</Text></View>
           )}
         </View>
-      </LinearGradient>
+      </MapHeader>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={[styles.detailCard, Shadows.card]}>
@@ -149,11 +144,9 @@ export default function RideDetailScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
-  mapArea: { height: 220 },
-  mapNav: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.xl, paddingTop: Spacing.sm },
-  mapActions: { flexDirection: 'row', gap: Spacing.sm },
+  mapActions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
   iconBtn: { width: 40, height: 40, borderRadius: Radius.lg, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
-  badges: { flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.xl, marginTop: Spacing.md },
+  badges: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md, flexWrap: 'wrap' },
   badgeIndigo: { backgroundColor: Colors.primary, paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.full },
   badgeDark: { backgroundColor: Colors.darkBgNavy, paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.full },
   badgePink: { backgroundColor: Colors.accentLight, paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.full },

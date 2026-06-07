@@ -15,7 +15,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AmbientBackground, GlassCard, GradientButton } from '@/components/ui';
+import { AmbientBackground, GlassCard, GradientButton, GradientText } from '@/components/ui';
 import { SegmentedControl } from '@/components/shared/SegmentedControl';
 import { Colors, Gradients, Radius, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
@@ -54,9 +54,10 @@ export default function LoginScreen() {
               <Ionicons name="car-sport" size={32} color={Colors.white} />
             </LinearGradient>
 
-            <Text style={styles.title}>
-              Welcome <Text style={styles.titleAccent}>Back.</Text>
-            </Text>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>Welcome </Text>
+              <GradientText style={styles.titleGradient}>Back.</GradientText>
+            </View>
             <Text style={styles.subtitle}>ENTER CREDENTIALS TO CONTINUE</Text>
 
             <GlassCard style={styles.card}>
@@ -153,15 +154,21 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xxl,
     marginBottom: Spacing.lg,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    marginTop: Spacing.lg,
+  },
   title: {
     fontFamily: Typography.fonts.black,
     fontSize: Typography.fontSizes.display,
     letterSpacing: Typography.letterSpacing.tight,
     color: Colors.white,
-    textAlign: 'center',
   },
-  titleAccent: {
-    color: Colors.indigo400,
+  titleGradient: {
+    fontSize: Typography.fontSizes.display,
   },
   subtitle: {
     fontFamily: Typography.fonts.medium,

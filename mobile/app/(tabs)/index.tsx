@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DarkHeader } from '@/components/shared/DarkHeader';
+import { GradientText } from '@/components/ui';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { MOCK_BOOKINGS } from '@/constants/mock-data';
 
@@ -32,9 +33,10 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         </View>
-        <Text style={styles.headline}>
-          Where to <Text style={styles.headlineAccent}>today?</Text>
-        </Text>
+        <View style={styles.headlineRow}>
+          <Text style={styles.headline}>Where to </Text>
+          <GradientText style={styles.headlineGradient}>today?</GradientText>
+        </View>
       </DarkHeader>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -125,8 +127,9 @@ const styles = StyleSheet.create({
   greetingText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.white, letterSpacing: 1 },
   headerActions: { flexDirection: 'row', gap: Spacing.sm },
   iconBtn: { width: 40, height: 40, borderRadius: Radius.lg, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  headline: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xl, color: Colors.white, marginTop: Spacing.lg },
-  headlineAccent: { color: Colors.indigo400 },
+  headlineRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: Spacing.lg },
+  headline: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.xl, color: Colors.white },
+  headlineGradient: { fontSize: Typography.fontSizes.xl, lineHeight: 32 },
   scroll: { padding: Spacing.xl, paddingBottom: 100, gap: Spacing.base },
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: Radius.full, padding: Spacing.md, gap: Spacing.md, ...Shadows.card },
   searchText: { flex: 1 },
