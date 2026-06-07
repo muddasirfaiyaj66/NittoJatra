@@ -12,7 +12,7 @@ export default function LiveTrackingScreen() {
 
   return (
     <View style={styles.root}>
-      <MapHeader height={320} onBack={() => router.back()}>
+      <MapHeader height={280} useBasemap onBack={() => router.back()}>
         <View style={styles.livePill}>
           <StatusDot size={8} />
           <Text style={styles.liveText}>LIVE TRACKING</Text>

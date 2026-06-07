@@ -27,7 +27,7 @@ export default function RideDetailScreen() {
 
   return (
     <View style={styles.root}>
-      <MapHeader height={220} onBack={() => router.back()}>
+      <MapHeader height={280} useBasemap onBack={() => router.back()}>
         <View style={styles.mapActions}>
           <View style={{ flex: 1 }} />
           <Pressable accessibilityRole="button" accessibilityLabel="Favorite" style={styles.iconBtn}>

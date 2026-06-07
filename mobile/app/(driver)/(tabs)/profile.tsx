@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 const PREFS = [
   { icon: 'person-outline', title: 'Personal Information', route: null },
   { icon: 'car-outline', title: 'Vehicle Management', route: '/(driver)/modals/vehicle-management' },
-  { icon: 'map-outline', title: 'Saved Zones', route: null },
+  { icon: 'map-outline', title: 'Saved Zones', route: '/saved-zones' },
   { icon: 'shield-checkmark-outline', title: 'Safety & Verification', route: null },
   { icon: 'settings-outline', title: 'App Settings', route: null },
 ];
@@ -58,7 +58,7 @@ export default function DriverProfileScreen() {
           key={p.title}
           accessibilityRole="button"
           accessibilityLabel={p.title}
-          onPress={() => p.route && router.push(p.route as '/(driver)/modals/vehicle-management')}
+          onPress={() => p.route && router.push(p.route as '/(driver)/modals/vehicle-management' | '/saved-zones')}
           style={[styles.listItem, Shadows.card]}
         >
           <Ionicons name={p.icon as keyof typeof Ionicons.glyphMap} size={20} color={Colors.primary} />
