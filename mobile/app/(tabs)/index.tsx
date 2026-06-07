@@ -10,10 +10,11 @@ import { QuickAction, QuickActionChip } from '@/components/home/QuickActionChip'
 import { RouteCard } from '@/components/home/RouteCard';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button, Input } from '@/components/ui';
-import { MOCK_BOOKINGS, MOCK_ROUTES } from '@/constants/mock-data';
+import { MOCK_ROUTES } from '@/constants/mock-data';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { getGreeting } from '@/hooks/useGreeting';
 import { useAuth } from '@/hooks/useAuth';
+import { useBookings } from '@/hooks/useBookings';
 import { RouteItem } from '@/types';
 
 const QUICK_ACTIONS: QuickAction[] = [
@@ -35,7 +36,7 @@ export default function HomeScreen() {
   const [activeAction, setActiveAction] = useState('bus');
 
   const firstName = (user?.name ?? 'Traveller').split(' ')[0];
-  const upcoming = useMemo(() => MOCK_BOOKINGS.filter((b) => b.status === 'upcoming'), []);
+  const { bookings: upcoming } = useBookings('upcoming');
 
   const handleSwap = () => {
     setFrom(to);
