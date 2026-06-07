@@ -1,48 +1,68 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { GradientButton } from '@/components/ui';
+import { SolidButton } from '@/components/ui';
 import { MapHeader } from '@/components/shared/MapHeader';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Colors, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { RECENT_PLACES } from '@/constants/mock-data';
 
 export default function FindScreen() {
-  const [from, setFrom] = useState('Shahbag, Dhaka');
+  const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
 
   const search = () => {
-    router.push({ pathname: '/ride/results', params: { from, to: to || 'Motijheel' } });
+    router.push({ pathname: '/ride/results', params: { from: from || 'Shahbag', to: to || 'Motijheel' } });
   };
 
   return (
     <View style={styles.root}>
-      <MapHeader height={280} onBack={() => router.back()} />
+      <MapHeader height={490} useBasemap onBack={() => router.back()} />
 
       <View style={styles.sheet}>
         <View style={styles.handle} />
         <Text style={styles.title}>Where do you want to go?</Text>
 
-        <View style={styles.routeGroup}>
-          <View style={styles.routeRow}>
-            <View style={styles.hollowDot} />
+        <View style={styles.routeStack}>
+          <LinearGradient
+            colors={[...Gradients.routeDivider]}
+            style={styles.routeDivider}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+          />
+          <View style={[styles.routeCard, styles.routeCardFrom]}>
+            <View style={styles.fromDot} />
             <View style={styles.routeInput}>
               <Text style={styles.routeLabel}>FROM</Text>
-              <TextInput accessibilityLabel="From location" value={from} onChangeText={setFrom} style={styles.input} />
+              <TextInput
+                accessibilityLabel="From location"
+                placeholder="Enter pickup"
+                placeholderTextColor={Colors.textMuted}
+                value={from}
+                onChangeText={setFrom}
+                style={styles.input}
+              />
             </View>
           </View>
-          <View style={styles.divider} />
-          <View style={styles.routeRow}>
-            <View style={styles.filledDot} />
+          <View style={styles.routeCard}>
+            <View style={styles.toDot} />
             <View style={styles.routeInput}>
               <Text style={styles.routeLabel}>TO</Text>
-              <TextInput accessibilityLabel="To location" placeholder="Enter destination" placeholderTextColor={Colors.textMuted} value={to} onChangeText={setTo} style={styles.input} />
+              <TextInput
+                accessibilityLabel="To location"
+                placeholder="Enter destination"
+                placeholderTextColor={Colors.textMuted}
+                value={to}
+                onChangeText={setTo}
+                style={styles.input}
+              />
             </View>
           </View>
         </View>
 
         <Text style={styles.sectionLabel}>RECENT PLACES</Text>
-        <ScrollView style={styles.recentList}>
+        <ScrollView style={styles.recentList} showsVerticalScrollIndicator={false}>
           {RECENT_PLACES.map((p) => (
             <Pressable
               key={p.id}
@@ -51,7 +71,9 @@ export default function FindScreen() {
               onPress={() => setTo(p.name)}
               style={styles.recentRow}
             >
-              <Ionicons name="time-outline" size={18} color={Colors.textMuted} />
+              <View style={styles.recentIcon}>
+                <Ionicons name="time-outline" size={18} color={Colors.textMuted} />
+              </View>
               <View style={styles.recentText}>
                 <Text style={styles.recentName}>{p.name}</Text>
                 <Text style={styles.recentLabel}>{p.label}</Text>
@@ -60,39 +82,142 @@ export default function FindScreen() {
           ))}
         </ScrollView>
 
-        <GradientButton title="SEARCH AVAILABLE RIDE" onPress={search} style={styles.searchBtn} />
+        <SolidButton title="SEARCH AVAILABLE RIDE" onPress={search} style={styles.searchBtn} />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.background },
+  root: { flex: 1, backgroundColor: Colors.track },
   sheet: {
     flex: 1,
     backgroundColor: Colors.surface,
-    borderTopLeftRadius: Radius.card,
-    borderTopRightRadius: Radius.card,
-    marginTop: -32,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    marginTop: -48,
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.md,
+    paddingTop: Spacing.xl,
     paddingBottom: 100,
+    ...Shadows.sheet,
   },
-  handle: { width: 40, height: 4, backgroundColor: Colors.borderMid, borderRadius: 2, alignSelf: 'center', marginBottom: Spacing.base },
-  title: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.textPrimary, marginBottom: Spacing.lg },
-  routeGroup: { backgroundColor: Colors.surfaceMuted, borderRadius: Radius.lg, padding: Spacing.base, marginBottom: Spacing.lg },
-  routeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  hollowDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: Colors.primary },
-  filledDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.primaryAlt },
+  handle: {
+    width: 48,
+    height: 6,
+    backgroundColor: Colors.track,
+    borderRadius: Radius.full,
+    alignSelf: 'center',
+    marginBottom: Spacing.xl,
+  },
+  title: {
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.lg,
+    letterSpacing: Typography.letterSpacing.h2,
+    color: Colors.textPrimary,
+    lineHeight: 28,
+    paddingHorizontal: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  routeStack: {
+    position: 'relative',
+    marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.sm,
+  },
+  routeDivider: {
+    position: 'absolute',
+    left: 27,
+    top: 40,
+    bottom: 40,
+    width: 2,
+    opacity: 0.2,
+    borderRadius: 1,
+  },
+  routeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.base,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.lg,
+    paddingHorizontal: 16.8,
+    paddingVertical: 16.2,
+  },
+  routeCardFrom: {
+    marginBottom: -14,
+    zIndex: 1,
+  },
+  fromDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: Colors.primaryGradStart,
+    backgroundColor: Colors.white,
+  },
+  toDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: Colors.purple500,
+    borderWidth: 2,
+    borderColor: Colors.white,
+  },
   routeInput: { flex: 1 },
-  routeLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1 },
-  input: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.textPrimary, paddingVertical: 4 },
-  divider: { height: 1, backgroundColor: Colors.borderMid, marginVertical: Spacing.md, marginLeft: 28 },
-  sectionLabel: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 1, marginBottom: Spacing.md },
+  routeLabel: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.textMuted,
+    letterSpacing: 1,
+    lineHeight: 10,
+    textTransform: 'uppercase',
+  },
+  input: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: Typography.fontSizes.base,
+    color: Colors.textPrimary,
+    paddingVertical: 4,
+    letterSpacing: Typography.letterSpacing.stat,
+  },
+  sectionLabel: {
+    fontFamily: Typography.fonts.black,
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.textMuted,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    paddingHorizontal: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
   recentList: { flex: 1 },
-  recentRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md },
+  recentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.base,
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+  },
+  recentIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   recentText: { flex: 1 },
-  recentName: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.base, color: Colors.textPrimary },
-  recentLabel: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
+  recentName: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: Typography.fontSizes.base,
+    color: Colors.textPrimary,
+    letterSpacing: Typography.letterSpacing.stat,
+    lineHeight: 20,
+  },
+  recentLabel: {
+    fontFamily: Typography.fonts.medium,
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.textMuted,
+    letterSpacing: Typography.letterSpacing.stat,
+    lineHeight: 15,
+  },
   searchBtn: { marginTop: Spacing.base },
 });

@@ -9,9 +9,11 @@ interface GlassCardProps {
   style?: ViewStyle;
   intensity?: number;
   light?: boolean;
+  /** Figma auth card inner padding — default 32.8px */
+  padding?: number;
 }
 
-export function GlassCard({ children, style, intensity = 12, light = false }: GlassCardProps) {
+export function GlassCard({ children, style, intensity = 12, light = false, padding = 33 }: GlassCardProps) {
   const fill = light ? Colors.surface : Colors.glassFill;
   const borderColor = light ? Colors.border : Colors.glassBorder;
 
@@ -19,10 +21,10 @@ export function GlassCard({ children, style, intensity = 12, light = false }: Gl
     <View style={[styles.wrapper, Shadows.glass, style]}>
       {Platform.OS === 'ios' ? (
         <BlurView intensity={intensity} tint="dark" style={styles.blur}>
-          <View style={[styles.inner, { backgroundColor: fill, borderColor }]}>{children}</View>
+          <View style={[styles.inner, { backgroundColor: fill, borderColor, padding }]}>{children}</View>
         </BlurView>
       ) : (
-        <View style={[styles.inner, { backgroundColor: fill, borderColor }]}>{children}</View>
+        <View style={[styles.inner, { backgroundColor: fill, borderColor, padding }]}>{children}</View>
       )}
       <LinearGradient
         colors={['transparent', Colors.glassHairline, 'transparent']}
@@ -47,7 +49,7 @@ const styles = StyleSheet.create({
   inner: {
     borderRadius: Radius.xl,
     borderWidth: 1,
-    padding: 24,
+    gap: 32,
   },
   hairline: {
     position: 'absolute',

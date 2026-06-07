@@ -68,9 +68,9 @@ export default function LoginScreen() {
                 onChange={handleRoleChange}
               />
 
-              <View style={styles.field}>
+              <View style={styles.form}>
                 <View style={styles.inputWrap}>
-                  <Ionicons name="mail-outline" size={18} color={Colors.textMuted} />
+                  <Ionicons name="mail-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
                   <TextInput
                     accessibilityLabel="Email Address"
                     placeholder="Email Address"
@@ -82,51 +82,52 @@ export default function LoginScreen() {
                     style={styles.input}
                   />
                 </View>
-              </View>
 
-              <View style={styles.field}>
-                <View style={styles.inputWrap}>
-                  <Ionicons name="lock-closed-outline" size={18} color={Colors.textMuted} />
-                  <TextInput
-                    accessibilityLabel="Password"
-                    placeholder="Password"
-                    placeholderTextColor={Colors.textMuted}
-                    secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={setPassword}
-                    style={styles.input}
-                  />
+                <View style={styles.passwordGroup}>
+                  <View style={styles.inputWrap}>
+                    <Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
+                    <TextInput
+                      accessibilityLabel="Password"
+                      placeholder="Password"
+                      placeholderTextColor={Colors.textMuted}
+                      secureTextEntry={!showPassword}
+                      value={password}
+                      onChangeText={setPassword}
+                      style={styles.input}
+                    />
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                      onPress={() => setShowPassword((s) => !s)}
+                      style={styles.eyeBtn}
+                    >
+                      <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.textMuted} />
+                    </Pressable>
+                  </View>
+                  <Pressable accessibilityRole="button" accessibilityLabel="Forgot password" style={styles.forgot}>
+                    <Text style={styles.forgotText}>FORGOT PASSWORD?</Text>
+                  </Pressable>
+                </View>
+
+                {error ? <Text style={styles.error}>{error}</Text> : null}
+
+                <View style={styles.actions}>
+                  <GradientButton title="SIGN IN" onPress={handleLogin} loading={isLoading} icon={<Ionicons name="arrow-forward" size={16} color={Colors.white} />} />
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-                    onPress={() => setShowPassword((s) => !s)}
+                    accessibilityLabel="Create new account"
+                    onPress={() => router.push('/(auth)/register')}
+                    style={styles.secondaryBtn}
                   >
-                    <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={Colors.textMuted} />
+                    <Ionicons name="person-add-outline" size={14} color="#CBD5E1" />
+                    <Text style={styles.secondaryText}>CREATE NEW ACCOUNT</Text>
                   </Pressable>
                 </View>
               </View>
-
-              <Pressable accessibilityRole="button" accessibilityLabel="Forgot password" style={styles.forgot}>
-                <Text style={styles.forgotText}>FORGOT PASSWORD?</Text>
-              </Pressable>
-
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-
-              <GradientButton title="SIGN IN →" onPress={handleLogin} loading={isLoading} />
-
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Create new account"
-                onPress={() => router.push('/(auth)/register')}
-                style={styles.secondaryBtn}
-              >
-                <Ionicons name="person-add-outline" size={16} color={Colors.textSecondary} />
-                <Text style={styles.secondaryText}>CREATE NEW ACCOUNT</Text>
-              </Pressable>
             </GlassCard>
 
             <Text style={styles.footer}>
-              SECURED BY NITTO·<Text style={styles.footerAccent}>SHIELD</Text>
+              SECURED BY NITTO<Text style={styles.footerAccent}>SHIELD</Text>
             </Text>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -143,6 +144,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xl,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xxxl,
   },
   logo: {
     width: 75,
@@ -151,72 +154,85 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     transform: [{ rotate: '1.06deg' }],
-    marginTop: Spacing.xxl,
-    marginBottom: Spacing.lg,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     flexWrap: 'wrap',
-    marginTop: Spacing.lg,
   },
   title: {
     fontFamily: Typography.fonts.black,
     fontSize: Typography.fontSizes.display,
     letterSpacing: Typography.letterSpacing.tight,
     color: Colors.white,
+    lineHeight: 40,
   },
   titleGradient: {
     fontSize: Typography.fontSizes.display,
+    lineHeight: 40,
   },
   subtitle: {
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.sm,
     letterSpacing: Typography.letterSpacing.subtitle,
     color: Colors.textMuted,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.xl,
+    textTransform: 'uppercase',
+    lineHeight: 16,
+    marginTop: -Spacing.xl,
   },
   card: {
     width: '100%',
-    gap: Spacing.base,
+    maxWidth: 336,
   },
-  field: {
-    marginTop: Spacing.md,
+  form: {
+    gap: Spacing.lg,
   },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
     backgroundColor: Colors.glassInput,
     borderWidth: 1,
     borderColor: Colors.glassBorder,
     borderRadius: Radius.lg,
-    paddingHorizontal: Spacing.base,
+    paddingHorizontal: Spacing.xl,
     height: 64,
+  },
+  inputIcon: {
+    marginRight: Spacing.base,
   },
   input: {
     flex: 1,
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.base,
     color: Colors.white,
+    lineHeight: 20,
+  },
+  passwordGroup: {
+    gap: 7,
+  },
+  eyeBtn: {
+    padding: 6,
   },
   forgot: {
     alignSelf: 'flex-end',
-    marginVertical: Spacing.sm,
+    paddingRight: Spacing.xs,
   },
   forgotText: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.xs,
-    letterSpacing: Typography.letterSpacing.buttonSm,
+    letterSpacing: 1,
     color: Colors.indigo400,
+    textTransform: 'uppercase',
   },
   error: {
     fontFamily: Typography.fonts.regular,
     fontSize: Typography.fontSizes.sm,
     color: Colors.danger,
-    marginBottom: Spacing.sm,
+  },
+  actions: {
+    gap: Spacing.md,
+    paddingTop: Spacing.base,
   },
   secondaryBtn: {
     flexDirection: 'row',
@@ -224,22 +240,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.sm,
     backgroundColor: Colors.glassInput,
+    borderWidth: 1,
+    borderColor: Colors.glassBorderSubtle,
     borderRadius: Radius.lg,
-    paddingVertical: Spacing.base,
-    marginTop: Spacing.md,
+    height: 56,
   },
   secondaryText: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.xs,
     letterSpacing: Typography.letterSpacing.buttonSm,
     color: '#CBD5E1',
+    textTransform: 'uppercase',
   },
   footer: {
     fontFamily: Typography.fonts.bold,
     fontSize: Typography.fontSizes.xs,
     letterSpacing: Typography.letterSpacing.buttonSm,
     color: Colors.textFaint,
-    marginTop: Spacing.xxl,
+    textTransform: 'uppercase',
   },
   footerAccent: {
     color: Colors.primaryGradStart,

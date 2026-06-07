@@ -74,7 +74,11 @@ export type ColorName = keyof ColorTokens;
 
 export const Gradients = {
   appIcon: ['#6366F1', '#8B5CF6'] as const,
+  wordmark: ['#6366F1', '#8B5CF6'] as const,
+  welcomeTagline: ['#6366F1', '#EC4899'] as const,
   headlineAccent: ['#818CF8', '#C084FC'] as const,
+  premiumBanner: ['#0EA5E9', '#4F46E5'] as const,
+  routeDivider: ['#6366F1', '#A855F7'] as const,
   ctaPrimary: ['#4F46E5', '#7E22CE'] as const,
   ctaRegister: ['#4F46E5', '#10B981'] as const,
   ctaRegisterAlt: ['#6366F1', '#14B8A6'] as const,
@@ -140,7 +144,7 @@ export const Radius = {
   full: 9999,
 } as const;
 
-export const Shadows: Record<'card' | 'float' | 'glass' | 'cta' | 'tabBar', ViewStyle> = {
+export const Shadows: Record<'card' | 'float' | 'glass' | 'cta' | 'tabBar' | 'findCta' | 'sheet', ViewStyle> = {
   card: {
     shadowColor: '#E2E8F0',
     shadowOffset: { width: 0, height: 8 },
@@ -175,6 +179,20 @@ export const Shadows: Record<'card' | 'float' | 'glass' | 'cta' | 'tabBar', View
     shadowOpacity: 0.05,
     shadowRadius: 5,
     elevation: 8,
+  },
+  findCta: {
+    shadowColor: '#C7D2FE',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 1,
+    shadowRadius: 25,
+    elevation: 8,
+  },
+  sheet: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 12,
   },
 };
 

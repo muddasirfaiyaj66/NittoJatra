@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { haptics } from '@/hooks/useHaptics';
 
 interface SegmentedControlProps {
@@ -9,6 +9,7 @@ interface SegmentedControlProps {
   dark?: boolean;
 }
 
+/** Figma segmented control — 16px track, 12px active pill, 10px Black uppercase labels */
 export function SegmentedControl({ options, selected, onChange, dark = false }: SegmentedControlProps) {
   return (
     <View style={[styles.track, dark && styles.trackDark]}>
@@ -40,45 +41,45 @@ const styles = StyleSheet.create({
   track: {
     flexDirection: 'row',
     backgroundColor: Colors.surfaceMuted,
-    borderRadius: Radius.md,
-    padding: 4,
+    borderRadius: Radius.lg,
+    padding: 7,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   trackDark: {
     backgroundColor: Colors.glassFillSubtle,
+    borderColor: Colors.glassBorderSubtle,
   },
   pill: {
     flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.sm,
+    paddingVertical: 12,
+    borderRadius: Radius.md,
     alignItems: 'center',
   },
   pillActive: {
     backgroundColor: Colors.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    ...Shadows.float,
   },
   pillActiveDark: {
     backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: Colors.glassBorder,
+    ...Shadows.float,
   },
   label: {
-    fontFamily: Typography.fonts.bold,
+    fontFamily: Typography.fonts.black,
     fontSize: Typography.fontSizes.xs,
-    letterSpacing: Typography.letterSpacing.label,
-    color: Colors.textMuted3,
+    letterSpacing: 1,
+    color: Colors.textMuted2,
     textTransform: 'uppercase',
   },
   labelDark: {
     color: Colors.textSecondary,
   },
   labelActiveLight: {
-    fontFamily: Typography.fonts.black,
     color: Colors.textHeading2,
   },
   labelActiveDark: {
-    fontFamily: Typography.fonts.black,
     color: Colors.white,
   },
 });

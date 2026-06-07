@@ -12,6 +12,7 @@ export type { GradientVariant } from './GradientButton';
 export { AmbientBackground } from './AmbientBackground';
 export { StatusDot } from './StatusDot';
 export { GradientText } from './GradientText';
+export { SolidButton } from './SolidButton';
 export {
   Display,
   Heading,

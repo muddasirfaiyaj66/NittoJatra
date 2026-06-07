@@ -14,8 +14,8 @@ export default function WelcomeScreen() {
   const [showActions, setShowActions] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const dot1 = useRef(new Animated.Value(0.3)).current;
-  const dot2 = useRef(new Animated.Value(0.3)).current;
-  const dot3 = useRef(new Animated.Value(0.3)).current;
+  const dot2 = useRef(new Animated.Value(0.33)).current;
+  const dot3 = useRef(new Animated.Value(0.45)).current;
 
   useEffect(() => {
     const animate = (dot: Animated.Value, delay: number) =>
@@ -57,16 +57,20 @@ export default function WelcomeScreen() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.hero}>
           <LinearGradient colors={[...Gradients.appIcon]} style={styles.logo}>
-            <Ionicons name="car-sport" size={36} color={Colors.white} />
+            <Ionicons name="car-sport" size={40} color={Colors.white} />
           </LinearGradient>
-          <Text style={styles.wordmark}>NittoJatra</Text>
+          <GradientText style={styles.wordmark} colors={Gradients.wordmark}>
+            NittoJatra
+          </GradientText>
           <Text style={styles.headline}>Commute</Text>
-          <GradientText>Without Limits</GradientText>
+          <GradientText style={styles.tagline} colors={Gradients.welcomeTagline}>
+            Without Limits
+          </GradientText>
         </View>
 
         <View style={styles.dots}>
           {[dot1, dot2, dot3].map((dot, i) => (
-            <Animated.View key={i} style={[styles.dot, { opacity: dot }]} />
+            <Animated.View key={i} style={[styles.dot, i === 1 && styles.dotMid, { opacity: dot }]} />
           ))}
         </View>
 
@@ -112,8 +116,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logo: {
-    width: 72,
-    height: 72,
+    width: 117,
+    height: 117,
     borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -121,29 +125,38 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   wordmark: {
-    fontFamily: Typography.fonts.black,
-    fontSize: Typography.fontSizes.lg,
-    color: Colors.primary,
+    fontSize: Typography.fontSizes.xl,
+    lineHeight: 32,
+    letterSpacing: 0,
     marginBottom: Spacing.xl,
   },
   headline: {
-    fontFamily: Typography.fonts.black,
-    fontSize: Typography.fontSizes.display,
-    letterSpacing: Typography.letterSpacing.tight,
+    fontFamily: Typography.fonts.bold,
+    fontSize: 35,
+    letterSpacing: -2.4,
     color: Colors.white,
     lineHeight: 40,
+  },
+  tagline: {
+    fontSize: 35,
+    lineHeight: 40,
+    letterSpacing: -2.4,
   },
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'flex-end',
     gap: Spacing.sm,
-    marginBottom: Spacing.xxl,
+    marginBottom: Spacing.xxxl,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.primary,
+    width: 6,
+    height: 14,
+    borderRadius: Radius.full,
+    backgroundColor: '#995AF5',
+  },
+  dotMid: {
+    height: 16,
   },
   actions: {
     gap: Spacing.md,
