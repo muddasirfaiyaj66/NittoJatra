@@ -6,14 +6,13 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientButton } from '@/components/ui';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { getOperatorById, getRideDetail } from '@/constants/mock-data';
+import { getRideDetail } from '@/constants/mock-data';
 import { usePaymentStore } from '@/store/payment.store';
 
 export default function RideDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const rideId = id ?? 'r1';
   const detail = useMemo(() => getRideDetail(rideId), [rideId]);
-  const operator = getOperatorById(detail.operatorId);
   const [selectedPlan, setSelectedPlan] = useState(detail.subscriptionPlans.find((p) => p.selected)?.id ?? 'sp2');
   const { setTotal, setRideId, reset } = usePaymentStore();
 

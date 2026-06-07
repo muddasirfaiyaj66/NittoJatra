@@ -40,7 +40,6 @@ export default function RegisterScreen() {
   const userRole: UserRole = selectedRole === 0 ? 'rider' : 'driver';
   const stepIndex = STEPS.indexOf(step);
   const totalSteps = userRole === 'driver' ? 4 : 3;
-  const progressSteps = userRole === 'driver' ? STEPS : STEPS.filter((s) => s !== 'vehicle');
 
   const handleRoleChange = (index: number) => {
     setSelectedRole(index);

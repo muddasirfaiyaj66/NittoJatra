@@ -2,11 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { DarkHeader } from '@/components/shared/DarkHeader';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { MOCK_BOOKINGS } from '@/constants/mock-data';
-import { useAuth } from '@/hooks/useAuth';
 
 const STATS = [
   { label: 'Total Rides', value: '45', icon: 'car', color: '#EEF2FF' },
@@ -16,7 +14,6 @@ const STATS = [
 ];
 
 export default function HomeScreen() {
-  const { user } = useAuth();
   const upcoming = MOCK_BOOKINGS.filter((b) => b.status === 'ongoing' || b.status === 'upcoming');
 
   return (

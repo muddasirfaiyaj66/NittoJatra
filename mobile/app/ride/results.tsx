@@ -3,10 +3,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GradientButton } from '@/components/ui';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { getOperatorById, getRideDetail, MOCK_SEARCH_RESULTS } from '@/constants/mock-data';
-import { usePaymentStore } from '@/store/payment.store';
+import { getOperatorById, MOCK_SEARCH_RESULTS } from '@/constants/mock-data';
 
 export default function SearchResultsScreen() {
   const { from, to } = useLocalSearchParams<{ from?: string; to?: string }>();

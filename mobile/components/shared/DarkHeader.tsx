@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, Gradients, Spacing } from '@/constants/theme';
+import { Gradients, Spacing } from '@/constants/theme';
 
 interface DarkHeaderProps {
   children: ReactNode;
