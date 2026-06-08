@@ -11,6 +11,8 @@ export default function ModalsLayout() {
       <Stack.Screen name="saved-places" />
       <Stack.Screen name="add-trusted-contact" />
       <Stack.Screen name="verification-info" />
+      <Stack.Screen name="rate-driver" />
+      <Stack.Screen name="report-issue" />
     </Stack>
   );
 }
