@@ -58,8 +58,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.base,
-    borderRadius: Radius.card,
+    padding: 16,
+    minHeight: 80,
+    borderRadius: 24,
   },
   iconWrap: {
     width: 48,
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: Typography.fonts.medium,
-    fontSize: Typography.fontSizes.xs,
+    fontSize: 10,
     color: Colors.textMuted,
     letterSpacing: Typography.letterSpacing.stat,
     lineHeight: 15,

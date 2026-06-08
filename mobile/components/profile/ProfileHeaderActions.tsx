@@ -5,20 +5,25 @@ import { Colors, Radius, Shadows, Spacing } from '@/constants/theme';
 interface ProfileHeaderActionsProps {
   onBack?: () => void;
   onLogout: () => void;
+  showBack?: boolean;
   style?: ViewStyle;
 }
 
-export function ProfileHeaderActions({ onBack, onLogout, style }: ProfileHeaderActionsProps) {
+export function ProfileHeaderActions({ onBack, onLogout, showBack = true, style }: ProfileHeaderActionsProps) {
   return (
     <View style={[styles.row, style]}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Go back"
-        onPress={onBack}
-        style={styles.glassBtn}
-      >
-        <Ionicons name="arrow-back" size={20} color={Colors.white} />
-      </Pressable>
+      {showBack ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          onPress={onBack}
+          style={styles.glassBtn}
+        >
+          <Ionicons name="arrow-back" size={20} color={Colors.white} />
+        </Pressable>
+      ) : (
+        <View style={styles.glassBtnPlaceholder} />
+      )}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Logout"
@@ -36,8 +41,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xxl,
-    paddingBottom: Spacing.xl,
+    paddingTop: 32,
+    paddingBottom: 24,
     zIndex: 2,
   },
   glassBtn: {
@@ -50,6 +55,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.card,
+  },
+  glassBtnPlaceholder: {
+    width: 48,
+    height: 48,
   },
   logoutBtn: {
     borderColor: 'rgba(244,63,94,0.2)',

@@ -13,6 +13,7 @@ export function useAuth() {
   const setRole = useAuthStore((s) => s.setRole);
   const logout = useAuthStore((s) => s.logout);
   const clearError = useAuthStore((s) => s.clearError);
+  const updateUser = useAuthStore((s) => s.updateUser);
 
   return {
     user,
@@ -27,5 +28,6 @@ export function useAuth() {
     setRole,
     logout,
     clearError,
+    updateUser,
   };
 }

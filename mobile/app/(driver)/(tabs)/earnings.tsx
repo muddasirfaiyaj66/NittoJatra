@@ -11,11 +11,8 @@ export default function FinancialHubScreen() {
     <View style={styles.root}>
       <SafeAreaView edges={['top']}>
         <View style={styles.nav}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.iconBtn}>
-            <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
-          </Pressable>
           <Text style={styles.title}>Financial Hub</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Chart" style={styles.iconBtn}>
+          <Pressable accessibilityRole="button" accessibilityLabel="View earnings chart" style={styles.iconBtn}>
             <Ionicons name="bar-chart-outline" size={22} color={Colors.textPrimary} />
           </Pressable>
         </View>

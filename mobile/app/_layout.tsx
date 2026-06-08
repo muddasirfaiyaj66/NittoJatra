@@ -70,6 +70,9 @@ function RootNavigator() {
           <Stack.Screen name="personal-details" options={{ presentation: 'card' }} />
           <Stack.Screen name="messages" options={{ presentation: 'card' }} />
           <Stack.Screen name="notifications" options={{ presentation: 'card' }} />
+          <Stack.Screen name="account-security" options={{ presentation: 'card' }} />
+          <Stack.Screen name="refer-earn" options={{ presentation: 'card' }} />
+          <Stack.Screen name="saved-zones" options={{ presentation: 'card' }} />
           <Stack.Screen name="modals" options={{ presentation: 'modal' }} />
         </Stack>
       </ToastProvider>

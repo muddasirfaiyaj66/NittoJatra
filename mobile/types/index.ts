@@ -16,6 +16,12 @@ export interface User {
   rating?: number;
   tier?: 'GOLD' | 'SILVER' | 'BRONZE';
   vehicle?: string;
+  savedLocation?: string;
+  co2Saved?: string;
+  activePlans?: number;
+  driverBalance?: number;
+  activeRiders?: number;
+  emergencyContact?: string;
 }
 
 export interface RegisterData {
@@ -119,6 +125,18 @@ export interface Booking {
   operator: string;
   amount: number;
   driver?: string;
+}
+
+export interface RiderUpcomingRide {
+  id: string;
+  driverName: string;
+  rating: number;
+  vehicle: string;
+  badge: string;
+  badgeTone: 'time' | 'day';
+  from: string;
+  to: string;
+  eta: string;
 }
 
 export interface ActivePlan {

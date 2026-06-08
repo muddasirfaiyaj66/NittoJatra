@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.lg,
-    padding: 13,
+    padding: 12.8,
     alignItems: 'center',
   },
   valueRow: {

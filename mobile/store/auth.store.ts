@@ -18,6 +18,7 @@ interface AuthStore {
   logout: () => void;
   clearError: () => void;
   setHasHydrated: (value: boolean) => void;
+  updateUser: (patch: Partial<User>) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -64,9 +65,22 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       setRole: (role) => set({ role }),
-      logout: () => set({ user: null, isAuthenticated: false, error: null }),
+      logout: () =>
+        set({
+          user: null,
+          role: 'rider',
+          isAuthenticated: false,
+          error: null,
+        }),
       clearError: () => set({ error: null }),
       setHasHydrated: (value) => set({ hasHydrated: value }),
+
+      updateUser: async (patch) => {
+        const current = useAuthStore.getState().user;
+        if (!current) return;
+        const updated = await authService.updateUser(current, patch);
+        set({ user: updated });
+      },
     }),
     {
       name: 'nittojatra-auth',

@@ -1,9 +1,9 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ROUTES } from '@/constants/routes';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -19,7 +19,9 @@ import { AmbientBackground, GradientButton, GradientText } from '@/components/ui
 import { SegmentedControl } from '@/components/shared/SegmentedControl';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/auth.store';
 import { UserRole } from '@/types';
+import { navigateToRoleHome, resolveActiveRole } from '@/utils/auth-routing';
 
 type Step = 'credentials' | 'identity' | 'vehicle' | 'success';
 
@@ -29,6 +31,15 @@ export default function RegisterScreen() {
   const { register, isLoading, role, setRole } = useAuth();
   const [step, setStep] = useState<Step>('credentials');
   const [selectedRole, setSelectedRole] = useState(role === 'driver' ? 1 : 0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const activeRole = useAuthStore.getState().role;
+      setSelectedRole(activeRole === 'driver' ? 1 : 0);
+    }, []),
+  );
+
+  const userRole: UserRole = selectedRole === 0 ? 'rider' : 'driver';
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,8 +47,6 @@ export default function RegisterScreen() {
   const [nid, setNid] = useState('');
   const [vehicleType, setVehicleType] = useState(0);
   const [regNumber, setRegNumber] = useState('');
-
-  const userRole: UserRole = selectedRole === 0 ? 'rider' : 'driver';
   const stepIndex = STEPS.indexOf(step);
   const totalSteps = userRole === 'driver' ? 4 : 3;
 
@@ -61,7 +70,8 @@ export default function RegisterScreen() {
       gender: 'other',
       role: userRole,
     });
-    router.replace(userRole === 'driver' ? ROUTES.driverTabs : ROUTES.riderTabs);
+    const { user: loggedInUser, role: storeRole } = useAuthStore.getState();
+    navigateToRoleHome(resolveActiveRole(loggedInUser?.role, storeRole));
   };
 
   return (

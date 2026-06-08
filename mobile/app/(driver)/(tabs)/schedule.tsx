@@ -16,9 +16,6 @@ export default function ScheduleHubScreen() {
     <View style={styles.root}>
       <SafeAreaView edges={['top']}>
         <View style={styles.nav}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.iconBtn}>
-            <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
-          </Pressable>
           <Text style={styles.title}>Schedule Hub</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Add schedule" onPress={() => router.push(ROUTES.driverPostRoute)} style={styles.iconBtn}>
             <Ionicons name="add" size={24} color={Colors.primary} />
