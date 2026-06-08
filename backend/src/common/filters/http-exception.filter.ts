@@ -32,9 +32,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
         : ((exceptionResponse as { message?: string | string[] }).message ??
           'Internal server error');
 
-    const normalizedMessage = Array.isArray(message) ? message.join(', ') : message;
+    const normalizedMessage = Array.isArray(message)
+      ? message.join(', ')
+      : message;
 
-    if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (Number(status) === Number(HttpStatus.INTERNAL_SERVER_ERROR)) {
       this.logger.error(
         `${request.method} ${request.url}`,
         exception instanceof Error ? exception.stack : String(exception),
