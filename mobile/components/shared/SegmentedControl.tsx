@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Colors, Radius, Shadows, Typography } from '@/constants/theme';
 import { haptics } from '@/hooks/useHaptics';
 
 interface SegmentedControlProps {
@@ -9,10 +10,34 @@ interface SegmentedControlProps {
   dark?: boolean;
 }
 
-/** Figma segmented control — 16px track, 12px active pill, 10px Black uppercase labels */
+/** Figma login segmented — 16px track, sliding pill, 10px Black uppercase */
 export function SegmentedControl({ options, selected, onChange, dark = false }: SegmentedControlProps) {
+  const [trackWidth, setTrackWidth] = useState(0);
+  const pad = 6.8;
+  const innerWidth = trackWidth - pad * 2;
+  const pillWidth = innerWidth / options.length;
+
+  const onLayout = (e: LayoutChangeEvent) => {
+    setTrackWidth(e.nativeEvent.layout.width);
+  };
+
   return (
-    <View style={[styles.track, dark && styles.trackDark]}>
+    <View
+      style={[styles.track, dark && styles.trackDark]}
+      onLayout={onLayout}
+    >
+      {trackWidth > 0 ? (
+        <View
+          style={[
+            styles.slidingPill,
+            dark && styles.slidingPillDark,
+            {
+              width: pillWidth,
+              left: pad + selected * pillWidth,
+            },
+          ]}
+        />
+      ) : null}
       {options.map((opt, i) => {
         const active = i === selected;
         return (
@@ -25,9 +50,16 @@ export function SegmentedControl({ options, selected, onChange, dark = false }: 
               haptics.selection();
               onChange(i);
             }}
-            style={[styles.pill, active && (dark ? styles.pillActiveDark : styles.pillActive)]}
+            style={styles.segment}
           >
-            <Text style={[styles.label, dark && styles.labelDark, active && (dark ? styles.labelActiveDark : styles.labelActiveLight)]}>
+            <Text
+              style={[
+                styles.label,
+                dark && !active && styles.labelInactiveDark,
+                dark && active && styles.labelActiveDark,
+                !dark && active && styles.labelActiveLight,
+              ]}
+            >
               {opt}
             </Text>
           </Pressable>
@@ -45,26 +77,31 @@ const styles = StyleSheet.create({
     padding: 7,
     borderWidth: 1,
     borderColor: Colors.border,
+    position: 'relative',
   },
   trackDark: {
     backgroundColor: Colors.glassFillSubtle,
     borderColor: Colors.glassBorderSubtle,
   },
-  pill: {
-    flex: 1,
-    paddingVertical: 12,
+  slidingPill: {
+    position: 'absolute',
+    top: 6,
+    bottom: 6,
     borderRadius: Radius.md,
-    alignItems: 'center',
-  },
-  pillActive: {
     backgroundColor: Colors.surface,
     ...Shadows.float,
   },
-  pillActiveDark: {
+  slidingPillDark: {
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
     borderColor: Colors.glassBorder,
-    ...Shadows.float,
+  },
+  segment: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
   },
   label: {
     fontFamily: Typography.fonts.black,
@@ -72,14 +109,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     color: Colors.textMuted2,
     textTransform: 'uppercase',
+    lineHeight: 15,
   },
-  labelDark: {
+  labelInactiveDark: {
     color: Colors.textSecondary,
-  },
-  labelActiveLight: {
-    color: Colors.textHeading2,
   },
   labelActiveDark: {
     color: Colors.white,
+  },
+  labelActiveLight: {
+    color: Colors.textHeading2,
   },
 });

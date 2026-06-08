@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ROUTES } from '@/constants/routes';
@@ -8,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -21,10 +21,12 @@ import { Colors, Gradients, Radius, Spacing, Typography } from '@/constants/them
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types';
 
+const APP_ICON = require('../../assets/figma/app-icon-car.png');
+
 export default function LoginScreen() {
   const { login, isLoading, error, clearError, role, setRole } = useAuth();
-  const [email, setEmail] = useState('demo@nittojatra.com');
-  const [password, setPassword] = useState('demo1234');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState(role === 'driver' ? 1 : 0);
 
@@ -36,8 +38,10 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     clearError();
     const userRole: UserRole = selectedRole === 0 ? 'rider' : 'driver';
+    const loginEmail = email.trim() || 'demo@nittojatra.com';
+    const loginPassword = password || 'demo1234';
     try {
-      await login(email, password, userRole);
+      await login(loginEmail, loginPassword, userRole);
       router.replace(userRole === 'driver' ? ROUTES.driverTabs : ROUTES.riderTabs);
     } catch {
       // error in store
@@ -48,22 +52,30 @@ export default function LoginScreen() {
     <AmbientBackground>
       <StatusBar style="light" />
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            <LinearGradient colors={[...Gradients.appIcon]} style={styles.logo}>
-              <Ionicons name="car-sport" size={32} color={Colors.white} />
-            </LinearGradient>
-
-            <View style={styles.titleRow}>
-              <Text style={styles.title}>Welcome </Text>
-              <GradientText style={styles.titleGradient}>Back.</GradientText>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={styles.page}>
+            {/* Header block — Figma 168px */}
+            <View style={styles.header}>
+              <View style={styles.iconWrap}>
+                <LinearGradient colors={[...Gradients.appIcon]} style={styles.logo}>
+                  <Image source={APP_ICON} style={styles.logoImage} contentFit="contain" />
+                </LinearGradient>
+              </View>
+              <View style={styles.titleRow}>
+                <Text style={styles.title}>Welcome </Text>
+                <GradientText style={styles.titleAccent}>Back.</GradientText>
+              </View>
+              <Text style={styles.subtitle}>Enter credentials to continue</Text>
             </View>
-            <Text style={styles.subtitle}>ENTER CREDENTIALS TO CONTINUE</Text>
 
-            <GlassCard style={styles.card}>
+            {/* Frosted card — Figma 336px */}
+            <GlassCard>
               <SegmentedControl
                 dark
-                options={['RIDER', 'DRIVER']}
+                options={['Rider', 'Driver']}
                 selected={selectedRole}
                 onChange={handleRoleChange}
               />
@@ -79,11 +91,12 @@ export default function LoginScreen() {
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    autoCorrect={false}
                     style={styles.input}
                   />
                 </View>
 
-                <View style={styles.passwordGroup}>
+                <View style={styles.passwordBlock}>
                   <View style={styles.inputWrap}>
                     <Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} style={styles.inputIcon} />
                     <TextInput
@@ -101,18 +114,28 @@ export default function LoginScreen() {
                       onPress={() => setShowPassword((s) => !s)}
                       style={styles.eyeBtn}
                     >
-                      <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.textMuted} />
+                      <Ionicons
+                        name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                        size={20}
+                        color={Colors.textMuted}
+                      />
                     </Pressable>
                   </View>
                   <Pressable accessibilityRole="button" accessibilityLabel="Forgot password" style={styles.forgot}>
-                    <Text style={styles.forgotText}>FORGOT PASSWORD?</Text>
+                    <Text style={styles.forgotText}>Forgot Password?</Text>
                   </Pressable>
                 </View>
 
                 {error ? <Text style={styles.error}>{error}</Text> : null}
 
                 <View style={styles.actions}>
-                  <GradientButton title="SIGN IN" onPress={handleLogin} loading={isLoading} icon={<Ionicons name="arrow-forward" size={16} color={Colors.white} />} />
+                  <GradientButton
+                    title="Sign In"
+                    onPress={handleLogin}
+                    loading={isLoading}
+                    style={styles.signInBtn}
+                    icon={<Ionicons name="arrow-forward" size={16} color={Colors.white} />}
+                  />
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel="Create new account"
@@ -120,16 +143,17 @@ export default function LoginScreen() {
                     style={styles.secondaryBtn}
                   >
                     <Ionicons name="person-add-outline" size={14} color="#CBD5E1" />
-                    <Text style={styles.secondaryText}>CREATE NEW ACCOUNT</Text>
+                    <Text style={styles.secondaryText}>Create New Account</Text>
                   </Pressable>
                 </View>
               </View>
             </GlassCard>
 
             <Text style={styles.footer}>
-              SECURED BY NITTO<Text style={styles.footerAccent}>SHIELD</Text>
+              Secured by Nitto
+              <Text style={styles.footerAccent}>Shield</Text>
             </Text>
-          </ScrollView>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </AmbientBackground>
@@ -139,13 +163,26 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
-  scroll: {
-    flexGrow: 1,
+  page: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: Spacing.xl,
-    paddingBottom: Spacing.xl,
+    gap: Spacing.xxxl,
+    maxWidth: 384,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  header: {
+    width: '100%',
+    height: 168,
+    alignItems: 'center',
+  },
+  iconWrap: {
+    position: 'absolute',
+    top: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.xxxl,
   },
   logo: {
     width: 75,
@@ -154,12 +191,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     transform: [{ rotate: '1.06deg' }],
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    elevation: 6,
+  },
+  logoImage: {
+    width: 48,
+    height: 48,
   },
   titleRow: {
+    position: 'absolute',
+    top: 104,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    flexWrap: 'wrap',
   },
   title: {
     fontFamily: Typography.fonts.black,
@@ -168,22 +215,20 @@ const styles = StyleSheet.create({
     color: Colors.white,
     lineHeight: 40,
   },
-  titleGradient: {
+  titleAccent: {
     fontSize: Typography.fontSizes.display,
     lineHeight: 40,
   },
   subtitle: {
+    position: 'absolute',
+    top: 152,
     fontFamily: Typography.fonts.medium,
     fontSize: Typography.fontSizes.sm,
     letterSpacing: Typography.letterSpacing.subtitle,
     color: Colors.textMuted,
     textTransform: 'uppercase',
     lineHeight: 16,
-    marginTop: -Spacing.xl,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 336,
+    textAlign: 'center',
   },
   form: {
     gap: Spacing.lg,
@@ -207,8 +252,9 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSizes.base,
     color: Colors.white,
     lineHeight: 20,
+    paddingVertical: 0,
   },
-  passwordGroup: {
+  passwordBlock: {
     gap: 7,
   },
   eyeBtn: {
@@ -224,6 +270,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     color: Colors.indigo400,
     textTransform: 'uppercase',
+    lineHeight: 15,
   },
   error: {
     fontFamily: Typography.fonts.regular,
@@ -233,6 +280,9 @@ const styles = StyleSheet.create({
   actions: {
     gap: Spacing.md,
     paddingTop: Spacing.base,
+  },
+  signInBtn: {
+    width: '100%',
   },
   secondaryBtn: {
     flexDirection: 'row',
@@ -251,6 +301,7 @@ const styles = StyleSheet.create({
     letterSpacing: Typography.letterSpacing.buttonSm,
     color: '#CBD5E1',
     textTransform: 'uppercase',
+    lineHeight: 15,
   },
   footer: {
     fontFamily: Typography.fonts.bold,
@@ -258,6 +309,8 @@ const styles = StyleSheet.create({
     letterSpacing: Typography.letterSpacing.buttonSm,
     color: Colors.textFaint,
     textTransform: 'uppercase',
+    lineHeight: 15,
+    textAlign: 'center',
   },
   footerAccent: {
     color: Colors.primaryGradStart,

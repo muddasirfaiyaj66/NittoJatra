@@ -9,22 +9,25 @@ interface GlassCardProps {
   style?: ViewStyle;
   intensity?: number;
   light?: boolean;
-  /** Figma auth card inner padding — default 32.8px */
-  padding?: number;
 }
 
-export function GlassCard({ children, style, intensity = 12, light = false, padding = 33 }: GlassCardProps) {
+/** Figma frosted auth card — 40px radius, pt 32.8, px 32.8, pb 24.1, gap 32 */
+export function GlassCard({ children, style, intensity = 12, light = false }: GlassCardProps) {
   const fill = light ? Colors.surface : Colors.glassFill;
   const borderColor = light ? Colors.border : Colors.glassBorder;
+
+  const inner = (
+    <View style={[styles.inner, { backgroundColor: fill, borderColor }]}>{children}</View>
+  );
 
   return (
     <View style={[styles.wrapper, Shadows.glass, style]}>
       {Platform.OS === 'ios' ? (
         <BlurView intensity={intensity} tint="dark" style={styles.blur}>
-          <View style={[styles.inner, { backgroundColor: fill, borderColor, padding }]}>{children}</View>
+          {inner}
         </BlurView>
       ) : (
-        <View style={[styles.inner, { backgroundColor: fill, borderColor, padding }]}>{children}</View>
+        inner
       )}
       <LinearGradient
         colors={['transparent', Colors.glassHairline, 'transparent']}
@@ -41,6 +44,8 @@ const styles = StyleSheet.create({
   wrapper: {
     borderRadius: Radius.xl,
     overflow: 'hidden',
+    width: 336,
+    maxWidth: '100%',
   },
   blur: {
     borderRadius: Radius.xl,
@@ -49,6 +54,9 @@ const styles = StyleSheet.create({
   inner: {
     borderRadius: Radius.xl,
     borderWidth: 1,
+    paddingTop: 33,
+    paddingHorizontal: 33,
+    paddingBottom: 24,
     gap: 32,
   },
   hairline: {
