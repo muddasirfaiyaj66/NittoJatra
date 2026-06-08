@@ -14,6 +14,7 @@ import { getGreeting } from '@/hooks/useGreeting';
 export default function RiderHomeScreen() {
   const { user } = useAuth();
   const greeting = getGreeting();
+  const firstName = (user?.name ?? 'Ahmed').split(' ')[0];
   const plan = MOCK_ACTIVE_PLAN;
   const planProgress = Math.round((plan.progress.current / plan.progress.total) * 100);
 
@@ -37,7 +38,7 @@ export default function RiderHomeScreen() {
                 <View style={styles.headerLeft}>
                   <View style={styles.greetingPill}>
                     <Text style={styles.greetingEmoji}>{greeting.emoji}</Text>
-                    <Text style={styles.greetingText}>{greeting.en.toUpperCase()}</Text>
+                    <Text style={styles.greetingText}>{greeting.en.toUpperCase()}, {firstName.toUpperCase()}</Text>
                   </View>
                   <View style={styles.headlineBlock}>
                     <Text style={styles.headline}>Where to</Text>
@@ -61,7 +62,7 @@ export default function RiderHomeScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Search for rides"
-                onPress={() => router.push('/(tabs)/search')}
+                onPress={() => router.push('/rider/(tabs)/search')}
                 style={[styles.searchBar, Shadows.glass]}
               >
                 <View style={styles.searchIconWrap}>
@@ -126,7 +127,7 @@ export default function RiderHomeScreen() {
 
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>On Schedule</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="View all schedules" onPress={() => router.push('/(tabs)/my-rides')}>
+            <Pressable accessibilityRole="button" accessibilityLabel="View all schedules" onPress={() => router.push('/rider/(tabs)/my-rides')}>
               <Text style={styles.viewAll}>VIEW ALL</Text>
             </Pressable>
           </View>

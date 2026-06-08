@@ -45,7 +45,7 @@ export default function ScheduleHubScreen() {
                 ))}
                 <Text style={styles.plusN}>+{s.totalSeats - s.seatsFilled}</Text>
               </View>
-              <Pressable accessibilityRole="button" accessibilityLabel="Manage schedule" onPress={() => router.push('/(driver)/modals/management-console')} style={styles.manageBtn}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Manage schedule" onPress={() => router.push('/captain/modals/management-console')} style={styles.manageBtn}>
                 <Text style={styles.manageText}>MANAGE</Text>
               </Pressable>
             </View>

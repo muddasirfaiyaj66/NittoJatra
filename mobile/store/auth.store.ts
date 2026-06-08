@@ -14,7 +14,10 @@ interface AuthStore {
   login: (email: string, password: string, role?: UserRole) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   loginAsGuest: (role?: UserRole) => Promise<void>;
-  setRole: (role: UserRole) => void;
+  /** Welcome flow — clears any stale session and sets intended role */
+  pickRole: (role: UserRole) => void;
+  /** Login/register toggle — updates role only, never clears an active session */
+  setLoginRole: (role: UserRole) => void;
   logout: () => void;
   clearError: () => void;
   setHasHydrated: (value: boolean) => void;
@@ -35,7 +38,12 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
         try {
           const user = await authService.login(email, password, role);
-          set({ user, role: user.role, isAuthenticated: true, isLoading: false });
+          set({
+            user,
+            role: user.role,
+            isAuthenticated: true,
+            isLoading: false,
+          });
         } catch (e) {
           set({ isLoading: false, error: (e as Error).message });
           throw e;
@@ -46,7 +54,12 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
         try {
           const user = await authService.register(data);
-          set({ user, role: user.role, isAuthenticated: true, isLoading: false });
+          set({
+            user: { ...user, role: data.role },
+            role: data.role,
+            isAuthenticated: true,
+            isLoading: false,
+          });
         } catch (e) {
           set({ isLoading: false, error: (e as Error).message });
           throw e;
@@ -64,7 +77,14 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      setRole: (role) => set({ role }),
+      pickRole: (role) =>
+        set({
+          role,
+          user: null,
+          isAuthenticated: false,
+          error: null,
+        }),
+      setLoginRole: (role) => set({ role }),
       logout: () =>
         set({
           user: null,
@@ -83,15 +103,21 @@ export const useAuthStore = create<AuthStore>()(
       },
     }),
     {
-      name: 'nittojatra-auth',
+      name: 'nittojatra-auth-v2',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         user: state.user,
         role: state.role,
         isAuthenticated: state.isAuthenticated,
       }),
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.warn('Auth store rehydration failed:', error);
+        }
+        if (state?.user?.role && state.role !== state.user.role) {
+          useAuthStore.setState({ role: state.user.role });
+        }
+        useAuthStore.setState({ hasHydrated: true });
       },
     },
   ),

@@ -1,6 +1,6 @@
 import type { Href } from 'expo-router';
 import { router } from 'expo-router';
-import { ROUTES, homeRouteForRole } from '@/constants/routes';
+import { homeRouteForRole, ROUTES } from '@/constants/routes';
 import { UserRole } from '@/types';
 
 export function roleHomeHref(role: UserRole): Href {
@@ -12,7 +12,7 @@ export function navigateToRoleHome(role: UserRole) {
 }
 
 export function resolveActiveRole(userRole: UserRole | undefined, storeRole: UserRole): UserRole {
-  return userRole ?? storeRole;
+  return userRole ?? storeRole ?? 'rider';
 }
 
 export { ROUTES };

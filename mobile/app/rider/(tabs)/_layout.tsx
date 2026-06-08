@@ -1,10 +1,8 @@
-import { Redirect } from 'expo-router';
-import { Tabs } from 'expo-router';
-import { AuthLoading } from '@/components/auth/AuthLoading';
+import { Tabs, router } from 'expo-router';
+import { useEffect } from 'react';
 import { TabBarWithDot } from '@/components/shared/TabBarWithDot';
-import { ROUTES, homeRouteForRole } from '@/constants/routes';
+import { homeRouteForRole, ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/useAuth';
-import { resolveActiveRole } from '@/utils/auth-routing';
 
 const RIDER_TABS = {
   index: { active: 'home' as const, inactive: 'home-outline' as const, label: 'Home' },
@@ -15,20 +13,18 @@ const RIDER_TABS = {
 };
 
 export default function TabsLayout() {
-  const { isAuthenticated, hasHydrated, user, role } = useAuth();
+  const { role, isAuthenticated, hasHydrated } = useAuth();
 
-  if (!hasHydrated) {
-    return <AuthLoading />;
-  }
-
-  if (!isAuthenticated) {
-    return <Redirect href={ROUTES.welcome} />;
-  }
-
-  const activeRole = resolveActiveRole(user?.role, role);
-  if (activeRole === 'driver') {
-    return <Redirect href={homeRouteForRole('driver')} />;
-  }
+  useEffect(() => {
+    if (!hasHydrated) return;
+    if (!isAuthenticated) {
+      router.replace(ROUTES.welcome);
+      return;
+    }
+    if (role === 'driver') {
+      router.replace(homeRouteForRole('driver'));
+    }
+  }, [hasHydrated, isAuthenticated, role]);
 
   return (
     <Tabs

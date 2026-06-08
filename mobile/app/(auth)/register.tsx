@@ -1,9 +1,8 @@
-import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -21,23 +20,16 @@ import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/auth.store';
 import { UserRole } from '@/types';
-import { navigateToRoleHome, resolveActiveRole } from '@/utils/auth-routing';
+import { navigateToRoleHome } from '@/utils/auth-routing';
 
 type Step = 'credentials' | 'identity' | 'vehicle' | 'success';
 
 const STEPS: Step[] = ['credentials', 'identity', 'vehicle', 'success'];
 
 export default function RegisterScreen() {
-  const { register, isLoading, role, setRole } = useAuth();
+  const { register, isLoading, role, setLoginRole } = useAuth();
   const [step, setStep] = useState<Step>('credentials');
-  const [selectedRole, setSelectedRole] = useState(role === 'driver' ? 1 : 0);
-
-  useFocusEffect(
-    useCallback(() => {
-      const activeRole = useAuthStore.getState().role;
-      setSelectedRole(activeRole === 'driver' ? 1 : 0);
-    }, []),
-  );
+  const [selectedRole, setSelectedRole] = useState(0);
 
   const userRole: UserRole = selectedRole === 0 ? 'rider' : 'driver';
   const [name, setName] = useState('');
@@ -52,7 +44,7 @@ export default function RegisterScreen() {
 
   const handleRoleChange = (index: number) => {
     setSelectedRole(index);
-    setRole(index === 0 ? 'rider' : 'driver');
+    setLoginRole(index === 0 ? 'rider' : 'driver');
   };
 
   const next = () => {
@@ -70,8 +62,7 @@ export default function RegisterScreen() {
       gender: 'other',
       role: userRole,
     });
-    const { user: loggedInUser, role: storeRole } = useAuthStore.getState();
-    navigateToRoleHome(resolveActiveRole(loggedInUser?.role, storeRole));
+    navigateToRoleHome(useAuthStore.getState().role);
   };
 
   return (

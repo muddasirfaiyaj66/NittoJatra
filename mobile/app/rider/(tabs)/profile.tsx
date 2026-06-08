@@ -14,7 +14,7 @@ import { ROUTES } from '@/constants/routes';
 import { Colors, Gradients } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 
-const RIDER_AVATAR = require('../../assets/figma/avatar-rider.png');
+const RIDER_AVATAR = require('../../../assets/figma/avatar-rider.png');
 
 const ACCOUNT_ITEMS: ProfileMenuItem[] = [
   { icon: 'person-outline', title: 'Personal Details', subtitle: 'Name, Email, Emergency Contact', route: '/personal-details' },

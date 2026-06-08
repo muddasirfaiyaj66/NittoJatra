@@ -3,8 +3,15 @@ import { MOCK_DRIVER, MOCK_USER } from '@/constants/mock-data';
 import { RegisterData, User, UserRole } from '@/types';
 
 const DEMO_EMAIL = 'demo@nittojatra.com';
+const DEMO_RIDER_EMAIL = 'rider@nittojatra.com';
+const DEMO_CAPTAIN_EMAIL = 'captain@nittojatra.com';
 const DEMO_PASSWORD = 'demo1234';
 const USERS_STORAGE_KEY = 'nittojatra-registered-users';
+
+const FIXED_ROLE_EMAILS: Record<string, UserRole> = {
+  [DEMO_RIDER_EMAIL]: 'rider',
+  [DEMO_CAPTAIN_EMAIL]: 'driver',
+};
 
 interface StoredCredential {
   user: User;
@@ -28,9 +35,31 @@ async function writeStoredUsers(users: StoredCredential[]): Promise<void> {
 }
 
 function profileForRole(role: UserRole, overrides: Partial<User>): User {
-  const base = role === 'driver' ? MOCK_DRIVER : MOCK_USER;
+  const base = role === 'driver' ? { ...MOCK_DRIVER } : { ...MOCK_USER };
   return { ...base, ...overrides, role };
 }
+
+function resolveLoginRole(email: string, selectedRole: UserRole): UserRole {
+  return FIXED_ROLE_EMAILS[email] ?? selectedRole;
+}
+
+function isDemoPassword(password: string): boolean {
+  return password === DEMO_PASSWORD;
+}
+
+function isDemoEmail(email: string): boolean {
+  return (
+    email === DEMO_EMAIL ||
+    email === DEMO_RIDER_EMAIL ||
+    email === DEMO_CAPTAIN_EMAIL
+  );
+}
+
+export const DEMO_CREDENTIALS = {
+  rider: { email: DEMO_RIDER_EMAIL, password: DEMO_PASSWORD },
+  captain: { email: DEMO_CAPTAIN_EMAIL, password: DEMO_PASSWORD },
+  either: { email: DEMO_EMAIL, password: DEMO_PASSWORD },
+} as const;
 
 export const authService = {
   async login(email: string, password: string, role: UserRole = 'rider'): Promise<User> {
@@ -41,9 +70,11 @@ export const authService = {
       throw new Error('Please enter your email and password.');
     }
 
-    // Demo account (works for both roles — returns role-specific profile)
-    if (normalizedEmail === DEMO_EMAIL && password === DEMO_PASSWORD) {
-      return profileForRole(role, { email: normalizedEmail });
+    const effectiveRole = resolveLoginRole(normalizedEmail, role);
+
+    // Demo accounts — rider/captain emails always return the matching profile
+    if (isDemoEmail(normalizedEmail) && isDemoPassword(password)) {
+      return profileForRole(effectiveRole, { email: normalizedEmail });
     }
 
     // Registered users stored locally after sign-up
@@ -53,17 +84,19 @@ export const authService = {
     );
 
     if (match) {
-      if (match.user.role !== role) {
+      if (match.user.role !== effectiveRole) {
         throw new Error(
-          role === 'driver'
+          effectiveRole === 'driver'
             ? 'This email is registered as a Rider. Switch to Rider or create a Captain account.'
             : 'This email is registered as a Captain. Switch to Driver or sign in as Captain.',
         );
       }
-      return match.user;
+      return { ...match.user, role: effectiveRole };
     }
 
-    throw new Error('Invalid email or password. Use demo@nittojatra.com / demo1234 or create an account.');
+    throw new Error(
+      'Invalid email or password. Try rider@nittojatra.com or captain@nittojatra.com with demo1234.',
+    );
   },
 
   async register(data: RegisterData): Promise<User> {

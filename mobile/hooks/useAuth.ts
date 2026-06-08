@@ -10,7 +10,8 @@ export function useAuth() {
   const login = useAuthStore((s) => s.login);
   const register = useAuthStore((s) => s.register);
   const loginAsGuest = useAuthStore((s) => s.loginAsGuest);
-  const setRole = useAuthStore((s) => s.setRole);
+  const pickRole = useAuthStore((s) => s.pickRole);
+  const setLoginRole = useAuthStore((s) => s.setLoginRole);
   const logout = useAuthStore((s) => s.logout);
   const clearError = useAuthStore((s) => s.clearError);
   const updateUser = useAuthStore((s) => s.updateUser);
@@ -25,7 +26,8 @@ export function useAuth() {
     login,
     register,
     loginAsGuest,
-    setRole,
+    pickRole,
+    setLoginRole,
     logout,
     clearError,
     updateUser,

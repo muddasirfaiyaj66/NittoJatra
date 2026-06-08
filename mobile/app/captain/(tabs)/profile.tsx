@@ -18,7 +18,7 @@ const DRIVER_AVATAR = require('../../../assets/figma/avatar-driver.png');
 
 const PREFERENCE_ITEMS: ProfileMenuItem[] = [
   { icon: 'person-outline', title: 'Personal Information', subtitle: 'Update your professional identity', route: '/personal-details' },
-  { icon: 'car-outline', title: 'Vehicle Management', subtitle: 'Edit vehicle stats and documents', route: '/(driver)/modals/vehicle-management' },
+  { icon: 'car-outline', title: 'Vehicle Management', subtitle: 'Edit vehicle stats and documents', route: '/captain/modals/vehicle-management' },
   { icon: 'map-outline', title: 'Saved Zones', subtitle: 'Manage your safety/service areas', route: '/saved-zones' },
   { icon: 'shield-checkmark-outline', title: 'Safety & Verification', subtitle: 'NID, License & Verification', route: '/modals/verification-info' },
   { icon: 'lock-closed-outline', title: 'Account Security', subtitle: 'Password, 2FA, Security logs', route: '/account-security' },

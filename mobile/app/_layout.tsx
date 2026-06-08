@@ -23,6 +23,7 @@ import {
 } from '@expo-google-fonts/noto-sans-bengali';
 import { ToastProvider } from '@/components/shared/Toast';
 import { ThemeProvider, useTheme } from '@/theme/ThemeContext';
+import { useAuthStore } from '@/store/auth.store';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -60,8 +61,8 @@ function RootNavigator() {
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="(driver)" />
+          <Stack.Screen name="rider" />
+          <Stack.Screen name="captain" />
           <Stack.Screen name="ride/[id]" options={{ presentation: 'card' }} />
           <Stack.Screen name="ride/results" options={{ presentation: 'card' }} />
           <Stack.Screen name="ride/live-tracking" options={{ presentation: 'card' }} />
@@ -96,6 +97,14 @@ export default function RootLayout() {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    const markHydrated = () => useAuthStore.setState({ hasHydrated: true });
+    if (useAuthStore.persist.hasHydrated()) {
+      markHydrated();
+    }
+    return useAuthStore.persist.onFinishHydration(markHydrated);
+  }, []);
 
   if (!fontsLoaded && !fontError) {
     return null;

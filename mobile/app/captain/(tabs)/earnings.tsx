@@ -23,7 +23,7 @@ export default function FinancialHubScreen() {
           <Text style={styles.payoutLabel}>AVAILABLE FOR PAYOUT</Text>
           <Text style={styles.payoutValue}>{formatTaka(DRIVER_PAYOUT)}</Text>
           <View style={styles.payoutActions}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Cash out" onPress={() => router.push('/(driver)/modals/withdraw-funds')} style={styles.cashOutBtn}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Cash out" onPress={() => router.push('/captain/modals/withdraw-funds')} style={styles.cashOutBtn}>
               <Text style={styles.cashOutText}>↗ CASH OUT</Text>
             </Pressable>
             <View style={styles.pendingChip}>

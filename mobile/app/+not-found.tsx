@@ -3,13 +3,12 @@ import { StyleSheet, Text, View } from 'react-native';
 import { homeRouteForRole } from '@/constants/routes';
 import { Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
-import { resolveActiveRole } from '@/utils/auth-routing';
 import { ThemeColors, useThemedStyles } from '@/theme/ThemeContext';
 
 export default function NotFoundScreen() {
   const styles = useThemedStyles(makeStyles);
-  const { user, role } = useAuth();
-  const homeHref = homeRouteForRole(resolveActiveRole(user?.role, role));
+  const { role } = useAuth();
+  const homeHref = homeRouteForRole(role);
 
   return (
     <>

@@ -48,11 +48,11 @@ export default function DriverDashboardScreen() {
                 </View>
               </View>
               <View style={styles.headerActions}>
-                <Pressable accessibilityRole="button" accessibilityLabel="Messages" onPress={() => router.push('/(driver)/messages')} style={styles.iconBtn}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Messages" onPress={() => router.push('/captain/messages')} style={styles.iconBtn}>
                   <Ionicons name="chatbubble-outline" size={20} color={Colors.white} />
                   <View style={styles.notifDotGreen} />
                 </Pressable>
-                <Pressable accessibilityRole="button" accessibilityLabel="Notifications" onPress={() => router.push('/(driver)/notifications')} style={styles.iconBtn}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Notifications" onPress={() => router.push('/captain/notifications')} style={styles.iconBtn}>
                   <Ionicons name="notifications-outline" size={20} color={Colors.white} />
                   <View style={styles.notifDotRed} />
                 </Pressable>
@@ -70,7 +70,7 @@ export default function DriverDashboardScreen() {
                   <Ionicons name="wallet" size={20} color={Colors.white} />
                 </View>
               </View>
-              <Pressable accessibilityRole="button" accessibilityLabel="View earnings" onPress={() => router.push('/(driver)/(tabs)/earnings')} style={styles.growthBar}>
+              <Pressable accessibilityRole="button" accessibilityLabel="View earnings" onPress={() => router.push('/captain/(tabs)/earnings')} style={styles.growthBar}>
                 <View style={styles.growthIconWrap}>
                   <Ionicons name="trending-up" size={16} color={Colors.accentEmerald} />
                 </View>
@@ -117,7 +117,7 @@ export default function DriverDashboardScreen() {
 
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Active Commitments</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="View all routes" onPress={() => router.push('/(driver)/(tabs)/schedule')}>
+            <Pressable accessibilityRole="button" accessibilityLabel="View all routes" onPress={() => router.push('/captain/(tabs)/schedule')}>
               <Text style={styles.viewAll}>VIEW ALL</Text>
             </Pressable>
           </View>
@@ -127,7 +127,7 @@ export default function DriverDashboardScreen() {
               key={s.id}
               accessibilityRole="button"
               accessibilityLabel={s.name}
-              onPress={() => router.push('/(driver)/modals/management-console')}
+              onPress={() => router.push('/captain/modals/management-console')}
               style={[styles.scheduleCard, Shadows.card]}
             >
               <View style={styles.scheduleTop}>

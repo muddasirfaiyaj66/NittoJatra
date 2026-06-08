@@ -10,7 +10,7 @@ import { Colors, Gradients, Radius, Spacing, Typography } from '@/constants/them
 import { useAuth } from '@/hooks/useAuth';
 
 export default function WelcomeScreen() {
-  const { setRole } = useAuth();
+  const { pickRole } = useAuth();
   const [showActions, setShowActions] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const dot1 = useRef(new Animated.Value(0.3)).current;
@@ -47,8 +47,8 @@ export default function WelcomeScreen() {
   }, [dot1, dot2, dot3, fadeAnim]);
 
   const goLogin = (role: 'rider' | 'driver') => {
-    setRole(role);
-    router.push('/(auth)/login');
+    pickRole(role);
+    router.push({ pathname: '/(auth)/login', params: { role } });
   };
 
   return (

@@ -1,10 +1,9 @@
-import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -19,29 +18,45 @@ import { AmbientBackground, GlassCard, GradientButton, GradientText } from '@/co
 import { SegmentedControl } from '@/components/shared/SegmentedControl';
 import { Colors, Gradients, Radius, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { DEMO_CREDENTIALS } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth.store';
 import { UserRole } from '@/types';
-import { navigateToRoleHome, resolveActiveRole } from '@/utils/auth-routing';
+import { navigateToRoleHome } from '@/utils/auth-routing';
 
 const APP_ICON = require('../../assets/figma/app-icon-car.png');
 
 export default function LoginScreen() {
-  const { login, isLoading, error, clearError, role, setRole } = useAuth();
+  const { role: roleParam } = useLocalSearchParams<{ role?: string }>();
+  const { login, isLoading, error, clearError, setLoginRole } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(role === 'driver' ? 1 : 0);
+  const [selectedRole, setSelectedRole] = useState(0);
 
-  useFocusEffect(
-    useCallback(() => {
-      const activeRole = useAuthStore.getState().role;
-      setSelectedRole(activeRole === 'driver' ? 1 : 0);
-    }, []),
-  );
+  useEffect(() => {
+    if (roleParam === 'rider') {
+      setSelectedRole(0);
+      setLoginRole('rider');
+    } else if (roleParam === 'driver') {
+      setSelectedRole(1);
+      setLoginRole('driver');
+    }
+  }, [roleParam, setLoginRole]);
+
+  useEffect(() => {
+    const normalized = email.trim().toLowerCase();
+    if (normalized === DEMO_CREDENTIALS.rider.email) {
+      setSelectedRole(0);
+      setLoginRole('rider');
+    } else if (normalized === DEMO_CREDENTIALS.captain.email) {
+      setSelectedRole(1);
+      setLoginRole('driver');
+    }
+  }, [email, setLoginRole]);
 
   const handleRoleChange = (index: number) => {
     setSelectedRole(index);
-    setRole(index === 0 ? 'rider' : 'driver');
+    setLoginRole(index === 0 ? 'rider' : 'driver');
   };
 
   const handleLogin = async () => {
@@ -49,9 +64,8 @@ export default function LoginScreen() {
     const userRole: UserRole = selectedRole === 0 ? 'rider' : 'driver';
     try {
       await login(email.trim(), password, userRole);
-      const { user: loggedInUser, role: storeRole } = useAuthStore.getState();
-      const destinationRole = resolveActiveRole(loggedInUser?.role, storeRole);
-      navigateToRoleHome(destinationRole);
+      const sessionRole = useAuthStore.getState().role;
+      navigateToRoleHome(sessionRole);
     } catch {
       // error surfaced via store
     }
@@ -138,7 +152,9 @@ export default function LoginScreen() {
                 {error ? <Text style={styles.error}>{error}</Text> : null}
 
                 <Text style={styles.demoHint}>
-                  Demo: demo@nittojatra.com / demo1234
+                  Rider: rider@nittojatra.com{'\n'}
+                  Captain: captain@nittojatra.com{'\n'}
+                  Password: demo1234
                 </Text>
 
                 <View style={styles.actions}>
