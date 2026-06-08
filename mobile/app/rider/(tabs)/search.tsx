@@ -4,6 +4,9 @@ import { router } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
+  Keyboard,
+  PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -171,6 +174,85 @@ export default function FindScreen() {
   const fromLabel = useRef('');
   const toLabel = useRef('');
 
+  // ─── Swipeable/Draggable bottom sheet state ──────────────────────────────────
+  const [sheetHeight, setSheetHeight] = useState(500);
+  const collapsedOffset = sheetHeight - 110;
+
+  const translateY = useRef(new Animated.Value(0)).current;
+  const lastTranslateY = useRef(0);
+
+  const onSheetLayout = (event: any) => {
+    const { height } = event.nativeEvent.layout;
+    if (height > 0 && Math.abs(height - sheetHeight) > 2) {
+      setSheetHeight(height);
+    }
+  };
+
+  const toggleSheet = () => {
+    const targetValue = lastTranslateY.current === 0 ? collapsedOffset : 0;
+    lastTranslateY.current = targetValue;
+    Animated.spring(translateY, {
+      toValue: targetValue,
+      useNativeDriver: true,
+      tension: 40,
+      friction: 8,
+    }).start();
+    if (targetValue === collapsedOffset) {
+      Keyboard.dismiss();
+    }
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        translateY.setOffset(lastTranslateY.current);
+        translateY.setValue(0);
+      },
+      onPanResponderMove: (_, gestureState) => {
+        let nextValue = gestureState.dy;
+        const currentOffset = lastTranslateY.current + nextValue;
+
+        if (currentOffset < -20) {
+          nextValue = -20 + (currentOffset + 20) * 0.2 - lastTranslateY.current;
+        } else if (currentOffset > collapsedOffset + 20) {
+          nextValue = collapsedOffset + 20 + (currentOffset - collapsedOffset - 20) * 0.2 - lastTranslateY.current;
+        }
+
+        translateY.setValue(nextValue);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        translateY.flattenOffset();
+        const currentTranslation = lastTranslateY.current + gestureState.dy;
+
+        // If it was a tap (very little movement), toggle the sheet open/close state
+        if (Math.abs(gestureState.dy) < 5 && Math.abs(gestureState.dx) < 5) {
+          toggleSheet();
+          return;
+        }
+
+        let targetValue = 0;
+        if (currentTranslation > collapsedOffset / 2) {
+          targetValue = collapsedOffset;
+        }
+
+        lastTranslateY.current = targetValue;
+
+        Animated.spring(translateY, {
+          toValue: targetValue,
+          useNativeDriver: true,
+          tension: 40,
+          friction: 8,
+        }).start();
+
+        if (targetValue === collapsedOffset) {
+          Keyboard.dismiss();
+        }
+      },
+    })
+  ).current;
+
   const sendToMap = useCallback((
     fc: [number, number] | null, fn: string,
     tc: [number, number] | null, tn: string,
@@ -305,9 +387,17 @@ export default function FindScreen() {
       </SafeAreaView>
 
       {/* ── Bottom Sheet ── */}
-      <View style={styles.sheet}>
-        <View style={styles.handle} />
-        <Text style={styles.title}>Where do you want to go?</Text>
+      <Animated.View
+        onLayout={onSheetLayout}
+        style={[styles.sheet, { transform: [{ translateY }] }]}
+      >
+        <View
+          {...panResponder.panHandlers}
+          style={styles.dragHandleZone}
+        >
+          <View style={styles.handle} />
+          <Text style={styles.title}>Where do you want to go?</Text>
+        </View>
 
         {/* Route Inputs */}
         <View style={styles.routeStack}>
@@ -385,7 +475,7 @@ export default function FindScreen() {
         </ScrollView>
 
         <SolidButton title="SEARCH AVAILABLE RIDE" onPress={search} style={styles.searchBtn} />
-      </View>
+      </Animated.View>
     </View>
   );
 }
@@ -450,10 +540,15 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
     paddingBottom: 100,
-    maxHeight: '60%',
+    maxHeight: '70%',
     ...Shadows.sheet,
+  },
+
+  dragHandleZone: {
+    paddingTop: Spacing.xl,
+    width: '100%',
+    alignItems: 'center',
   },
 
   handle: {
@@ -462,7 +557,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.track,
     borderRadius: Radius.full,
     alignSelf: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.md,
   },
 
   title: {
