@@ -3,10 +3,10 @@ import { TabBarWithDot } from '@/components/shared/TabBarWithDot';
 import { ROUTES } from '@/constants/routes';
 
 const DRIVER_TABS = {
-  index: { active: 'grid' as const, inactive: 'grid-outline' as const, label: 'Dashboard' },
+  index: { active: 'home' as const, inactive: 'home-outline' as const, label: 'Dashboard' },
   post: { active: 'add-circle' as const, inactive: 'add-circle-outline' as const, label: 'Post' },
-  schedule: { active: 'calendar' as const, inactive: 'calendar-outline' as const, label: 'Routes' },
-  earnings: { active: 'cash' as const, inactive: 'cash-outline' as const, label: 'Earnings' },
+  schedule: { active: 'map' as const, inactive: 'map-outline' as const, label: 'Routes' },
+  earnings: { active: 'logo-usd' as const, inactive: 'logo-usd' as const, label: 'Earnings' },
   profile: { active: 'person' as const, inactive: 'person-outline' as const, label: 'Profile' },
 };
 

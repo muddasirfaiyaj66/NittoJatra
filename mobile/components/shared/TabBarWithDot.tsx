@@ -46,22 +46,7 @@ export function TabBarWithDot({ state, descriptors, navigation, icons, centerAct
           }
         };
 
-        if (isCenter) {
-          return (
-            <Pressable
-              key={route.key}
-              accessibilityRole="button"
-              accessibilityLabel={config.label}
-              onPress={onPress}
-              style={styles.tab}
-            >
-              <View style={styles.centerBtn}>
-                <Ionicons name="add" size={28} color={Colors.white} />
-              </View>
-              <Text style={styles.label}>{config.label}</Text>
-            </Pressable>
-          );
-        }
+
 
         return (
           <Pressable
@@ -128,14 +113,5 @@ const styles = StyleSheet.create({
   labelActive: {
     color: Colors.primary,
     fontFamily: Typography.fonts.semibold,
-  },
-  centerBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: -4,
   },
 });
