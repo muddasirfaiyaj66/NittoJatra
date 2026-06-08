@@ -15,6 +15,7 @@ export interface User {
   points: number;
   rating?: number;
   tier?: 'GOLD' | 'SILVER' | 'BRONZE';
+  vehicle?: string;
 }
 
 export interface RegisterData {

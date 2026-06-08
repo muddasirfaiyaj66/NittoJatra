@@ -70,6 +70,7 @@ export const MOCK_DRIVER: User = {
   totalSpent: 0,
   points: 0,
   rating: 4.9,
+  vehicle: 'Toyota Axio 2018',
 };
 
 export const MOCK_BOOKINGS: Booking[] = [
