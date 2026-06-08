@@ -25,7 +25,11 @@ export default function SafetyScreen() {
   const insets = useSafeAreaInsets();
 
   const handleSos = () => {
-    Linking.openURL('tel:999');
+    if (TRUSTED_CONTACTS && TRUSTED_CONTACTS.length > 0) {
+      Linking.openURL(`tel:${TRUSTED_CONTACTS[0].phone}`);
+    } else {
+      Linking.openURL('tel:999');
+    }
   };
 
   return (
