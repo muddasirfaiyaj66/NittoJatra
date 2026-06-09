@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { MOCK_ACTIVE_PLAN } from '@/constants/mock-data';
@@ -13,6 +14,18 @@ const CALENDAR_DAYS = [
 ];
 
 export default function SubscriptionTrackerScreen() {
+  const [rideStarted, setRideStarted] = useState(false);
+
+  const handleHereStart = () => {
+    Alert.alert('Ride Started', 'Your ride has been confirmed. Have a safe journey!');
+    setRideStarted(true);
+  };
+
+  const handleMissed = () =>
+    Alert.alert('Marked as Missed', 'This ride has been marked as missed.');
+
+  const handleAbsent = () =>
+    Alert.alert('Marked as Absent', 'You have been marked absent for this ride.');
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']}>
@@ -31,14 +44,21 @@ export default function SubscriptionTrackerScreen() {
         <LinearGradient colors={[...Gradients.navyHeader]} style={styles.statusCard}>
           <Ionicons name="location" size={24} color={Colors.white} />
           <Text style={styles.waitingText}>Karim is waiting at your pickup point</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="I'm here start" style={styles.hereBtn}>
-            <Text style={styles.hereBtnText}>I&apos;m Here (Start)</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="I'm here start"
+            onPress={handleHereStart}
+            style={[styles.hereBtn, rideStarted && { backgroundColor: Colors.accentEmerald }]}
+          >
+            <Text style={[styles.hereBtnText, rideStarted && { color: Colors.white }]}>
+              {rideStarted ? '✓ Ride Started' : "I'm Here (Start)"}
+            </Text>
           </Pressable>
           <View style={styles.absentRow}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Missed" style={styles.absentBtn}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Missed" onPress={handleMissed} style={styles.absentBtn}>
               <Text style={styles.absentText}>MISSED</Text>
             </Pressable>
-            <Pressable accessibilityRole="button" accessibilityLabel="Absent" style={styles.absentBtn}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Absent" onPress={handleAbsent} style={styles.absentBtn}>
               <Text style={styles.absentText}>ABSENT</Text>
             </Pressable>
           </View>
@@ -71,11 +91,21 @@ export default function SubscriptionTrackerScreen() {
         </View>
 
         <View style={styles.actionRow}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Report issue" style={[styles.actionCard, { backgroundColor: '#FEF2F2' }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Report issue"
+            onPress={() => router.push('/modals/report-issue')}
+            style={[styles.actionCard, { backgroundColor: '#FEF2F2' }]}
+          >
             <Ionicons name="flag" size={20} color={Colors.danger} />
             <Text style={[styles.actionText, { color: Colors.danger }]}>Report Issue</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Rate driver" style={[styles.actionCard, { backgroundColor: Colors.surfaceIndigo }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Rate driver"
+            onPress={() => router.push('/modals/rate-driver')}
+            style={[styles.actionCard, { backgroundColor: Colors.surfaceIndigo }]}
+          >
             <Ionicons name="star" size={20} color={Colors.primary} />
             <Text style={[styles.actionText, { color: Colors.primary }]}>Rate Driver</Text>
           </Pressable>

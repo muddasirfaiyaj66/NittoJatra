@@ -1,41 +1,34 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ImageBackground, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients, Radius, Shadows, Spacing } from '@/constants/theme';
-
-/** Figma basemap asset — dark Dhaka-style map from NittoJatra-APP file */
-const BASEMAP_URI =
-  'https://www.figma.com/api/mcp/asset/30df4cb9-94eb-44fd-affe-298013b7d9d8';
 
 interface MapHeaderProps {
   height?: number;
   onBack?: () => void;
   children?: React.ReactNode;
   style?: ViewStyle;
-  /** Use Figma basemap image when true (Find screen) */
-  useBasemap?: boolean;
 }
 
-/** Figma decorative map header — basemap image or stylized route overlay */
-export function MapHeader({ height = 490, onBack, children, style, useBasemap = false }: MapHeaderProps) {
-  const content = (
-    <>
-      {!useBasemap && (
-        <>
-          <View style={styles.roadMain} />
-          <View style={styles.roadSecondary} />
-          <View style={styles.roadAccent} />
-          <View style={[styles.pin, styles.pinOrigin]}>
-            <View style={styles.pinInner} />
-          </View>
-          <View style={[styles.pin, styles.pinDest]}>
-            <Ionicons name="location" size={20} color={Colors.purple500} />
-          </View>
-          <View style={styles.labelDhaka} />
-          <View style={styles.labelBaridhara} />
-        </>
-      )}
+/** Figma decorative map header — stylized route overlay for non-Find screens */
+export function MapHeader({ height = 490, onBack, children, style }: MapHeaderProps) {
+  return (
+    <LinearGradient
+      colors={[...Gradients.navyHeader]}
+      style={[styles.container, { height }, style]}
+    >
+      <View style={styles.roadMain} />
+      <View style={styles.roadSecondary} />
+      <View style={styles.roadAccent} />
+      <View style={[styles.pin, styles.pinOrigin]}>
+        <View style={styles.pinInner} />
+      </View>
+      <View style={[styles.pin, styles.pinDest]}>
+        <Ionicons name="location" size={20} color={Colors.purple500} />
+      </View>
+      <View style={styles.labelDhaka} />
+      <View style={styles.labelBaridhara} />
 
       <SafeAreaView edges={['top']} style={styles.overlay}>
         {onBack ? (
@@ -50,25 +43,6 @@ export function MapHeader({ height = 490, onBack, children, style, useBasemap = 
         ) : null}
         {children}
       </SafeAreaView>
-    </>
-  );
-
-  if (useBasemap) {
-    return (
-      <ImageBackground
-        source={{ uri: BASEMAP_URI }}
-        style={[styles.container, { height }, style]}
-        imageStyle={styles.basemapImage}
-        resizeMode="cover"
-      >
-        {content}
-      </ImageBackground>
-    );
-  }
-
-  return (
-    <LinearGradient colors={[...Gradients.navyHeader]} style={[styles.container, { height }, style]}>
-      {content}
     </LinearGradient>
   );
 }
@@ -77,10 +51,6 @@ const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
     backgroundColor: '#1A2332',
-  },
-  basemapImage: {
-    width: '100%',
-    height: '100%',
   },
   overlay: {
     flex: 1,

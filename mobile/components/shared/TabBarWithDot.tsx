@@ -2,9 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { haptics } from '@/hooks/useHaptics';
-import { StatusDot } from '@/components/ui/StatusDot';
 
 export type TabIconConfig = Record<
   string,
@@ -47,22 +46,7 @@ export function TabBarWithDot({ state, descriptors, navigation, icons, centerAct
           }
         };
 
-        if (isCenter) {
-          return (
-            <Pressable
-              key={route.key}
-              accessibilityRole="button"
-              accessibilityLabel={config.label}
-              onPress={onPress}
-              style={styles.tab}
-            >
-              <View style={styles.centerBtn}>
-                <Ionicons name="add" size={28} color={Colors.white} />
-              </View>
-              <Text style={styles.label}>{config.label}</Text>
-            </Pressable>
-          );
-        }
+
 
         return (
           <Pressable
@@ -73,13 +57,16 @@ export function TabBarWithDot({ state, descriptors, navigation, icons, centerAct
             onPress={onPress}
             style={styles.tab}
           >
-            <Ionicons
-              name={focused ? config.active : config.inactive}
-              size={24}
-              color={focused ? Colors.primary : Colors.textMuted2}
-            />
-            {focused ? <StatusDot size={4} color={Colors.primary} style={styles.dot} /> : <View style={styles.dotSpacer} />}
-            <Text style={[styles.label, focused && styles.labelActive]}>{config.label}</Text>
+            <View style={focused ? styles.activeIconBubble : styles.iconBubble}>
+              <Ionicons
+                name={focused ? config.active : config.inactive}
+                size={24}
+                color={focused ? Colors.primary : Colors.textMuted2}
+              />
+            </View>
+            <Text style={[styles.label, focused && styles.labelActive]}>
+              {config.label}
+            </Text>
           </Pressable>
         );
       })}
@@ -93,21 +80,29 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderTopWidth: 0.8,
     borderTopColor: Colors.surfaceMuted2,
-    paddingTop: Spacing.sm,
-    height: 64,
+    paddingTop: Spacing.xs,
+    height: 68,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: 3,
   },
-  dot: {
-    marginTop: 2,
+  iconBubble: {
+    width: 40,
+    height: 32,
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  dotSpacer: {
-    height: 4,
-    marginTop: 2,
+  activeIconBubble: {
+    width: 40,
+    height: 32,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.surfaceIndigo,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   label: {
     fontFamily: Typography.fonts.medium,
@@ -117,14 +112,6 @@ const styles = StyleSheet.create({
   },
   labelActive: {
     color: Colors.primary,
-  },
-  centerBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: -4,
+    fontFamily: Typography.fonts.semibold,
   },
 });

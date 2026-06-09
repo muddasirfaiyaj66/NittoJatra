@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 const RIDER_TABS = {
   index: { active: 'home' as const, inactive: 'home-outline' as const, label: 'Home' },
   search: { active: 'search' as const, inactive: 'search-outline' as const, label: 'Find' },
-  'my-rides': { active: 'ticket' as const, inactive: 'ticket-outline' as const, label: 'My Rides' },
+  'my-rides': { active: 'car' as const, inactive: 'car-outline' as const, label: 'My Rides' },
   safety: { active: 'shield' as const, inactive: 'shield-outline' as const, label: 'Safety' },
   profile: { active: 'person' as const, inactive: 'person-outline' as const, label: 'Profile' },
 };
