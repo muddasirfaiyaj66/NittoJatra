@@ -18,7 +18,7 @@ interface AuthStore {
   pickRole: (role: UserRole) => void;
   /** Login/register toggle — updates role only, never clears an active session */
   setLoginRole: (role: UserRole) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   clearError: () => void;
   setHasHydrated: (value: boolean) => void;
   updateUser: (patch: Partial<User>) => Promise<void>;
@@ -85,13 +85,15 @@ export const useAuthStore = create<AuthStore>()(
           error: null,
         }),
       setLoginRole: (role) => set({ role }),
-      logout: () =>
+      logout: async () => {
+        await authService.logout();
         set({
           user: null,
           role: 'rider',
           isAuthenticated: false,
           error: null,
-        }),
+        });
+      },
       clearError: () => set({ error: null }),
       setHasHydrated: (value) => set({ hasHydrated: value }),
 

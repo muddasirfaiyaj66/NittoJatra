@@ -1,32 +1,29 @@
-import { Booking, BookingStatus } from '@/types';
-
-const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-let counter = 100;
+import { bookingApiService } from '@/services/ride.service';
 
 export interface CreateBookingInput {
-  route: { from: string; to: string };
-  date: string;
-  departureTime: string;
-  arrivalTime: string;
-  seatCount: number;
-  operator: string;
-  amount: number;
+  rideId: string;
+  seats: string[];
+  passengerName: string;
+  passengerPhone: string;
+  passengerEmail: string;
+  paymentMethod: string;
+  promoCode?: string;
 }
 
 export const bookingService = {
-  generateBookingId(): string {
-    counter += 1;
-    const year = new Date().getFullYear();
-    return `BK-${year}-${String(counter).padStart(3, '0')}`;
+  createBooking(input: CreateBookingInput) {
+    return bookingApiService.createBooking(input);
   },
 
-  async createBooking(input: CreateBookingInput): Promise<Booking> {
-    await delay(1200);
-    return {
-      id: this.generateBookingId(),
-      status: 'upcoming' as BookingStatus,
-      ...input,
-    };
+  getMyBookings(status?: string) {
+    return bookingApiService.getMyBookings(status);
+  },
+
+  cancelBooking(bookingId: string, reason: string) {
+    return bookingApiService.cancelBooking(bookingId, reason);
+  },
+
+  confirmPayment(bookingId: string) {
+    return bookingApiService.confirmPayment(bookingId);
   },
 };
