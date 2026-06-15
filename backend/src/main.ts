@@ -28,7 +28,13 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor());
 
   app.enableCors({
-    origin: ['http://localhost:8081', 'http://localhost:3001'],
+    origin: [
+      'http://localhost:8081',
+      'http://localhost:19006',
+      'http://localhost:3001',
+      /^http:\/\/10\.0\.2\.2:\d+$/,
+      /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
+    ],
     credentials: true,
   });
 

@@ -1,5 +1,7 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
+import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import {
   Location,
@@ -11,11 +13,13 @@ import {
 } from '../operators/schemas/operator.schema';
 import { Route, RouteDocument } from '../routes/schemas/route.schema';
 import { Ride, RideDocument } from '../rides/schemas/ride.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
 import { generateSeatMap } from '../rides/helpers/seat-map.helper';
 import { LOCATIONS_SEED } from './seeds/locations.seed';
 import { OPERATORS_SEED } from './seeds/operators.seed';
 import { ROUTES_SEED } from './seeds/routes.seed';
 import { RIDES_SEED } from './seeds/rides.seed';
+import { DEMO_USERS_SEED } from './seeds/users.seed';
 
 @Injectable()
 export class DatabaseSeeder implements OnApplicationBootstrap {
@@ -30,6 +34,9 @@ export class DatabaseSeeder implements OnApplicationBootstrap {
     private readonly routeModel: Model<RouteDocument>,
     @InjectModel(Ride.name)
     private readonly rideModel: Model<RideDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
+    private readonly configService: ConfigService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -42,6 +49,7 @@ export class DatabaseSeeder implements OnApplicationBootstrap {
     await this.seedOperators();
     await this.seedRoutes();
     await this.seedRides();
+    await this.seedDemoUsers();
     this.logger.log('Database seed completed');
   }
 
@@ -194,5 +202,29 @@ export class DatabaseSeeder implements OnApplicationBootstrap {
       );
     }
     this.logger.log(`Seeded ${RIDES_SEED.length} rides for today`);
+  }
+
+  private async seedDemoUsers() {
+    const rounds = Number(this.configService.get('BCRYPT_ROUNDS', 12));
+
+    for (const entry of DEMO_USERS_SEED) {
+      const exists = await this.userModel.findOne({ email: entry.email }).exec();
+      if (exists) {
+        continue;
+      }
+
+      const password = await bcrypt.hash(entry.password, rounds);
+      await this.userModel.create({
+        fullName: entry.fullName,
+        email: entry.email,
+        phone: entry.phone,
+        password,
+        gender: entry.gender,
+        role: 'user',
+        isActive: true,
+      });
+    }
+
+    this.logger.log(`Seeded ${DEMO_USERS_SEED.length} demo users (if missing)`);
   }
 }
