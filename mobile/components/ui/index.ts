@@ -13,6 +13,7 @@ export { AmbientBackground } from './AmbientBackground';
 export { StatusDot } from './StatusDot';
 export { GradientText } from './GradientText';
 export { SolidButton } from './SolidButton';
+export { OtpInput } from './OtpInput';
 export {
   Display,
   Heading,
