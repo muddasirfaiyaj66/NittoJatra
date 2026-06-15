@@ -6,7 +6,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { Connection, connect } from 'mongoose';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
 import { TransformInterceptor } from '../src/common/interceptors/transform.interceptor';
@@ -50,6 +50,14 @@ describe('Booking flow (e2e)', () => {
 
     mongoConnection = (await connect(mongoServer.getUri())).connection;
 
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const locations = await request(app.getHttpServer()).get('/api/v1/locations');
+      if (locations.body.data?.length > 0) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+
     await request(app.getHttpServer()).post('/api/v1/auth/register').send({
       fullName: 'Booking User',
       email: 'booking@nittojatra.com',
@@ -66,8 +74,6 @@ describe('Booking flow (e2e)', () => {
       });
 
     accessToken = login.body.data.accessToken;
-
-    await new Promise((resolve) => setTimeout(resolve, 1500));
   });
 
   afterAll(async () => {
@@ -117,7 +123,7 @@ describe('Booking flow (e2e)', () => {
       .get(`/api/v1/rides/${rideId}/seats`)
       .expect(200);
 
-    const availableSeat = seats.body.data.find(
+    const availableSeat = seats.body.data.seats.find(
       (s: { status: string }) =>
         s.status === 'available' || s.status === 'women-only',
     );
@@ -156,7 +162,7 @@ describe('Booking flow (e2e)', () => {
       .get(`/api/v1/rides/${rideId}/seats`)
       .expect(200);
 
-    const released = seatsAfter.body.data.find(
+    const released = seatsAfter.body.data.seats.find(
       (s: { seatNumber: string }) => s.seatNumber === availableSeat.seatNumber,
     );
     expect(released.status).not.toBe('booked');

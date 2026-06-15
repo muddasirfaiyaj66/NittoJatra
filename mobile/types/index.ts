@@ -66,6 +66,8 @@ export interface Operator {
 export interface SearchResult {
   id: string;
   operatorId: string;
+  operatorName?: string;
+  operatorColor?: string;
   from: string;
   to: string;
   departure: string;

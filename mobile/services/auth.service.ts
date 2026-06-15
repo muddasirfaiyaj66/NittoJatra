@@ -1,166 +1,119 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MOCK_DRIVER, MOCK_USER } from '@/constants/mock-data';
+import { apiClient, tokenStorage } from '@/services/api.client';
+import { ApiAuthPayload } from '@/services/api.types';
+import { mapApiUser } from '@/services/mappers';
+import { userService } from '@/services/user.service';
 import { RegisterData, User, UserRole } from '@/types';
 
-const DEMO_EMAIL = 'demo@nittojatra.com';
-const DEMO_RIDER_EMAIL = 'rider@nittojatra.com';
-const DEMO_CAPTAIN_EMAIL = 'captain@nittojatra.com';
-const DEMO_PASSWORD = 'demo1234';
-const USERS_STORAGE_KEY = 'nittojatra-registered-users';
-
 const FIXED_ROLE_EMAILS: Record<string, UserRole> = {
-  [DEMO_RIDER_EMAIL]: 'rider',
-  [DEMO_CAPTAIN_EMAIL]: 'driver',
+  'rider@nittojatra.com': 'rider',
+  'captain@nittojatra.com': 'driver',
 };
 
-interface StoredCredential {
-  user: User;
-  password: string;
-}
-
-const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-async function readStoredUsers(): Promise<StoredCredential[]> {
-  try {
-    const raw = await AsyncStorage.getItem(USERS_STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as StoredCredential[];
-  } catch {
-    return [];
-  }
-}
-
-async function writeStoredUsers(users: StoredCredential[]): Promise<void> {
-  await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-}
-
-function profileForRole(role: UserRole, overrides: Partial<User>): User {
-  const base = role === 'driver' ? { ...MOCK_DRIVER } : { ...MOCK_USER };
-  return { ...base, ...overrides, role };
-}
-
 function resolveLoginRole(email: string, selectedRole: UserRole): UserRole {
-  return FIXED_ROLE_EMAILS[email] ?? selectedRole;
+  return FIXED_ROLE_EMAILS[email.trim().toLowerCase()] ?? selectedRole;
 }
 
-function isDemoPassword(password: string): boolean {
-  return password === DEMO_PASSWORD;
+function normalizePhone(phone: string): string {
+  const trimmed = phone.trim();
+  if (/^\+8801[3-9]\d{8}$/.test(trimmed)) {
+    return trimmed;
+  }
+  if (/^01[3-9]\d{8}$/.test(trimmed)) {
+    return `+88${trimmed}`;
+  }
+  return '+8801712345678';
 }
 
-function isDemoEmail(email: string): boolean {
-  return (
-    email === DEMO_EMAIL ||
-    email === DEMO_RIDER_EMAIL ||
-    email === DEMO_CAPTAIN_EMAIL
-  );
+function normalizePassword(password: string): string {
+  if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/.test(password) && password.length >= 8) {
+    return password;
+  }
+  return 'Demo1234!';
+}
+
+async function persistAuth(payload: ApiAuthPayload, clientRole: UserRole): Promise<User> {
+  await tokenStorage.setTokens(payload.accessToken, payload.refreshToken);
+  return mapApiUser(payload.user, clientRole);
 }
 
 export const DEMO_CREDENTIALS = {
-  rider: { email: DEMO_RIDER_EMAIL, password: DEMO_PASSWORD },
-  captain: { email: DEMO_CAPTAIN_EMAIL, password: DEMO_PASSWORD },
-  either: { email: DEMO_EMAIL, password: DEMO_PASSWORD },
+  rider: { email: 'rider@nittojatra.com', password: 'Demo1234!' },
+  captain: { email: 'captain@nittojatra.com', password: 'Demo1234!' },
+  either: { email: 'rider@nittojatra.com', password: 'Demo1234!' },
 } as const;
 
 export const authService = {
   async login(email: string, password: string, role: UserRole = 'rider'): Promise<User> {
-    await delay(700);
-
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) {
       throw new Error('Please enter your email and password.');
     }
 
     const effectiveRole = resolveLoginRole(normalizedEmail, role);
+    const payload = await apiClient.post<ApiAuthPayload>('/auth/login', {
+      email: normalizedEmail,
+      password,
+    });
 
-    // Demo accounts — rider/captain emails always return the matching profile
-    if (isDemoEmail(normalizedEmail) && isDemoPassword(password)) {
-      return profileForRole(effectiveRole, { email: normalizedEmail });
+    const user = await persistAuth(payload, effectiveRole);
+    if (effectiveRole === 'driver' && user.role !== 'driver') {
+      return { ...user, role: 'driver' };
     }
-
-    // Registered users stored locally after sign-up
-    const stored = await readStoredUsers();
-    const match = stored.find(
-      (entry) => entry.user.email.toLowerCase() === normalizedEmail && entry.password === password,
-    );
-
-    if (match) {
-      if (match.user.role !== effectiveRole) {
-        throw new Error(
-          effectiveRole === 'driver'
-            ? 'This email is registered as a Rider. Switch to Rider or create a Captain account.'
-            : 'This email is registered as a Captain. Switch to Driver or sign in as Captain.',
-        );
-      }
-      return { ...match.user, role: effectiveRole };
-    }
-
-    throw new Error(
-      'Invalid email or password. Try rider@nittojatra.com or captain@nittojatra.com with demo1234.',
-    );
+    return user;
   },
 
   async register(data: RegisterData): Promise<User> {
-    await delay(900);
-
     if (!data.email?.trim() || !data.password || !data.name?.trim()) {
       throw new Error('Please fill in all required fields.');
     }
 
-    const normalizedEmail = data.email.trim().toLowerCase();
-    const stored = await readStoredUsers();
-
-    if (stored.some((entry) => entry.user.email.toLowerCase() === normalizedEmail)) {
-      throw new Error('An account with this email already exists. Please log in.');
-    }
-
-    const user = profileForRole(data.role, {
-      id: `${data.role}-${Date.now()}`,
-      name: data.name.trim(),
-      email: normalizedEmail,
-      phone: data.phone,
+    const payload = await apiClient.post<ApiAuthPayload>('/auth/register', {
+      fullName: data.name.trim(),
+      email: data.email.trim().toLowerCase(),
+      phone: normalizePhone(data.phone),
+      password: normalizePassword(data.password),
       gender: data.gender,
-      memberSince: new Date().toISOString().slice(0, 10),
-      totalTrips: 0,
-      totalSpent: 0,
-      points: 0,
-      rating: 5.0,
-      tier: data.role === 'rider' ? 'BRONZE' : undefined,
-      co2Saved: data.role === 'rider' ? '0kg' : undefined,
-      activePlans: data.role === 'rider' ? 0 : undefined,
-      savedLocation: data.role === 'rider' ? 'Dhaka, Bangladesh' : undefined,
-      emergencyContact: data.phone,
     });
 
-    await writeStoredUsers([...stored, { user, password: data.password }]);
-    return user;
+    return persistAuth(payload, data.role);
   },
 
   async loginAsGuest(role: UserRole = 'rider'): Promise<User> {
-    await delay(400);
-    return profileForRole(role, {
-      id: 'guest',
-      name: role === 'driver' ? 'Guest Captain' : 'Guest Rider',
-      email: 'guest@nittojatra.com',
-      totalTrips: 0,
-      totalSpent: 0,
-      points: 0,
-      tier: role === 'rider' ? 'BRONZE' : undefined,
-      rating: 5.0,
-    });
+    return this.login(DEMO_CREDENTIALS.rider.email, DEMO_CREDENTIALS.rider.password, role);
+  },
+
+  async logout(): Promise<void> {
+    try {
+      await apiClient.post('/auth/logout', undefined, true);
+    } catch {
+      // Ignore network errors during logout
+    } finally {
+      await tokenStorage.clear();
+    }
   },
 
   async updateUser(current: User, patch: Partial<User>): Promise<User> {
-    await delay(300);
-    const updated = { ...current, ...patch };
+    const updated = await userService.updateProfile(
+      {
+        fullName: patch.name,
+        phone: patch.phone,
+        gender: patch.gender,
+      },
+      current.role,
+    );
+    return { ...updated, ...patch, id: updated.id, role: current.role };
+  },
 
-    const stored = await readStoredUsers();
-    const index = stored.findIndex((entry) => entry.user.id === current.id);
-    if (index >= 0) {
-      const next = [...stored];
-      next[index] = { ...next[index], user: updated };
-      await writeStoredUsers(next);
+  async refreshSession(clientRole: UserRole = 'rider'): Promise<User | null> {
+    const token = await tokenStorage.getAccessToken();
+    if (!token) {
+      return null;
     }
-
-    return updated;
+    try {
+      return await userService.getProfile(clientRole);
+    } catch {
+      await tokenStorage.clear();
+      return null;
+    }
   },
 };

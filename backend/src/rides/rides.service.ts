@@ -220,10 +220,8 @@ export class RidesService {
   }
 
   private getDayBounds(dateStr: string) {
-    const start = new Date(dateStr);
-    start.setUTCHours(0, 0, 0, 0);
-    const end = new Date(dateStr);
-    end.setUTCHours(23, 59, 59, 999);
+    const start = new Date(`${dateStr}T00:00:00`);
+    const end = new Date(`${dateStr}T23:59:59.999`);
     return { start, end };
   }
 }

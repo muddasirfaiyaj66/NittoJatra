@@ -2,13 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SegmentedControl } from '@/components/shared/SegmentedControl';
 import { StatusDot } from '@/components/ui';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { MOCK_ACTIVE_PLAN, MOCK_BOOKINGS } from '@/constants/mock-data';
+import { MOCK_ACTIVE_PLAN } from '@/constants/mock-data';
+import { useBookingStore } from '@/store/booking.store';
 
 function formatHistoryDate(dateStr: string) {
   const d = new Date(`${dateStr}T12:00:00`);
@@ -22,7 +23,16 @@ function driverInitial(name: string) {
 export default function MyRidesScreen() {
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState(0);
-  const history = MOCK_BOOKINGS.filter((b) => b.status === 'completed' || b.status === 'cancelled');
+  const bookings = useBookingStore((s) => s.bookings);
+  const isLoading = useBookingStore((s) => s.isLoading);
+  const fetchBookings = useBookingStore((s) => s.fetchBookings);
+  const upcoming = bookings.filter((b) => b.status === 'upcoming' || b.status === 'ongoing');
+  const history = bookings.filter((b) => b.status === 'completed' || b.status === 'cancelled');
+  const activeBooking = upcoming[0];
+
+  useEffect(() => {
+    void fetchBookings();
+  }, [fetchBookings]);
 
   const headerContent = (
     <>
@@ -53,56 +63,47 @@ export default function MyRidesScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {tab === 0 ? (
-          <View style={[styles.planCard, Shadows.card]}>
-            <View style={styles.planHeader}>
-              <View style={styles.activeRow}>
-                <StatusDot />
-                <Text style={styles.activeLabel}>ACTIVE PLAN</Text>
-              </View>
-              <LinearGradient colors={[...Gradients.successBadge]} style={styles.ongoingBadge}>
-                <Text style={styles.ongoingText}>ONGOING</Text>
-              </LinearGradient>
-            </View>
-            <Text style={styles.routeName}>{MOCK_ACTIVE_PLAN.route}</Text>
-            <Text style={styles.schedule}>{MOCK_ACTIVE_PLAN.schedule}</Text>
-            <View style={styles.progressCard}>
-              <Text style={styles.progressLabel}>MONTHLY PROGRESS</Text>
-              <Text style={styles.progressValue}>
-                {MOCK_ACTIVE_PLAN.progress.current} / {MOCK_ACTIVE_PLAN.progress.total} Rides
-              </Text>
-              <View style={styles.progressTrack}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${(MOCK_ACTIVE_PLAN.progress.current / MOCK_ACTIVE_PLAN.progress.total) * 100}%` },
-                  ]}
-                />
-              </View>
-            </View>
-            <View style={styles.footerRow}>
-              <View style={styles.footerItem}>
-                <LinearGradient colors={[...Gradients.avatar]} style={styles.miniAvatar}>
-                  <Text style={styles.miniAvatarText}>{MOCK_ACTIVE_PLAN.driver.initial}</Text>
+          activeBooking ? (
+            <View style={[styles.planCard, Shadows.card]}>
+              <View style={styles.planHeader}>
+                <View style={styles.activeRow}>
+                  <StatusDot />
+                  <Text style={styles.activeLabel}>UPCOMING RIDE</Text>
+                </View>
+                <LinearGradient colors={[...Gradients.successBadge]} style={styles.ongoingBadge}>
+                  <Text style={styles.ongoingText}>BOOKED</Text>
                 </LinearGradient>
-                <View>
-                  <Text style={styles.footerLabel}>Assigned Driver</Text>
-                  <Text style={styles.footerValue}>{MOCK_ACTIVE_PLAN.driver.name.toUpperCase()}</Text>
+              </View>
+              <Text style={styles.routeName}>{activeBooking.route.from} → {activeBooking.route.to}</Text>
+              <Text style={styles.schedule}>{formatHistoryDate(activeBooking.date)} • {activeBooking.departureTime}</Text>
+              <View style={styles.footerRow}>
+                <View style={styles.footerItem}>
+                  <Text style={styles.footerLabel}>Operator</Text>
+                  <Text style={styles.footerValue}>{activeBooking.operator.toUpperCase()}</Text>
+                </View>
+                <View style={styles.footerItem}>
+                  <Text style={styles.footerLabel}>SEATS</Text>
+                  <Text style={[styles.footerValue, { color: Colors.primary }]}>{activeBooking.seatCount}</Text>
                 </View>
               </View>
-              <View style={styles.footerItem}>
-                <Text style={styles.footerLabel}>NEXT TRIP</Text>
-                <Text style={[styles.footerValue, { color: Colors.primary }]}>{MOCK_ACTIVE_PLAN.nextTrip}</Text>
-              </View>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Subscription tracker"
-              onPress={() => router.push('/ride/subscription-tracker')}
-              style={styles.trackerLink}
-            >
-              <Text style={styles.trackerText}>View Subscription Tracker →</Text>
-            </Pressable>
-          </View>
+          ) : (
+            <View style={[styles.planCard, Shadows.card]}>
+              <View style={styles.planHeader}>
+                <View style={styles.activeRow}>
+                  <StatusDot />
+                  <Text style={styles.activeLabel}>ACTIVE PLAN</Text>
+                </View>
+              </View>
+              <Text style={styles.routeName}>{MOCK_ACTIVE_PLAN.route}</Text>
+              <Text style={styles.schedule}>{MOCK_ACTIVE_PLAN.schedule}</Text>
+              <Text style={styles.schedule}>Book a ride to see upcoming trips here.</Text>
+            </View>
+          )
+        ) : isLoading ? (
+          <ActivityIndicator color={Colors.primary} style={{ marginTop: Spacing.xl }} />
+        ) : history.length === 0 ? (
+          <Text style={styles.emptyText}>No ride history yet.</Text>
         ) : (
           history.map((b) => {
             const driverName = b.driver ?? b.operator;
@@ -316,5 +317,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#111827',
     letterSpacing: -0.375,
+  },
+  emptyText: {
+    fontFamily: Typography.fonts.medium,
+    fontSize: Typography.fontSizes.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginTop: Spacing.xl,
   },
 });
