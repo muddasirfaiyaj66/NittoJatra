@@ -1,27 +1,71 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MapHeader } from '@/components/shared/MapHeader';
 import { GradientButton } from '@/components/ui';
 import { Colors, formatTaka, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { getRideDetail } from '@/constants/mock-data';
+import { rideService } from '@/services/ride.service';
+import { RideDetail } from '@/types';
 import { usePaymentStore } from '@/store/payment.store';
 
 export default function RideDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const rideId = id ?? 'r1';
-  const detail = useMemo(() => getRideDetail(rideId), [rideId]);
-  const [selectedPlan, setSelectedPlan] = useState(detail.subscriptionPlans.find((p) => p.selected)?.id ?? 'sp2');
-  const { setTotal, setRideId, reset } = usePaymentStore();
+  const rideId = id ?? '';
+  const [detail, setDetail] = useState<RideDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState('single');
+  const { setTotal, setRideId, setSelectedSeats, reset } = usePaymentStore();
+
+  const loadRide = useCallback(async () => {
+    if (!rideId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const ride = await rideService.getRideById(rideId);
+      setDetail(ride);
+      setSelectedPlan(ride.subscriptionPlans.find((p) => p.selected)?.id ?? 'single');
+    } catch {
+      setDetail(getRideDetail(rideId));
+    } finally {
+      setLoading(false);
+    }
+  }, [rideId]);
+
+  useEffect(() => {
+    void loadRide();
+  }, [loadRide]);
+
+  if (loading || !detail) {
+    return (
+      <View style={[styles.root, styles.center]}>
+        {loading ? (
+          <ActivityIndicator size="large" color={Colors.primary} />
+        ) : (
+          <Text style={styles.errorText}>{error ?? 'Ride not found'}</Text>
+        )}
+      </View>
+    );
+  }
 
   const selectedPlanData = detail.subscriptionPlans.find((p) => p.id === selectedPlan);
   const bookPrice = selectedPlanData?.price ?? detail.price;
 
-  const handleBook = () => {
+  const handleBook = async () => {
     reset();
     setRideId(rideId);
     setTotal(bookPrice);
+    try {
+      const seats = await rideService.getSeatMap(rideId);
+      const available = seats?.find(
+        (s) => s.status === 'available' || s.status === 'women-only',
+      );
+      setSelectedSeats(available ? [available.seatNumber] : ['A1']);
+    } catch {
+      setSelectedSeats(['A1']);
+    }
     router.push('/modals/payment-method');
   };
 
@@ -144,6 +188,8 @@ export default function RideDetailScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
+  center: { alignItems: 'center', justifyContent: 'center' },
+  errorText: { fontFamily: Typography.fonts.medium, color: Colors.textSecondary },
   mapActions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
   iconBtn: { width: 40, height: 40, borderRadius: Radius.lg, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
   badges: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md, flexWrap: 'wrap' },

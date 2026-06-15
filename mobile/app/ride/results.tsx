@@ -1,13 +1,58 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MapHeader } from '@/components/shared/MapHeader';
+import { getOperatorById } from '@/constants/mock-data';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { getOperatorById, MOCK_SEARCH_RESULTS } from '@/constants/mock-data';
+import { locationService } from '@/services/location.service';
+import { matchLocationByName } from '@/services/mappers';
+import { rideService } from '@/services/ride.service';
+import { SearchResult } from '@/types';
 
 export default function SearchResultsScreen() {
   const { from, to } = useLocalSearchParams<{ from?: string; to?: string }>();
-  const results = MOCK_SEARCH_RESULTS;
+  const fromLabel = from ?? 'Mirpur';
+  const toLabel = to ?? 'Motijheel';
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadResults = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const locations = await locationService.getAll();
+      const fromLocation = matchLocationByName(locations, fromLabel);
+      const toLocation = matchLocationByName(locations, toLabel);
+
+      if (!fromLocation || !toLocation) {
+        setResults([]);
+        setError('Could not match locations to the Dhaka area list. Try Mirpur, Motijheel, Shahbag, etc.');
+        return;
+      }
+
+      const today = new Date().toISOString().slice(0, 10);
+      const rides = await rideService.searchRides(
+        fromLocation.id,
+        toLocation.id,
+        today,
+      );
+      setResults(rides);
+      if (rides.length === 0) {
+        setError('No rides found for this route today. Try Mirpur → Motijheel.');
+      }
+    } catch (e) {
+      setError((e as Error).message);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [fromLabel, toLabel]);
+
+  useEffect(() => {
+    void loadResults();
+  }, [loadResults]);
 
   return (
     <View style={styles.root}>
@@ -17,58 +62,74 @@ export default function SearchResultsScreen() {
         <View style={styles.handle} />
         <View style={styles.sheetHeader}>
           <Text style={styles.title}>Available Rides</Text>
-          <Text style={styles.subtitle}>{results.length} rides found for {from ?? 'Shahbag'} → {to ?? 'Motijheel'}</Text>
+          <Text style={styles.subtitle}>
+            {loading ? 'Searching…' : `${results.length} rides found for ${fromLabel} → ${toLabel}`}
+          </Text>
         </View>
 
-        <ScrollView contentContainerStyle={styles.list}>
-          {results.map((r) => {
-            const op = getOperatorById(r.operatorId);
-            return (
-              <Pressable
-                key={r.id}
-                accessibilityRole="button"
-                accessibilityLabel={`Ride with ${op?.name}, ${r.seatsAvailable} seats left`}
-                onPress={() => router.push(`/ride/${r.id}`)}
-                style={[styles.card, Shadows.card]}
-              >
-                <View style={styles.cardHeader}>
-                  <LinearGradient colors={[...Gradients.avatar]} style={styles.avatar}>
-                    <Text style={styles.avatarText}>{(op?.name ?? 'D')[0]}</Text>
-                  </LinearGradient>
-                  <View style={styles.cardInfo}>
-                    <View style={styles.nameRow}>
-                      <Text style={styles.driverName}>{op?.name}</Text>
-                      {r.womenOnly && (
-                        <View style={styles.womenBadge}>
-                          <Text style={styles.womenText}>WOMEN ONLY</Text>
-                        </View>
-                      )}
+        {loading ? (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        ) : error ? (
+          <View style={styles.center}>
+            <Text style={styles.errorText}>{error}</Text>
+            <Pressable accessibilityRole="button" onPress={() => void loadResults()} style={styles.retryBtn}>
+              <Text style={styles.retryText}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.list}>
+            {results.map((r) => {
+              const op = getOperatorById(r.operatorId);
+              const operatorName = r.operatorName ?? op?.name ?? 'Operator';
+              return (
+                <Pressable
+                  key={r.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ride with ${operatorName}, ${r.seatsAvailable} seats left`}
+                  onPress={() => router.push(`/ride/${r.id}`)}
+                  style={[styles.card, Shadows.card]}
+                >
+                  <View style={styles.cardHeader}>
+                    <LinearGradient colors={[...Gradients.avatar]} style={styles.avatar}>
+                      <Text style={styles.avatarText}>{operatorName[0]}</Text>
+                    </LinearGradient>
+                    <View style={styles.cardInfo}>
+                      <View style={styles.nameRow}>
+                        <Text style={styles.driverName}>{operatorName}</Text>
+                        {r.womenOnly && (
+                          <View style={styles.womenBadge}>
+                            <Text style={styles.womenText}>WOMEN ONLY</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.carInfo}>★ {r.rating}</Text>
                     </View>
-                    <Text style={styles.carInfo}>{op?.vehicle} • ★ {r.rating}</Text>
+                    <View style={styles.priceCol}>
+                      <Text style={styles.price}>{formatTaka(r.price)}</Text>
+                      <Text style={styles.perSeat}>PER SEAT</Text>
+                    </View>
                   </View>
-                  <View style={styles.priceCol}>
-                    <Text style={styles.price}>{formatTaka(r.price)}</Text>
-                    <Text style={styles.perSeat}>PER SEAT</Text>
+                  <View style={styles.statsRow}>
+                    <View style={styles.stat}>
+                      <Text style={styles.statLabel}>TIME</Text>
+                      <Text style={styles.statValue}>{r.departure}</Text>
+                    </View>
+                    <View style={styles.stat}>
+                      <Text style={styles.statLabel}>DURATION</Text>
+                      <Text style={styles.statValue}>{r.duration}</Text>
+                    </View>
+                    <View style={styles.stat}>
+                      <Text style={styles.statLabel}>SEATS</Text>
+                      <Text style={styles.statValue}>{r.seatsAvailable} Left</Text>
+                    </View>
                   </View>
-                </View>
-                <View style={styles.statsRow}>
-                  <View style={styles.stat}>
-                    <Text style={styles.statLabel}>TIME</Text>
-                    <Text style={styles.statValue}>{r.departure}</Text>
-                  </View>
-                  <View style={styles.stat}>
-                    <Text style={styles.statLabel}>DURATION</Text>
-                    <Text style={styles.statValue}>{r.duration}</Text>
-                  </View>
-                  <View style={styles.stat}>
-                    <Text style={styles.statLabel}>SEATS</Text>
-                    <Text style={styles.statValue}>{r.seatsAvailable} Left</Text>
-                  </View>
-                </View>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        )}
       </View>
     </View>
   );
@@ -81,6 +142,10 @@ const styles = StyleSheet.create({
   sheetHeader: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.base },
   title: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.textPrimary },
   subtitle: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl, gap: Spacing.md },
+  errorText: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary, textAlign: 'center' },
+  retryBtn: { backgroundColor: Colors.primary, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.full },
+  retryText: { fontFamily: Typography.fonts.bold, color: Colors.white },
   list: { padding: Spacing.xl, gap: Spacing.base, paddingBottom: 40 },
   card: { backgroundColor: Colors.surface, borderRadius: Radius.card, padding: Spacing.base, borderWidth: 1, borderColor: Colors.border },
   cardHeader: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.md },

@@ -7,9 +7,16 @@ import { PAYMENT_METHODS } from '@/constants/mock-data';
 import { usePaymentStore } from '@/store/payment.store';
 
 export default function PaymentMethodModal() {
-  const { total, setStep } = usePaymentStore();
+  const { total, setStep, setPaymentMethod } = usePaymentStore();
 
   const select = (type: string) => {
+    const methodMap: Record<string, 'bkash' | 'card' | 'cash'> = {
+      wallet: 'cash',
+      bkash: 'bkash',
+      bank: 'card',
+      visa: 'card',
+    };
+    setPaymentMethod(methodMap[type] ?? 'bkash');
     if (type === 'wallet') {
       setStep('pin');
       router.push('/modals/security-pin');

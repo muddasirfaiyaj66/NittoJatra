@@ -1,20 +1,49 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientButton } from '@/components/ui';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { bookingService } from '@/services/booking.service';
+import { useAuthStore } from '@/store/auth.store';
+import { useBookingStore } from '@/store/booking.store';
 import { usePaymentStore } from '@/store/payment.store';
 
 export default function VerifyOtpModal() {
   const [otp, setOtp] = useState('');
-  const { reset } = usePaymentStore();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { reset, rideId, paymentMethod, selectedSeats } = usePaymentStore();
+  const user = useAuthStore((s) => s.user);
+  const addBooking = useBookingStore((s) => s.addBooking);
 
-  const confirm = () => {
-    reset();
-    router.dismissAll();
-    router.push('/notifications');
+  const confirm = async () => {
+    if (!rideId || !user) {
+      setError('Please sign in before completing payment.');
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const booking = await bookingService.createBooking({
+        rideId,
+        seats: selectedSeats.length > 0 ? selectedSeats : ['A1'],
+        passengerName: user.name,
+        passengerPhone: user.phone,
+        passengerEmail: user.email,
+        paymentMethod,
+      });
+      await bookingService.confirmPayment(booking.id);
+      addBooking({ ...booking, status: 'upcoming' });
+      reset();
+      router.dismissAll();
+      router.push('/notifications');
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -47,7 +76,14 @@ export default function VerifyOtpModal() {
           <Pressable accessibilityRole="button" accessibilityLabel="Resend OTP">
             <Text style={styles.resend}>Resend OTP</Text>
           </Pressable>
-          <GradientButton title="Confirm Payment" variant="primary" onPress={confirm} />
+          <GradientButton
+            title={submitting ? 'Confirming…' : 'Confirm Payment'}
+            variant="primary"
+            onPress={() => void confirm()}
+            disabled={submitting}
+          />
+          {submitting && <ActivityIndicator color={Colors.primary} />}
+          {error ? <Text style={styles.error}>{error}</Text> : null}
         </View>
       </SafeAreaView>
     </View>
@@ -64,4 +100,5 @@ const styles = StyleSheet.create({
   otpRow: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm },
   otpBox: { width: 44, height: 52, borderWidth: 1, borderColor: Colors.borderMid, borderRadius: Radius.md, textAlign: 'center', fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.lg, color: Colors.textPrimary },
   resend: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.sm, color: Colors.primary, textAlign: 'center' },
+  error: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.danger, textAlign: 'center' },
 });

@@ -16,8 +16,8 @@ export function RideResultCard({ result, onBook, onViewDetails }: RideResultCard
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const operator = getOperatorById(result.operatorId);
-  const operatorName = operator?.name ?? 'Operator';
-  const operatorColor = operator?.color ?? colors.primary;
+  const operatorName = result.operatorName ?? operator?.name ?? 'Operator';
+  const operatorColor = result.operatorColor ?? operator?.color ?? colors.primary;
   const lowSeats = result.seatsAvailable <= 5;
 
   return (

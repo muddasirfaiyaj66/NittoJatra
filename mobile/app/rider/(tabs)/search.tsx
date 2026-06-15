@@ -347,7 +347,7 @@ export default function FindScreen() {
   const search = () => {
     router.push({
       pathname: '/ride/results',
-      params: { from: from || 'Shahbag', to: to || 'Motijheel' },
+      params: { from: from || 'Mirpur', to: to || 'Motijheel' },
     });
   };
 
