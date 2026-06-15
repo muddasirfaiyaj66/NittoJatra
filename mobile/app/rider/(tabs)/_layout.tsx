@@ -1,8 +1,10 @@
-import { Tabs, router } from 'expo-router';
-import { useEffect } from 'react';
+import { Tabs, router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect } from 'react';
 import { TabBarWithDot } from '@/components/shared/TabBarWithDot';
 import { homeRouteForRole, ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/auth.store';
+import { useBookingStore } from '@/store/booking.store';
 
 const RIDER_TABS = {
   index: { active: 'home' as const, inactive: 'home-outline' as const, label: 'Home' },
@@ -14,6 +16,8 @@ const RIDER_TABS = {
 
 export default function TabsLayout() {
   const { role, isAuthenticated, hasHydrated } = useAuth();
+  const fetchBookings = useBookingStore((s) => s.fetchBookings);
+  const refreshProfile = useAuthStore((s) => s.refreshProfile);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -25,6 +29,14 @@ export default function TabsLayout() {
       router.replace(homeRouteForRole('driver'));
     }
   }, [hasHydrated, isAuthenticated, role]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!isAuthenticated) return;
+      void fetchBookings();
+      void refreshProfile();
+    }, [fetchBookings, isAuthenticated, refreshProfile]),
+  );
 
   return (
     <Tabs

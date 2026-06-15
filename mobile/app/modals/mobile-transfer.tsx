@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientButton } from '@/components/ui';
 import { Colors, formatTaka, Radius, Spacing, Typography } from '@/constants/theme';
-import { WALLET_BALANCE } from '@/constants/mock-data';
+import { useAuth } from '@/hooks/useAuth';
 import { usePaymentStore } from '@/store/payment.store';
 
 export default function MobileTransferModal() {
@@ -13,6 +13,8 @@ export default function MobileTransferModal() {
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
   const { total, reset } = usePaymentStore();
+  const { user } = useAuth();
+  const walletBalance = Math.max(0, (user?.points ?? 0) * 10);
 
   const confirm = () => {
     reset();
@@ -30,7 +32,7 @@ export default function MobileTransferModal() {
             <Ionicons name="close" size={24} color={Colors.textPrimary} />
           </Pressable>
         </View>
-        <Text style={styles.available}>AVAILABLE {formatTaka(WALLET_BALANCE, 1)}</Text>
+        <Text style={styles.available}>AVAILABLE {formatTaka(walletBalance, 1)}</Text>
         <View style={styles.form}>
           {[
             { label: 'Mobile Number', value: phone, set: setPhone, keyboard: 'phone-pad' as const },

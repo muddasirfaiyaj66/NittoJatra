@@ -3,7 +3,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MapHeader } from '@/components/shared/MapHeader';
-import { getOperatorById } from '@/constants/mock-data';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { locationService } from '@/services/location.service';
 import { matchLocationByName } from '@/services/mappers';
@@ -81,8 +80,7 @@ export default function SearchResultsScreen() {
         ) : (
           <ScrollView contentContainerStyle={styles.list}>
             {results.map((r) => {
-              const op = getOperatorById(r.operatorId);
-              const operatorName = r.operatorName ?? op?.name ?? 'Operator';
+              const operatorName = r.operatorName ?? 'Operator';
               return (
                 <Pressable
                   key={r.id}

@@ -5,7 +5,6 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { MapHeader } from '@/components/shared/MapHeader';
 import { GradientButton } from '@/components/ui';
 import { Colors, formatTaka, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { getRideDetail } from '@/constants/mock-data';
 import { rideService } from '@/services/ride.service';
 import { RideDetail } from '@/types';
 import { usePaymentStore } from '@/store/payment.store';
@@ -27,8 +26,9 @@ export default function RideDetailScreen() {
       const ride = await rideService.getRideById(rideId);
       setDetail(ride);
       setSelectedPlan(ride.subscriptionPlans.find((p) => p.selected)?.id ?? 'single');
-    } catch {
-      setDetail(getRideDetail(rideId));
+    } catch (e) {
+      setDetail(null);
+      setError((e as Error).message);
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export default function RideDetailScreen() {
 
   return (
     <View style={styles.root}>
-      <MapHeader height={280} useBasemap onBack={() => router.back()}>
+      <MapHeader height={280} onBack={() => router.back()}>
         <View style={styles.mapActions}>
           <View style={{ flex: 1 }} />
           <Pressable accessibilityRole="button" accessibilityLabel="Favorite" style={styles.iconBtn}>

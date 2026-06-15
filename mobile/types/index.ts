@@ -38,6 +38,8 @@ export interface DhakaLocation {
   name: string;
   nameEn: string;
   zone: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface RouteItem {

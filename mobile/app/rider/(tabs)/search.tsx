@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -18,7 +18,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { SolidButton } from '@/components/ui';
 import { Colors, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { RECENT_PLACES } from '@/constants/mock-data';
+import { locationService } from '@/services/location.service';
+import { RecentPlace, recentPlacesService } from '@/services/recent-places.service';
+import { matchLocationByName } from '@/services/mappers';
+import { DhakaLocation } from '@/types';
+import { buildLocationCoordLookup, findCoordsInLookup } from '@/utils/location-coords';
 
 // ─── Local coordinate lookup for common Dhaka areas ─────────────────────────
 const DHAKA_LOCS: Record<string, [number, number]> = {
@@ -57,23 +61,21 @@ const DHAKA_LOCS: Record<string, [number, number]> = {
   kawran: [23.7516, 90.3930],
 };
 
-function findLocal(q: string): [number, number] | null {
-  const key = q.toLowerCase().trim();
-  if (DHAKA_LOCS[key]) return DHAKA_LOCS[key];
-  for (const k of Object.keys(DHAKA_LOCS)) {
-    if (key.includes(k) || k.includes(key)) return DHAKA_LOCS[k];
-  }
-  return null;
+function findLocal(q: string, lookup: Record<string, [number, number]>): [number, number] | null {
+  return findCoordsInLookup(q, lookup);
 }
 
-async function geocodeRN(query: string): Promise<[number, number] | null> {
+async function geocodeRN(
+  query: string,
+  lookup: Record<string, [number, number]>,
+): Promise<[number, number] | null> {
   if (!query || !query.trim()) return null;
-  const local = findLocal(query);
+  const local = findLocal(query, lookup);
   if (local) return local;
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=en&q=${encodeURIComponent(query + ', Dhaka, Bangladesh')}`,
-      { headers: { 'User-Agent': 'NittoJatra-App/1.0' } }
+      { headers: { 'User-Agent': 'NittoJatra-App/1.0' } },
     );
     const data = await res.json();
     if (data?.length > 0) return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
@@ -159,9 +161,12 @@ const MAP_HTML = `<!DOCTYPE html>
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function FindScreen() {
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [from, setFrom] = useState('Mirpur');
+  const [to, setTo] = useState('Motijheel');
   const [geocoding, setGeocoding] = useState(false);
+  const [apiLocations, setApiLocations] = useState<DhakaLocation[]>([]);
+  const [recentPlaces, setRecentPlaces] = useState<RecentPlace[]>([]);
+  const coordLookup = useRef<Record<string, [number, number]>>({ ...DHAKA_LOCS });
   const webRef = useRef<WebView>(null);
   const mapReady = useRef(false);
   const pendingMsg = useRef<string | null>(null);
@@ -181,7 +186,7 @@ export default function FindScreen() {
   const translateY = useRef(new Animated.Value(0)).current;
   const lastTranslateY = useRef(0);
 
-  const onSheetLayout = (event: any) => {
+  const onSheetLayout = (event: { nativeEvent: { layout: { height: number } } }) => {
     const { height } = event.nativeEvent.layout;
     if (height > 0 && Math.abs(height - sheetHeight) > 2) {
       setSheetHeight(height);
@@ -289,7 +294,7 @@ export default function FindScreen() {
     }
     fromTimer.current = setTimeout(async () => {
       setGeocoding(true);
-      const coords = await geocodeRN(val);
+      const coords = await geocodeRN(val, coordLookup.current);
       fromCoords.current = coords;
       fromLabel.current = val;
       setGeocoding(false);
@@ -308,7 +313,7 @@ export default function FindScreen() {
     }
     toTimer.current = setTimeout(async () => {
       setGeocoding(true);
-      const coords = await geocodeRN(val);
+      const coords = await geocodeRN(val, coordLookup.current);
       toCoords.current = coords;
       toLabel.current = val;
       setGeocoding(false);
@@ -319,18 +324,59 @@ export default function FindScreen() {
   const handleRecentPress = (name: string) => {
     setTo(name);
     if (toTimer.current) clearTimeout(toTimer.current);
-    const local = findLocal(name);
+    const local = findLocal(name, coordLookup.current);
     toCoords.current = local;
     toLabel.current = name;
     if (local) {
       sendToMap(fromCoords.current, fromLabel.current, local, name);
     } else {
-      geocodeRN(name).then((coords) => {
+      geocodeRN(name, coordLookup.current).then((coords) => {
         toCoords.current = coords;
         sendToMap(fromCoords.current, fromLabel.current, coords, name);
       });
     }
   };
+
+  useEffect(() => {
+    let active = true;
+
+    void (async () => {
+      try {
+        const [locations, recent] = await Promise.all([
+          locationService.getAll(),
+          recentPlacesService.getAll(),
+        ]);
+        if (!active) return;
+
+        setApiLocations(locations);
+        coordLookup.current = buildLocationCoordLookup(locations, DHAKA_LOCS);
+        setRecentPlaces(recent);
+
+        const defaultFrom = matchLocationByName(locations, 'Mirpur')?.nameEn ?? 'Mirpur';
+        const defaultTo = matchLocationByName(locations, 'Motijheel')?.nameEn ?? 'Motijheel';
+        setFrom(defaultFrom);
+        setTo(defaultTo);
+        fromLabel.current = defaultFrom;
+        toLabel.current = defaultTo;
+
+        const fromPoint = findLocal(defaultFrom, coordLookup.current);
+        const toPoint = findLocal(defaultTo, coordLookup.current);
+        fromCoords.current = fromPoint;
+        toCoords.current = toPoint;
+        sendToMap(fromPoint, defaultFrom, toPoint, defaultTo);
+      } catch {
+        const fromPoint = findLocal('Mirpur', coordLookup.current);
+        const toPoint = findLocal('Motijheel', coordLookup.current);
+        fromCoords.current = fromPoint;
+        toCoords.current = toPoint;
+        sendToMap(fromPoint, 'Mirpur', toPoint, 'Motijheel');
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [sendToMap]);
 
   const onMapLoad = () => {
     mapReady.current = true;
@@ -345,6 +391,7 @@ export default function FindScreen() {
   };
 
   const search = () => {
+    void recentPlacesService.add(to || 'Motijheel').then(setRecentPlaces);
     router.push({
       pathname: '/ride/results',
       params: { from: from || 'Mirpur', to: to || 'Motijheel' },
@@ -454,7 +501,14 @@ export default function FindScreen() {
 
         <Text style={styles.sectionLabel}>RECENT PLACES</Text>
         <ScrollView style={styles.recentList} showsVerticalScrollIndicator={false}>
-          {RECENT_PLACES.map((p) => (
+          {(recentPlaces.length > 0
+            ? recentPlaces
+            : apiLocations.slice(0, 6).map((loc) => ({
+                id: loc.id,
+                name: loc.nameEn,
+                label: loc.zone,
+              }))
+          ).map((p) => (
             <Pressable
               key={p.id}
               accessibilityRole="button"

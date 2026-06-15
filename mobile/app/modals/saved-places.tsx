@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
-import { SAVED_PLACES } from '@/constants/mock-data';
 import { SavedPlace } from '@/types';
 import { GradientButton } from '@/components/ui';
+import { locationService } from '@/services/location.service';
 
 const getIconForType = (type: 'home' | 'office' | 'other') => {
   switch (type) {
@@ -20,13 +20,31 @@ const getIconForType = (type: 'home' | 'office' | 'other') => {
 };
 
 export default function SavedPlacesModal() {
-  const [places, setPlaces] = useState<SavedPlace[]>(SAVED_PLACES);
+  const [places, setPlaces] = useState<SavedPlace[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [label, setLabel] = useState('');
   const [address, setAddress] = useState('');
   const [type, setType] = useState<'home' | 'office' | 'other'>('other');
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const locations = await locationService.getAll();
+        setPlaces(
+          locations.slice(0, 6).map((location, index) => ({
+            id: location.id,
+            label: index === 0 ? 'Home' : index === 1 ? 'Office' : location.nameEn,
+            address: `${location.nameEn}, ${location.zone}`,
+            type: index === 0 ? 'home' : index === 1 ? 'office' : 'other',
+          })),
+        );
+      } catch {
+        setPlaces([]);
+      }
+    })();
+  }, []);
 
   const handleStartAdd = () => {
     setEditingId(null);
@@ -72,10 +90,6 @@ export default function SavedPlacesModal() {
     }
 
     setPlaces(updated);
-    // Persist to mock data in-memory array so that it retains during runtime
-    SAVED_PLACES.length = 0;
-    SAVED_PLACES.push(...updated);
-
     setIsEditing(false);
     setEditingId(null);
     setLabel('');
@@ -101,9 +115,6 @@ export default function SavedPlacesModal() {
   const handleDelete = (id: string) => {
     const updated = places.filter((p) => p.id !== id);
     setPlaces(updated);
-    SAVED_PLACES.length = 0;
-    SAVED_PLACES.push(...updated);
-
     setIsEditing(false);
     setEditingId(null);
     setLabel('');

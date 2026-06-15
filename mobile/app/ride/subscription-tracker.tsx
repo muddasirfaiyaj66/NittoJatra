@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { MOCK_ACTIVE_PLAN } from '@/constants/mock-data';
+import { useBookingStore } from '@/store/booking.store';
 
 const CALENDAR_DAYS = [
   { day: 1, status: 'taken' }, { day: 2, status: 'taken' }, { day: 3, status: 'missed' },
@@ -15,6 +15,17 @@ const CALENDAR_DAYS = [
 
 export default function SubscriptionTrackerScreen() {
   const [rideStarted, setRideStarted] = useState(false);
+  const bookings = useBookingStore((s) => s.bookings);
+  const activeBooking = useMemo(
+    () => bookings.find((booking) => booking.status === 'upcoming' || booking.status === 'ongoing'),
+    [bookings],
+  );
+  const routeLabel = activeBooking
+    ? `${activeBooking.route.from} → ${activeBooking.route.to}`
+    : 'No active subscription route';
+  const progressCurrent = activeBooking ? 1 : 0;
+  const progressTotal = 20;
+  const progressPercent = progressTotal > 0 ? Math.round((progressCurrent / progressTotal) * 100) : 0;
 
   const handleHereStart = () => {
     Alert.alert('Ride Started', 'Your ride has been confirmed. Have a safe journey!');
@@ -35,7 +46,7 @@ export default function SubscriptionTrackerScreen() {
           </Pressable>
           <View>
             <Text style={styles.title}>Subscription Tracker</Text>
-            <Text style={styles.subtitle}>{MOCK_ACTIVE_PLAN.route}</Text>
+            <Text style={styles.subtitle}>{routeLabel}</Text>
           </View>
         </View>
       </SafeAreaView>
@@ -43,7 +54,11 @@ export default function SubscriptionTrackerScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <LinearGradient colors={[...Gradients.navyHeader]} style={styles.statusCard}>
           <Ionicons name="location" size={24} color={Colors.white} />
-          <Text style={styles.waitingText}>Karim is waiting at your pickup point</Text>
+          <Text style={styles.waitingText}>
+            {activeBooking
+              ? `${activeBooking.operator} is waiting at your pickup point`
+              : 'Book a ride to start tracking your subscription route'}
+          </Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="I'm here start"
@@ -67,12 +82,14 @@ export default function SubscriptionTrackerScreen() {
         <View style={[styles.card, Shadows.card]}>
           <Text style={styles.cardTitle}>Current Progress</Text>
           <Text style={styles.passName}>Monthly Pass</Text>
-          <Text style={styles.progressBig}>{MOCK_ACTIVE_PLAN.progress.current}/{MOCK_ACTIVE_PLAN.progress.total}</Text>
+          <Text style={styles.progressBig}>{progressCurrent}/{progressTotal}</Text>
           <Text style={styles.progressSub}>RIDES TAKEN</Text>
           <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${(MOCK_ACTIVE_PLAN.progress.current / MOCK_ACTIVE_PLAN.progress.total) * 100}%` }]} />
+            <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
           </View>
-          <Text style={styles.dateRange}>STARTED: JAN 1, 2026 — ENDS: JAN 31, 2026</Text>
+          <Text style={styles.dateRange}>
+            {activeBooking ? `NEXT RIDE: ${activeBooking.date} • ${activeBooking.departureTime}` : 'Book a ride to start your pass'}
+          </Text>
         </View>
 
         <View style={[styles.card, Shadows.card]}>

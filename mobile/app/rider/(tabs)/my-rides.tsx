@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SegmentedControl } from '@/components/shared/SegmentedControl';
 import { StatusDot } from '@/components/ui';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { MOCK_ACTIVE_PLAN } from '@/constants/mock-data';
 import { useBookingStore } from '@/store/booking.store';
 
 function formatHistoryDate(dateStr: string) {
@@ -92,12 +91,11 @@ export default function MyRidesScreen() {
               <View style={styles.planHeader}>
                 <View style={styles.activeRow}>
                   <StatusDot />
-                  <Text style={styles.activeLabel}>ACTIVE PLAN</Text>
+                  <Text style={styles.activeLabel}>NO ACTIVE PLAN</Text>
                 </View>
               </View>
-              <Text style={styles.routeName}>{MOCK_ACTIVE_PLAN.route}</Text>
-              <Text style={styles.schedule}>{MOCK_ACTIVE_PLAN.schedule}</Text>
-              <Text style={styles.schedule}>Book a ride to see upcoming trips here.</Text>
+              <Text style={styles.routeName}>Search and book your next ride</Text>
+              <Text style={styles.schedule}>Upcoming bookings will appear here after payment.</Text>
             </View>
           )
         ) : isLoading ? (

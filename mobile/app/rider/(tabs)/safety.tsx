@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { TRUSTED_CONTACTS } from '@/constants/mock-data';
+import { useAuth } from '@/hooks/useAuth';
 
 const SAFETY_TIPS = [
   {
@@ -23,10 +23,14 @@ const SAFETY_TIPS = [
 
 export default function SafetyScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const trustedContacts = user?.emergencyContact
+    ? [{ id: 'primary', name: 'Emergency Contact', phone: user.emergencyContact, initial: user.name.charAt(0) }]
+    : [];
 
   const handleSos = () => {
-    if (TRUSTED_CONTACTS && TRUSTED_CONTACTS.length > 0) {
-      Linking.openURL(`tel:${TRUSTED_CONTACTS[0].phone}`);
+    if (trustedContacts.length > 0) {
+      Linking.openURL(`tel:${trustedContacts[0].phone}`);
     } else {
       Linking.openURL('tel:999');
     }
@@ -83,22 +87,26 @@ export default function SafetyScreen() {
                 <Text style={styles.addBtnText}>Add</Text>
               </Pressable>
             </View>
-            {TRUSTED_CONTACTS.map((c) => (
-              <View key={c.id} style={styles.contactRow}>
-                <View style={styles.contactLeft}>
-                  <View style={styles.contactAvatar}>
-                    <Text style={styles.contactInitial}>{c.initial}</Text>
+            {trustedContacts.length === 0 ? (
+              <Text style={styles.emptyContact}>Add your emergency contact from profile settings.</Text>
+            ) : (
+              trustedContacts.map((c) => (
+                <View key={c.id} style={styles.contactRow}>
+                  <View style={styles.contactLeft}>
+                    <View style={styles.contactAvatar}>
+                      <Text style={styles.contactInitial}>{c.initial}</Text>
+                    </View>
+                    <View>
+                      <Text style={styles.contactName}>{c.name}</Text>
+                      <Text style={styles.contactPhone}>{c.phone}</Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text style={styles.contactName}>{c.name}</Text>
-                    <Text style={styles.contactPhone}>{c.phone}</Text>
-                  </View>
+                  <Pressable accessibilityRole="button" accessibilityLabel={`Delete ${c.name}`} style={styles.deleteBtn}>
+                    <Ionicons name="trash-outline" size={18} color={Colors.textMuted} />
+                  </Pressable>
                 </View>
-                <Pressable accessibilityRole="button" accessibilityLabel={`Delete ${c.name}`} style={styles.deleteBtn}>
-                  <Ionicons name="trash-outline" size={18} color={Colors.textMuted} />
-                </Pressable>
-              </View>
-            ))}
+              ))
+            )}
           </View>
 
           <Text style={styles.sectionTitle}>Safety Tips</Text>
@@ -321,6 +329,12 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     letterSpacing: -0.3,
     lineHeight: 16,
+  },
+  emptyContact: {
+    fontFamily: Typography.fonts.medium,
+    fontSize: Typography.fontSizes.sm,
+    color: Colors.textSecondary,
+    paddingVertical: Spacing.sm,
   },
   deleteBtn: { padding: 8, borderRadius: Radius.full },
   sectionTitle: {

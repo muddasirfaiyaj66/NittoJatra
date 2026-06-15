@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Badge, serviceTypeToBadge } from '@/components/ui';
-import { getOperatorById } from '@/constants/mock-data';
 import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { ThemeColors, useTheme, useThemedStyles } from '@/theme/ThemeContext';
 import { SearchResult } from '@/types';
@@ -15,9 +14,8 @@ interface RideResultCardProps {
 export function RideResultCard({ result, onBook, onViewDetails }: RideResultCardProps) {
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
-  const operator = getOperatorById(result.operatorId);
-  const operatorName = result.operatorName ?? operator?.name ?? 'Operator';
-  const operatorColor = result.operatorColor ?? operator?.color ?? colors.primary;
+  const operatorName = result.operatorName ?? 'Operator';
+  const operatorColor = result.operatorColor ?? colors.primary;
   const lowSeats = result.seatsAvailable <= 5;
 
   return (
