@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
-import { WebView, WebViewMessageEvent } from 'react-native-webview';
+import { StyleSheet, ViewStyle } from 'react-native';
+import { HtmlMapView, HtmlMapViewHandle } from '@/components/shared/HtmlMapView';
 
 interface OSMMapProps {
   from?: string;
@@ -103,7 +103,6 @@ const MAP_HTML = `
       'airport': [23.8481, 90.3982],
       'zinzira': [23.7034, 90.3749],
       'shyamoli': [23.7710, 90.3605],
-      'badda': [23.7844, 90.4269],
       'cantonment': [23.8027, 90.3997]
     };
 
@@ -170,30 +169,23 @@ const MAP_HTML = `
       });
     }
 
-    // Listen for messages from React Native
-    document.addEventListener('message', function(e) {
+    function handleMsg(e) {
       try {
         var msg = JSON.parse(e.data);
         if (msg.type === 'UPDATE_MARKERS') {
           updateMap(msg.from, msg.to);
         }
       } catch(err) {}
-    });
-    window.addEventListener('message', function(e) {
-      try {
-        var msg = JSON.parse(e.data);
-        if (msg.type === 'UPDATE_MARKERS') {
-          updateMap(msg.from, msg.to);
-        }
-      } catch(err) {}
-    });
+    }
+    document.addEventListener('message', handleMsg);
+    window.addEventListener('message', handleMsg);
   </script>
 </body>
 </html>
 `;
 
 export function OSMMap({ from = '', to = '', style }: OSMMapProps) {
-  const webViewRef = useRef<WebView>(null);
+  const mapRef = useRef<HtmlMapViewHandle>(null);
   const prevFrom = useRef('');
   const prevTo = useRef('');
 
@@ -202,39 +194,10 @@ export function OSMMap({ from = '', to = '', style }: OSMMapProps) {
     prevFrom.current = from;
     prevTo.current = to;
 
-    const js = `
-      (function() {
-        var msg = ${JSON.stringify({ type: 'UPDATE_MARKERS', from, to })};
-        document.dispatchEvent(new MessageEvent('message', { data: JSON.stringify(msg) }));
-      })();
-      true;
-    `;
-    webViewRef.current?.injectJavaScript(js);
+    mapRef.current?.postMapMessage(
+      JSON.stringify({ type: 'UPDATE_MARKERS', from, to }),
+    );
   }, [from, to]);
 
-  return (
-    <View style={[styles.container, style]}>
-      <WebView
-        ref={webViewRef}
-        originWhitelist={['*']}
-        source={{ html: MAP_HTML }}
-        style={styles.webview}
-        javaScriptEnabled
-        domStorageEnabled
-        allowUniversalAccessFromFileURLs
-        mixedContentMode="always"
-        onMessage={(_e: WebViewMessageEvent) => {}}
-      />
-    </View>
-  );
+  return <HtmlMapView ref={mapRef} html={MAP_HTML} style={style} />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    overflow: 'hidden',
-  },
-  webview: {
-    flex: 1,
-    backgroundColor: '#0B1220',
-  },
-});

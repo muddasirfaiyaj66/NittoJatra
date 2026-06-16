@@ -15,7 +15,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { WebView } from 'react-native-webview';
+import { HtmlMapView, HtmlMapViewHandle } from '@/components/shared/HtmlMapView';
 import { SolidButton } from '@/components/ui';
 import { Colors, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { locationService } from '@/services/location.service';
@@ -167,7 +167,7 @@ export default function FindScreen() {
   const [apiLocations, setApiLocations] = useState<DhakaLocation[]>([]);
   const [recentPlaces, setRecentPlaces] = useState<RecentPlace[]>([]);
   const coordLookup = useRef<Record<string, [number, number]>>({ ...DHAKA_LOCS });
-  const webRef = useRef<WebView>(null);
+  const mapRef = useRef<HtmlMapViewHandle>(null);
   const mapReady = useRef(false);
   const pendingMsg = useRef<string | null>(null);
   const fromTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -277,10 +277,7 @@ export default function FindScreen() {
       return;
     }
 
-    const js = `(function(){
-      document.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(msg)}}));
-    })();true;`;
-    webRef.current?.injectJavaScript(js);
+    mapRef.current?.postMapMessage(msg);
   }, []);
 
   const handleFromChange = (val: string) => {
@@ -383,10 +380,7 @@ export default function FindScreen() {
     if (pendingMsg.current) {
       const msg = pendingMsg.current;
       pendingMsg.current = null;
-      const js = `(function(){
-        document.dispatchEvent(new MessageEvent('message',{data:${JSON.stringify(msg)}}));
-      })();true;`;
-      webRef.current?.injectJavaScript(js);
+      mapRef.current?.postMapMessage(msg);
     }
   };
 
@@ -401,15 +395,10 @@ export default function FindScreen() {
   return (
     <View style={styles.root}>
       {/* ── Full-screen OSM Map ── */}
-      <WebView
-        ref={webRef}
-        originWhitelist={['*']}
-        source={{ html: MAP_HTML }}
+      <HtmlMapView
+        ref={mapRef}
+        html={MAP_HTML}
         style={styles.map}
-        javaScriptEnabled
-        domStorageEnabled
-        allowUniversalAccessFromFileURLs
-        mixedContentMode="always"
         onLoad={onMapLoad}
       />
 
