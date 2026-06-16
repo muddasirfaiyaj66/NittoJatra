@@ -12,11 +12,13 @@ import {
   Gender,
   Operator,
   RideDetail,
+  RiderUpcomingRide,
   SearchResult,
   ServiceType,
   User,
   UserRole,
 } from '@/types';
+import { geoJsonToLatLng } from '@/utils/location-coords';
 
 const SERVICE_TYPE_MAP: Record<string, ServiceType> = {
   ac: 'AC',
@@ -82,11 +84,14 @@ export function mapApiUser(apiUser: ApiUser, clientRole: UserRole = 'rider'): Us
 }
 
 export function mapApiLocation(location: ApiLocation): DhakaLocation {
+  const latLng = geoJsonToLatLng(location.coordinates);
   return {
     id: location._id,
     name: location.name,
     nameEn: location.nameEn,
     zone: location.zone,
+    latitude: latLng?.[0],
+    longitude: latLng?.[1],
   };
 }
 
@@ -187,6 +192,21 @@ export function mapApiBooking(booking: ApiBooking): Booking {
     seatCount: booking.seats.length,
     operator: booking.ride.operator.name,
     amount: booking.totalAmount,
+    driver: `${booking.ride.operator.name} Captain`,
+  };
+}
+
+export function mapBookingToUpcomingRide(booking: Booking): RiderUpcomingRide {
+  return {
+    id: booking.id,
+    driverName: booking.driver ?? `${booking.operator} Captain`,
+    rating: 4.9,
+    vehicle: `${booking.operator} Service`,
+    badge: booking.departureTime,
+    badgeTone: 'time',
+    from: booking.route.from,
+    to: booking.route.to,
+    eta: `Departs ${booking.departureTime}`,
   };
 }
 

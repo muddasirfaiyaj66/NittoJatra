@@ -37,6 +37,10 @@ export interface ApiLocation {
   name: string;
   nameEn: string;
   zone: string;
+  coordinates?: {
+    type: string;
+    coordinates: [number, number];
+  };
 }
 
 export interface ApiOperator {

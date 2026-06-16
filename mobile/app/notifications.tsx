@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusDot } from '@/components/ui';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { APP_NOTIFICATIONS } from '@/constants/mock-data';
+import { buildNotificationsFromBookings } from '@/services/notification.service';
+import { useBookingStore } from '@/store/booking.store';
 
 const ICON_MAP = {
   success: { icon: 'checkmark-circle', color: '#ECFDF5', iconColor: Colors.accentEmerald },
@@ -14,6 +16,22 @@ const ICON_MAP = {
 } as const;
 
 export default function NotificationsScreen() {
+  const bookings = useBookingStore((s) => s.bookings);
+  const [readIds, setReadIds] = useState<string[]>([]);
+
+  const notifications = useMemo(
+    () =>
+      buildNotificationsFromBookings(bookings).map((notification) => ({
+        ...notification,
+        unread: notification.unread && !readIds.includes(notification.id),
+      })),
+    [bookings, readIds],
+  );
+
+  const markAllRead = () => {
+    setReadIds(notifications.map((notification) => notification.id));
+  };
+
   return (
     <View style={styles.root}>
       <SafeAreaView edges={['top']}>
@@ -22,14 +40,14 @@ export default function NotificationsScreen() {
             <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
           </Pressable>
           <Text style={styles.title}>Notifications</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Mark all read" style={styles.markAll}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Mark all read" onPress={markAllRead} style={styles.markAll}>
             <Text style={styles.markAllText}>MARK ALL READ</Text>
           </Pressable>
         </View>
       </SafeAreaView>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {APP_NOTIFICATIONS.map((n) => {
+        {notifications.map((n) => {
           const cfg = ICON_MAP[n.type];
           return (
             <View key={n.id} style={[styles.card, Shadows.card]}>

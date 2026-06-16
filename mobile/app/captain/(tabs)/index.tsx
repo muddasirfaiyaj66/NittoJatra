@@ -7,16 +7,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { ROUTES } from '@/constants/routes';
-import { DRIVER_SCHEDULES } from '@/constants/mock-data';
 import { useAuth } from '@/hooks/useAuth';
+import { useDriverStore } from '@/store/driver.store';
 
 const DRIVER_AVATAR = require('../../../assets/figma/avatar-driver.png');
 
 export default function DriverDashboardScreen() {
   const { user } = useAuth();
-  const firstName = (user?.name ?? 'Karim').split(' ')[0];
-  const balance = user?.driverBalance ?? 15240;
-  const activeRiders = user?.activeRiders ?? 18;
+  const schedules = useDriverStore((s) => s.schedules);
+  const activeRiders = useDriverStore((s) => s.activeRiders);
+  const payout = useDriverStore((s) => s.payout);
+  const firstName = (user?.name ?? 'Captain').split(' ')[0];
+  const balance = payout || user?.driverBalance || 0;
   const rating = user?.rating ?? 4.9;
 
   return (
@@ -122,7 +124,10 @@ export default function DriverDashboardScreen() {
             </Pressable>
           </View>
 
-          {DRIVER_SCHEDULES.map((s) => (
+          {schedules.length === 0 ? (
+            <Text style={styles.emptySchedule}>No rides scheduled for today yet.</Text>
+          ) : (
+            schedules.slice(0, 3).map((s) => (
             <Pressable
               key={s.id}
               accessibilityRole="button"
@@ -169,7 +174,8 @@ export default function DriverDashboardScreen() {
                 </Text>
               </View>
             </Pressable>
-          ))}
+            ))
+          )}
         </View>
       </ScrollView>
     </View>
@@ -405,4 +411,11 @@ const styles = StyleSheet.create({
   },
   seatPlusText: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.sm, color: Colors.primary },
   seatsFilled: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, letterSpacing: 0.5, textTransform: 'uppercase' },
+  emptySchedule: {
+    fontFamily: Typography.fonts.medium,
+    fontSize: Typography.fontSizes.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: Spacing.lg,
+  },
 });

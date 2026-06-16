@@ -105,6 +105,36 @@ export class BookingsService {
     return toBookingResponse(populated);
   }
 
+  async findDashboard(query: BookingListQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 50;
+    const rideIds = await this.ridesService.findTodayIds(query.date);
+
+    if (rideIds.length === 0) {
+      return paginate([], 0, page, limit);
+    }
+
+    const filter: Record<string, unknown> = {
+      ride: { $in: rideIds },
+      status: { $in: ['pending', 'confirmed', 'completed'] },
+    };
+
+    if (query.status) {
+      filter.status = query.status;
+    }
+
+    const total = await this.bookingModel.countDocuments(filter).exec();
+    const bookings = await this.bookingModel
+      .find(filter)
+      .populate(POPULATE_OPTIONS)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    return paginate(bookings.map(toBookingResponse), total, page, limit);
+  }
+
   async findUserBookings(userId: string, query: BookingListQueryDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;

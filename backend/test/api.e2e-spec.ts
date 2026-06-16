@@ -315,6 +315,17 @@ describe('NittoJatra REST API (e2e)', () => {
       rideId = res.body.data[0]._id;
     });
 
+    it('GET /api/v1/rides/today', async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/rides/today')
+        .query({ date: today })
+        .expect(200);
+
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.data.length).toBeGreaterThan(0);
+    });
+
     it('GET /api/v1/rides/:id', async () => {
       const res = await request(app.getHttpServer())
         .get(`/api/v1/rides/${rideId}`)
@@ -378,6 +389,17 @@ describe('NittoJatra REST API (e2e)', () => {
 
       expect(res.body.data.bookingId).toMatch(/^NJ-/);
       bookingId = res.body.data.bookingId;
+    });
+
+    it('GET /api/v1/bookings/dashboard', async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/bookings/dashboard')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .query({ date: today, page: 1, limit: 50 })
+        .expect(200);
+
+      expect(res.body.data.data.length).toBeGreaterThan(0);
     });
 
     it('GET /api/v1/bookings', async () => {

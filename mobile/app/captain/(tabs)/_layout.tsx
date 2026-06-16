@@ -1,6 +1,9 @@
-import { Tabs, router } from 'expo-router';
+import { Tabs, router, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { TabBarWithDot } from '@/components/shared/TabBarWithDot';
 import { ROUTES } from '@/constants/routes';
+import { useAuthStore } from '@/store/auth.store';
+import { useDriverStore } from '@/store/driver.store';
 
 const DRIVER_TABS = {
   index: { active: 'home' as const, inactive: 'home-outline' as const, label: 'Dashboard' },
@@ -11,6 +14,16 @@ const DRIVER_TABS = {
 };
 
 export default function DriverTabsLayout() {
+  const fetchDashboard = useDriverStore((state) => state.fetchDashboard);
+  const refreshProfile = useAuthStore((state) => state.refreshProfile);
+
+  useFocusEffect(
+    useCallback(() => {
+      void fetchDashboard();
+      void refreshProfile();
+    }, [fetchDashboard, refreshProfile]),
+  );
+
   return (
     <Tabs
       screenOptions={{ headerShown: false }}

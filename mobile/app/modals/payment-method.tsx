@@ -3,8 +3,14 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, formatTaka, Radius, Spacing, Typography } from '@/constants/theme';
-import { PAYMENT_METHODS } from '@/constants/mock-data';
 import { usePaymentStore } from '@/store/payment.store';
+
+const PAYMENT_METHODS = [
+  { id: 'wallet', type: 'wallet', label: 'Wallet', detail: 'Pay from balance' },
+  { id: 'bkash', type: 'bkash', label: 'bKash', detail: 'Mobile wallet' },
+  { id: 'bank', type: 'bank', label: 'Bank', detail: 'Card / bank transfer' },
+  { id: 'visa', type: 'visa', label: 'Visa', detail: 'Debit / credit card' },
+];
 
 export default function PaymentMethodModal() {
   const { total, setStep, setPaymentMethod } = usePaymentStore();

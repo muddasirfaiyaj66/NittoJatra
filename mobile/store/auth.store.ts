@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { authService } from '@/services/auth.service';
+import { userService } from '@/services/user.service';
 import { RegisterData, User, UserRole } from '@/types';
 
 interface AuthStore {
@@ -22,6 +23,7 @@ interface AuthStore {
   clearError: () => void;
   setHasHydrated: (value: boolean) => void;
   updateUser: (patch: Partial<User>) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -102,6 +104,17 @@ export const useAuthStore = create<AuthStore>()(
         if (!current) return;
         const updated = await authService.updateUser(current, patch);
         set({ user: updated });
+      },
+
+      refreshProfile: async () => {
+        const { user, role, isAuthenticated } = useAuthStore.getState();
+        if (!isAuthenticated || !user) return;
+        try {
+          const profile = await userService.getProfile(role);
+          set({ user: profile });
+        } catch {
+          // Keep cached profile when offline or token expired.
+        }
       },
     }),
     {

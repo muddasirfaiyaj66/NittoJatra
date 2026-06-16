@@ -208,19 +208,26 @@ export class DatabaseSeeder implements OnApplicationBootstrap {
     const rounds = Number(this.configService.get('BCRYPT_ROUNDS', 12));
 
     for (const entry of DEMO_USERS_SEED) {
+      const role =
+        entry.email === 'captain@nittojatra.com' ? 'operator' : 'user';
       const exists = await this.userModel.findOne({ email: entry.email }).exec();
+      const password = await bcrypt.hash(entry.password, rounds);
+
       if (exists) {
+        await this.userModel.updateOne(
+          { email: entry.email },
+          { $set: { role, fullName: entry.fullName, phone: entry.phone } },
+        );
         continue;
       }
 
-      const password = await bcrypt.hash(entry.password, rounds);
       await this.userModel.create({
         fullName: entry.fullName,
         email: entry.email,
         phone: entry.phone,
         password,
         gender: entry.gender,
-        role: 'user',
+        role,
         isActive: true,
       });
     }

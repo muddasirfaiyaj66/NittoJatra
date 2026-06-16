@@ -1,28 +1,40 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { RiderScheduleCard } from '@/components/home/RiderScheduleCard';
 import { GradientText } from '@/components/ui';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { MOCK_ACTIVE_PLAN, MOCK_RIDER_UPCOMING } from '@/constants/mock-data';
 import { useAuth } from '@/hooks/useAuth';
 import { getGreeting } from '@/hooks/useGreeting';
+import { mapBookingToUpcomingRide } from '@/services/mappers';
+import { useBookingStore } from '@/store/booking.store';
 
 export default function RiderHomeScreen() {
   const { user } = useAuth();
+  const bookings = useBookingStore((s) => s.bookings);
+  const isLoading = useBookingStore((s) => s.isLoading);
   const greeting = getGreeting();
-  const firstName = (user?.name ?? 'Ahmed').split(' ')[0];
-  const plan = MOCK_ACTIVE_PLAN;
-  const planProgress = Math.round((plan.progress.current / plan.progress.total) * 100);
+  const firstName = (user?.name ?? 'Rider').split(' ')[0];
+
+  const upcoming = useMemo(
+    () => bookings.filter((b) => b.status === 'upcoming' || b.status === 'ongoing'),
+    [bookings],
+  );
+  const upcomingRides = useMemo(() => upcoming.map(mapBookingToUpcomingRide), [upcoming]);
+  const activePlan = upcoming[0];
+  const planProgress = activePlan
+    ? Math.min(100, Math.round(((user?.totalTrips ?? 0) % 20) / 20 * 100) || 15)
+    : 0;
 
   const stats = [
-    { label: 'TOTAL RIDES', value: String(user?.totalTrips ?? 45), icon: 'car', color: '#EEF2FF', iconColor: Colors.primary },
-    { label: 'SAVINGS', value: formatTaka(user?.totalSpent ?? 3240), icon: 'wallet', color: '#ECFDF5', iconColor: Colors.accentEmerald },
-    { label: 'CO₂ SAVED', value: user?.co2Saved ?? '125.5kg', icon: 'leaf', color: '#F0FDF4', iconColor: Colors.accentEmerald },
-    { label: 'ACTIVE PLANS', value: String(user?.activePlans ?? 2), icon: 'ticket', color: '#FAF5FF', iconColor: Colors.purple500 },
+    { label: 'TOTAL RIDES', value: String(user?.totalTrips ?? 0), icon: 'car', color: '#EEF2FF', iconColor: Colors.primary },
+    { label: 'SAVINGS', value: formatTaka(user?.totalSpent ?? 0), icon: 'wallet', color: '#ECFDF5', iconColor: Colors.accentEmerald },
+    { label: 'CO₂ SAVED', value: user?.co2Saved ?? `${Math.max(0, (user?.totalTrips ?? 0) * 2.8).toFixed(1)}kg`, icon: 'leaf', color: '#F0FDF4', iconColor: Colors.accentEmerald },
+    { label: 'ACTIVE PLANS', value: String(upcoming.length), icon: 'ticket', color: '#FAF5FF', iconColor: Colors.purple500 },
   ];
 
   return (
@@ -54,7 +66,7 @@ export default function RiderHomeScreen() {
                   </Pressable>
                   <Pressable accessibilityRole="button" accessibilityLabel="Notifications" onPress={() => router.push('/notifications')} style={styles.iconBtn}>
                     <Ionicons name="notifications-outline" size={20} color={Colors.white} />
-                    <View style={styles.notifDotRed} />
+                    {upcoming.length > 0 && <View style={styles.notifDotRed} />}
                   </Pressable>
                 </View>
               </View>
@@ -70,7 +82,7 @@ export default function RiderHomeScreen() {
                 </View>
                 <View style={styles.searchText}>
                   <Text style={styles.searchOverline}>CURRENT LOCATION</Text>
-                  <Text style={styles.searchValue}>{user?.savedLocation ?? 'Shahbag, Dhaka'}</Text>
+                  <Text style={styles.searchValue}>{user?.savedLocation ?? 'Dhaka, Bangladesh'}</Text>
                 </View>
                 <View style={styles.findBtn}>
                   <Text style={styles.findBtnText}>Find Ride</Text>
@@ -93,37 +105,37 @@ export default function RiderHomeScreen() {
             ))}
           </View>
 
-          <View style={styles.premiumCard}>
-            <View style={styles.premiumOrbRight} />
-            <View style={styles.premiumOrbLeft} />
-            <View style={styles.premiumTop}>
-              <View style={styles.premiumCopy}>
-                <View style={styles.premiumPill}>
-                  <Text style={styles.premiumPillText}>Monthly Premium</Text>
+          {activePlan ? (
+            <View style={styles.premiumCard}>
+              <View style={styles.premiumOrbRight} />
+              <View style={styles.premiumOrbLeft} />
+              <View style={styles.premiumTop}>
+                <View style={styles.premiumCopy}>
+                  <View style={styles.premiumPill}>
+                    <Text style={styles.premiumPillText}>Upcoming Ride</Text>
+                  </View>
+                  <Text style={styles.premiumTitle}>{activePlan.operator}</Text>
+                  <Text style={styles.premiumRoute}>
+                    {activePlan.route.from} <Text style={styles.premiumArrow}>→</Text> {activePlan.route.to}
+                  </Text>
                 </View>
-                <Text style={styles.premiumTitle}>Office Route</Text>
-                <Text style={styles.premiumRoute}>
-                  Shahbag <Text style={styles.premiumArrow}>→</Text> Motijheel
-                </Text>
+                <View style={styles.ringWrap}>
+                  <View style={styles.ring}>
+                    <Text style={styles.ringText}>{planProgress}%</Text>
+                  </View>
+                </View>
               </View>
-              <View style={styles.ringWrap}>
-                <View style={styles.ring}>
-                  <Text style={styles.ringText}>{planProgress}%</Text>
+              <View style={styles.usageBlock}>
+                <View style={styles.usageLabels}>
+                  <Text style={styles.usageLabel}>DEPARTURE</Text>
+                  <Text style={styles.usageValue}>{activePlan.departureTime}</Text>
+                </View>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: `${planProgress}%` }]} />
                 </View>
               </View>
             </View>
-            <View style={styles.usageBlock}>
-              <View style={styles.usageLabels}>
-                <Text style={styles.usageLabel}>USAGE</Text>
-                <Text style={styles.usageValue}>
-                  {plan.progress.current} / {plan.progress.total} RIDES
-                </Text>
-              </View>
-              <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: `${planProgress}%` }]} />
-              </View>
-            </View>
-          </View>
+          ) : null}
 
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>On Schedule</Text>
@@ -133,9 +145,21 @@ export default function RiderHomeScreen() {
           </View>
 
           <View style={styles.scheduleList}>
-            {MOCK_RIDER_UPCOMING.map((ride) => (
-              <RiderScheduleCard key={ride.id} ride={ride} onTrackLive={() => router.push('/ride/live-tracking')} />
-            ))}
+            {isLoading && upcomingRides.length === 0 ? (
+              <ActivityIndicator color={Colors.primary} />
+            ) : upcomingRides.length === 0 ? (
+              <Text style={styles.emptySchedule}>Book a ride to see your upcoming schedule here.</Text>
+            ) : (
+              upcomingRides.slice(0, 3).map((ride) => (
+                <RiderScheduleCard
+                  key={ride.id}
+                  ride={ride}
+                  onTrackLive={() =>
+                    router.push({ pathname: '/ride/live-tracking', params: { bookingId: ride.id } })
+                  }
+                />
+              ))
+            )}
           </View>
         </View>
       </ScrollView>
@@ -455,4 +479,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   scheduleList: { gap: 16 },
+  emptySchedule: {
+    fontFamily: Typography.fonts.medium,
+    fontSize: Typography.fontSizes.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: Spacing.lg,
+  },
 });
