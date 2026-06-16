@@ -37,6 +37,35 @@ export class RidesService {
     private readonly routesService: RoutesService,
   ) {}
 
+  async findToday(date?: string) {
+    const day = date ?? new Date().toISOString().slice(0, 10);
+    const { start, end } = this.getDayBounds(day);
+    const rides = await this.rideModel
+      .find({
+        departureTime: { $gte: start, $lte: end },
+        status: { $ne: 'cancelled' },
+      })
+      .populate(POPULATE_OPTIONS)
+      .sort({ departureTime: 1 })
+      .exec();
+
+    return rides.map(toRideResponse);
+  }
+
+  async findTodayIds(date?: string): Promise<string[]> {
+    const day = date ?? new Date().toISOString().slice(0, 10);
+    const { start, end } = this.getDayBounds(day);
+    const rides = await this.rideModel
+      .find({
+        departureTime: { $gte: start, $lte: end },
+        status: { $ne: 'cancelled' },
+      })
+      .select('_id')
+      .exec();
+
+    return rides.map((ride) => String(ride._id));
+  }
+
   async search(dto: SearchRidesDto) {
     const route = await this.routesService.findDocumentByLocationPair(
       dto.fromLocationId,

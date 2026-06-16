@@ -56,6 +56,15 @@ export class RidesController {
   }
 
   @Public()
+  @Get('today')
+  @ApiOperation({ summary: 'List all rides departing today' })
+  @ApiQuery({ name: 'date', required: false, example: '2026-06-09' })
+  @ApiResponse({ status: 200, type: [RideResponseDto] })
+  findToday(@Query('date') date?: string) {
+    return this.ridesService.findToday(date);
+  }
+
+  @Public()
   @Get(':id/seats')
   @ApiOperation({ summary: 'Get seat map for a ride' })
   @ApiResponse({ status: 200, type: SeatMapResponseDto })

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
 
 const BOOKING_STATUSES = [
   'pending',
@@ -14,6 +14,11 @@ export class BookingListQueryDto {
   @IsOptional()
   @IsEnum(BOOKING_STATUSES)
   status?: string;
+
+  @ApiProperty({ example: '2026-06-09', required: false })
+  @IsOptional()
+  @IsDateString()
+  date?: string;
 
   @ApiProperty({ example: 1, required: false, default: 1 })
   @IsOptional()
