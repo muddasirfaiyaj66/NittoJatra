@@ -216,7 +216,16 @@ export class DatabaseSeeder implements OnApplicationBootstrap {
       if (exists) {
         await this.userModel.updateOne(
           { email: entry.email },
-          { $set: { role, fullName: entry.fullName, phone: entry.phone } },
+          {
+            $set: {
+              role,
+              fullName: entry.fullName,
+              phone: entry.phone,
+              ...(entry.vehicleModel && { vehicleModel: entry.vehicleModel }),
+              ...(entry.vehiclePlate && { vehiclePlate: entry.vehiclePlate }),
+              ...(entry.vehicleType && { vehicleType: entry.vehicleType }),
+            },
+          },
         );
         continue;
       }
@@ -229,6 +238,9 @@ export class DatabaseSeeder implements OnApplicationBootstrap {
         gender: entry.gender,
         role,
         isActive: true,
+        vehicleModel: entry.vehicleModel,
+        vehiclePlate: entry.vehiclePlate,
+        vehicleType: entry.vehicleType,
       });
     }
 

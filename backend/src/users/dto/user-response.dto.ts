@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
@@ -42,6 +42,18 @@ export class UserResponseDto {
   @Expose()
   @ApiProperty({ example: 0 })
   loyaltyPoints: number;
+
+  @Expose()
+  @ApiPropertyOptional({ example: 'Toyota Axio 2018' })
+  vehicleModel?: string;
+
+  @Expose()
+  @ApiPropertyOptional({ example: 'Dhaka Metro-GA-11-2233' })
+  vehiclePlate?: string;
+
+  @Expose()
+  @ApiPropertyOptional({ example: 'CAR' })
+  vehicleType?: string;
 
   @Expose()
   @ApiProperty()

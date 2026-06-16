@@ -345,6 +345,36 @@ describe('NittoJatra REST API (e2e)', () => {
       rideId = res.body.data[0]._id;
     });
 
+    it('GET /api/v1/rides/search by location names', async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/rides/search')
+        .query({
+          fromName: 'Mirpur',
+          toName: 'Motijheel',
+          date: today,
+        })
+        .expect(200);
+
+      expect(res.body.data.length).toBeGreaterThan(0);
+    });
+
+    it('GET /api/v1/rides/search resolves UIU and DIU aliases', async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/rides/search')
+        .query({
+          fromName: 'United International University',
+          toName: 'Daffodil International University',
+          date: today,
+        })
+        .expect(200);
+
+      expect(res.body.data.length).toBeGreaterThan(0);
+      expect(res.body.data[0].route.fromLocation.nameEn).toBe('UIU');
+      expect(res.body.data[0].route.toLocation.nameEn).toBe('DIU');
+    });
+
     it('GET /api/v1/rides/today', async () => {
       const today = new Date().toISOString().slice(0, 10);
       const res = await request(app.getHttpServer())
@@ -383,6 +413,76 @@ describe('NittoJatra REST API (e2e)', () => {
           serviceType: 'ac',
           totalSeats: 32,
           price: 30,
+        })
+        .expect(403);
+    });
+
+    it('POST /api/v1/rides/publish allows demo captain', async () => {
+      const loginRes = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: 'captain@nittojatra.com', password: 'Demo1234!' })
+        .expect(200);
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(9, 0, 0, 0);
+
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/rides/publish')
+        .set('Authorization', `Bearer ${loginRes.body.data.accessToken}`)
+        .send({
+          fromName: 'Mirpur',
+          toName: 'Motijheel',
+          departureTime: tomorrow.toISOString(),
+          serviceType: 'ac',
+          totalSeats: 4,
+          price: 120,
+        })
+        .expect(201);
+
+      expect(res.body.data.route.fromLocation.nameEn).toBe('Mirpur');
+      expect(res.body.data.totalSeats).toBe(4);
+      expect(res.body.data.price).toBe(120);
+    });
+
+    it('POST /api/v1/rides/publish creates custom locations', async () => {
+      const loginRes = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: 'captain@nittojatra.com', password: 'Demo1234!' })
+        .expect(200);
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(10, 30, 0, 0);
+
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/rides/publish')
+        .set('Authorization', `Bearer ${loginRes.body.data.accessToken}`)
+        .send({
+          fromName: 'Banani Block C',
+          toName: 'Gulshan Avenue',
+          departureTime: tomorrow.toISOString(),
+          serviceType: 'non-ac',
+          totalSeats: 6,
+          price: 95,
+        })
+        .expect(201);
+
+      expect(res.body.data.route.fromLocation.nameEn).toBe('Banani Block C');
+      expect(res.body.data.route.toLocation.nameEn).toBe('Gulshan Avenue');
+    });
+
+    it('POST /api/v1/rides/publish rejects rider token', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/rides/publish')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          fromName: 'Mirpur',
+          toName: 'Motijheel',
+          departureTime: new Date().toISOString(),
+          serviceType: 'ac',
+          totalSeats: 4,
+          price: 120,
         })
         .expect(403);
     });

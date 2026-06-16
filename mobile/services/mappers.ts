@@ -19,6 +19,7 @@ import {
   UserRole,
 } from '@/types';
 import { geoJsonToLatLng } from '@/utils/location-coords';
+import { resolveLocationByName } from '@/utils/location-aliases';
 
 const SERVICE_TYPE_MAP: Record<string, ServiceType> = {
   ac: 'AC',
@@ -80,6 +81,9 @@ export function mapApiUser(apiUser: ApiUser, clientRole: UserRole = 'rider'): Us
     emergencyContact: apiUser.phone,
     driverBalance: role === 'driver' ? 0 : undefined,
     activeRiders: role === 'driver' ? 0 : undefined,
+    vehicle: apiUser.vehicleModel,
+    vehiclePlate: apiUser.vehiclePlate,
+    vehicleType: apiUser.vehicleType,
   };
 }
 
@@ -210,20 +214,9 @@ export function mapBookingToUpcomingRide(booking: Booking): RiderUpcomingRide {
   };
 }
 
-export function normalizeLocationQuery(value: string): string {
-  return value.trim().toLowerCase();
-}
-
 export function matchLocationByName(
   locations: DhakaLocation[],
   query: string,
 ): DhakaLocation | undefined {
-  const normalized = normalizeLocationQuery(query);
-  return locations.find(
-    (loc) =>
-      normalizeLocationQuery(loc.nameEn) === normalized ||
-      normalizeLocationQuery(loc.name) === normalized ||
-      normalizeLocationQuery(loc.nameEn).includes(normalized) ||
-      normalized.includes(normalizeLocationQuery(loc.nameEn)),
-  );
+  return resolveLocationByName(locations, query);
 }

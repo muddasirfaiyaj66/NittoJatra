@@ -28,6 +28,9 @@ export interface ApiUser {
   totalTrips: number;
   totalSpent: number;
   loyaltyPoints: number;
+  vehicleModel?: string;
+  vehiclePlate?: string;
+  vehicleType?: string;
   createdAt?: string;
   updatedAt?: string;
 }

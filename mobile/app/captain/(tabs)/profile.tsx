@@ -39,7 +39,7 @@ export default function DriverProfileScreen() {
   };
 
   const displayName = user?.name ?? 'Karim Uddin';
-  const vehicle = user?.vehicle ?? 'Toyota Axio 2018';
+  const vehicle = user?.vehicle?.trim() || 'Add your vehicle';
 
   return (
     <View style={profileStyles.root}>

@@ -80,6 +80,29 @@ export class RoutesService {
       .exec();
   }
 
+  async findOrCreateByLocationPair(
+    fromId: string,
+    toId: string,
+    defaults: { basePrice: number; distanceKm?: number; estimatedMinutes?: number },
+  ) {
+    const existing = await this.findDocumentByLocationPair(fromId, toId);
+    if (existing) {
+      return existing;
+    }
+
+    const route = await this.routeModel.create({
+      fromLocation: fromId,
+      toLocation: toId,
+      distanceKm: defaults.distanceKm ?? 10,
+      estimatedMinutes: defaults.estimatedMinutes ?? 30,
+      basePrice: defaults.basePrice,
+      isActive: true,
+    });
+
+    this.logger.log(`Created route: ${fromId} → ${toId}`);
+    return route;
+  }
+
   async incrementPopularity(routeId: string) {
     await this.routeModel.findByIdAndUpdate(routeId, {
       $inc: { popularityScore: 1 },

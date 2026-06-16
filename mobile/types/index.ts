@@ -16,6 +16,8 @@ export interface User {
   rating?: number;
   tier?: 'GOLD' | 'SILVER' | 'BRONZE';
   vehicle?: string;
+  vehiclePlate?: string;
+  vehicleType?: string;
   savedLocation?: string;
   co2Saved?: string;
   activePlans?: number;

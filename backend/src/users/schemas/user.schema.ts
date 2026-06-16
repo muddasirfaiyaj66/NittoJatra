@@ -35,6 +35,15 @@ export class User {
   @Prop({ default: 0 })
   loyaltyPoints: number;
 
+  @Prop({ trim: true })
+  vehicleModel?: string;
+
+  @Prop({ trim: true })
+  vehiclePlate?: string;
+
+  @Prop({ trim: true })
+  vehicleType?: string;
+
   @Prop({ select: false })
   refreshToken?: string;
 }

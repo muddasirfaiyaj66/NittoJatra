@@ -2,6 +2,8 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { RoutesService } from '../routes/routes.service';
+import { LocationsService } from '../locations/locations.service';
+import { OperatorsService } from '../operators/operators.service';
 import { RidesService } from './rides.service';
 import { Ride } from './schemas/ride.schema';
 
@@ -47,6 +49,15 @@ describe('RidesService', () => {
   const routesService = {
     findDocumentByLocationPair: jest.fn(),
     findDocumentById: jest.fn(),
+    findOrCreateByLocationPair: jest.fn(),
+  };
+
+  const locationsService = {
+    findOrCreateByName: jest.fn(),
+  };
+
+  const operatorsService = {
+    findDocumentForServiceType: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -60,6 +71,14 @@ describe('RidesService', () => {
         {
           provide: RoutesService,
           useValue: routesService,
+        },
+        {
+          provide: LocationsService,
+          useValue: locationsService,
+        },
+        {
+          provide: OperatorsService,
+          useValue: operatorsService,
         },
       ],
     }).compile();

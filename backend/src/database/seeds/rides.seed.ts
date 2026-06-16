@@ -76,4 +76,12 @@ export const RIDES_SEED: RideSeedEntry[] = [
     departureMinute: 30,
     serviceType: 'non-ac',
   },
+  {
+    fromNameEn: 'UIU',
+    toNameEn: 'DIU',
+    operatorCode: 'BRTC',
+    departureHour: 8,
+    departureMinute: 30,
+    serviceType: 'ac',
+  },
 ];

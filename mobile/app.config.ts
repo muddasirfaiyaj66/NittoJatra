@@ -9,7 +9,7 @@ const config: ExpoConfig = {
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
-  platforms: ['ios', 'android'],
+  platforms: ['ios', 'android', 'web'],
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'com.nittojatra.app',
@@ -24,6 +24,7 @@ const config: ExpoConfig = {
   },
   web: {
     favicon: './assets/favicon.png',
+    bundler: 'metro',
   },
   plugins: [
     'expo-router',

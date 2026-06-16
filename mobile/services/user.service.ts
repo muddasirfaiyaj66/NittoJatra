@@ -10,7 +10,14 @@ export const userService = {
   },
 
   async updateProfile(
-    patch: { fullName?: string; phone?: string; gender?: string },
+    patch: {
+      fullName?: string;
+      phone?: string;
+      gender?: string;
+      vehicleModel?: string;
+      vehiclePlate?: string;
+      vehicleType?: string;
+    },
     clientRole: UserRole = 'rider',
   ): Promise<User> {
     const profile = await apiClient.patch<ApiUser>('/users/me', patch, true);

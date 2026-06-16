@@ -112,4 +112,18 @@ export const LOCATIONS_SEED: LocationSeedEntry[] = [
     coordinates: [90.3883, 23.7237],
     sortOrder: 14,
   },
+  {
+    name: 'ইউআইইউ',
+    nameEn: 'UIU',
+    zone: 'Dhanmondi',
+    coordinates: [90.3675, 23.7388],
+    sortOrder: 15,
+  },
+  {
+    name: 'ডিআইইউ',
+    nameEn: 'DIU',
+    zone: 'Dhanmondi',
+    coordinates: [90.375, 23.746],
+    sortOrder: 16,
+  },
 ];

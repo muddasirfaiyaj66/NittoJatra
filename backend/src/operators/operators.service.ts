@@ -40,6 +40,30 @@ export class OperatorsService {
     return this.operatorModel.findOne({ code }).exec();
   }
 
+  async findDocumentForServiceType(serviceType: string) {
+    const matching = await this.operatorModel
+      .findOne({
+        isActive: true,
+        serviceTypes: serviceType,
+      })
+      .sort({ rating: -1 })
+      .exec();
+
+    if (matching) {
+      return matching;
+    }
+
+    const fallback = await this.operatorModel
+      .findOne({ isActive: true, code: 'BRTC' })
+      .exec();
+
+    if (fallback) {
+      return fallback;
+    }
+
+    return this.operatorModel.findOne({ isActive: true }).exec();
+  }
+
   async create(dto: CreateOperatorDto) {
     const existing = await this.operatorModel
       .findOne({ code: dto.code })

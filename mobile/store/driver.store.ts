@@ -1,11 +1,14 @@
 import { create } from 'zustand';
+import { ApiRide } from '@/services/api.types';
 import { driverService, DriverDashboardData } from '@/services/driver.service';
+import { mapApiRidesToDriverSchedules } from '@/services/driver.mappers';
 import { DriverRider, DriverSchedule } from '@/types';
 
 interface DriverStore extends DriverDashboardData {
   isLoading: boolean;
   error: string | null;
-  fetchDashboard: () => Promise<void>;
+  fetchDashboard: (date?: string) => Promise<void>;
+  upsertPublishedRide: (ride: ApiRide) => void;
 }
 
 const initialState: DriverDashboardData = {
@@ -17,19 +20,44 @@ const initialState: DriverDashboardData = {
   transactions: [],
 };
 
+function mergeSchedules(existing: DriverSchedule[], incoming: DriverSchedule[]): DriverSchedule[] {
+  const byId = new Map<string, DriverSchedule>();
+  for (const schedule of existing) {
+    byId.set(schedule.id, schedule);
+  }
+  for (const schedule of incoming) {
+    byId.set(schedule.id, schedule);
+  }
+  return Array.from(byId.values());
+}
+
 export const useDriverStore = create<DriverStore>((set) => ({
   ...initialState,
   isLoading: false,
   error: null,
 
-  fetchDashboard: async () => {
+  fetchDashboard: async (date?: string) => {
     set({ isLoading: true, error: null });
     try {
-      const dashboard = await driverService.getDashboard();
-      set({ ...dashboard, isLoading: false });
+      const dashboard = await driverService.getDashboard(date);
+      set((state) => ({
+        ...dashboard,
+        schedules: mergeSchedules(state.schedules, dashboard.schedules),
+        isLoading: false,
+      }));
     } catch (e) {
       set({ isLoading: false, error: (e as Error).message });
     }
+  },
+
+  upsertPublishedRide: (ride) => {
+    const [schedule] = mapApiRidesToDriverSchedules([ride], []);
+    if (!schedule) {
+      return;
+    }
+    set((state) => ({
+      schedules: mergeSchedules([schedule], state.schedules),
+    }));
   },
 }));
 

@@ -1,5 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsString, Matches, MinLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'Ahmed Rahman' })
@@ -27,4 +34,19 @@ export class CreateUserDto {
   @ApiProperty({ enum: ['male', 'female', 'other'], example: 'male' })
   @IsEnum(['male', 'female', 'other'])
   gender: string;
+
+  @ApiPropertyOptional({ example: 'Toyota Axio 2018' })
+  @IsOptional()
+  @IsString()
+  vehicleModel?: string;
+
+  @ApiPropertyOptional({ example: 'Dhaka Metro-GA-11-2233' })
+  @IsOptional()
+  @IsString()
+  vehiclePlate?: string;
+
+  @ApiPropertyOptional({ example: 'CAR' })
+  @IsOptional()
+  @IsString()
+  vehicleType?: string;
 }

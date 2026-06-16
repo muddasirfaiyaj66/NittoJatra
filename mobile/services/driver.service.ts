@@ -6,6 +6,7 @@ import {
   summarizeDriverEarnings,
 } from '@/services/driver.mappers';
 import { DriverRider, DriverSchedule } from '@/types';
+import { localDateKey } from '@/utils/captain-route';
 
 export interface DriverDashboardData {
   schedules: DriverSchedule[];
@@ -23,13 +24,12 @@ export interface DriverDashboardData {
 }
 
 export const driverService = {
-  async getDashboard(): Promise<DriverDashboardData> {
-    const today = new Date().toISOString().slice(0, 10);
+  async getDashboard(date = localDateKey()): Promise<DriverDashboardData> {
     const [rides, bookingsResult] = await Promise.all([
-      apiClient.get<ApiRide[]>('/rides/today', { date: today }),
+      apiClient.get<ApiRide[]>('/rides/today', { date }),
       apiClient.get<ApiPaginatedBookings>(
         '/bookings/dashboard',
-        { date: today, page: 1, limit: 50 },
+        { date, page: 1, limit: 50 },
         true,
       ),
     ]);
@@ -47,5 +47,16 @@ export const driverService = {
       activeRiders: riders.length,
       transactions: earnings.transactions,
     };
+  },
+
+  async publishRoute(input: {
+    fromName: string;
+    toName: string;
+    departureTime: string;
+    price: number;
+    totalSeats: number;
+    serviceType: 'ac' | 'non-ac' | 'women-special' | 'express';
+  }): Promise<ApiRide> {
+    return apiClient.post<ApiRide>('/rides/publish', input, true);
   },
 };

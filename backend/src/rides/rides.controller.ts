@@ -21,6 +21,7 @@ import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { CreateRideDto } from './dto/create-ride.dto';
+import { PublishRideDto } from './dto/publish-ride.dto';
 import { RideResponseDto } from './dto/ride-response.dto';
 import { SearchRidesDto } from './dto/search-rides.dto';
 import { SeatMapResponseDto } from './dto/seat-map-response.dto';
@@ -35,21 +36,27 @@ export class RidesController {
   @Public()
   @Get('search')
   @ApiOperation({ summary: 'Search rides by route and date' })
-  @ApiQuery({ name: 'fromLocationId', required: true })
-  @ApiQuery({ name: 'toLocationId', required: true })
+  @ApiQuery({ name: 'fromLocationId', required: false })
+  @ApiQuery({ name: 'toLocationId', required: false })
+  @ApiQuery({ name: 'fromName', required: false, example: 'Mirpur' })
+  @ApiQuery({ name: 'toName', required: false, example: 'Motijheel' })
   @ApiQuery({ name: 'date', required: true, example: '2026-06-09' })
   @ApiQuery({ name: 'serviceType', required: false })
   @ApiResponse({ status: 200, type: [RideResponseDto] })
   search(
-    @Query('fromLocationId') fromLocationId: string,
-    @Query('toLocationId') toLocationId: string,
-    @Query('date') date: string,
+    @Query('fromLocationId') fromLocationId?: string,
+    @Query('toLocationId') toLocationId?: string,
+    @Query('fromName') fromName?: string,
+    @Query('toName') toName?: string,
+    @Query('date') date?: string,
     @Query('serviceType') serviceType?: string,
   ) {
     const dto: SearchRidesDto = {
       fromLocationId,
       toLocationId,
-      date,
+      fromName,
+      toName,
+      date: date ?? new Date().toISOString().slice(0, 10),
       serviceType,
     };
     return this.ridesService.search(dto);
@@ -62,6 +69,20 @@ export class RidesController {
   @ApiResponse({ status: 200, type: [RideResponseDto] })
   findToday(@Query('date') date?: string) {
     return this.ridesService.findToday(date);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('operator', 'admin')
+  @Post('publish')
+  @ApiOperation({ summary: 'Publish a ride for an existing route (captain)' })
+  @ApiResponse({ status: 201, type: RideResponseDto })
+  @ApiResponse({ status: 400, description: 'Validation error' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Route not found' })
+  publish(@Body() dto: PublishRideDto) {
+    return this.ridesService.publishForOperator(dto);
   }
 
   @Public()

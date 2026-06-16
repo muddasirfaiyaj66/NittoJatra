@@ -49,4 +49,11 @@ export const ROUTES_SEED: RouteSeedEntry[] = [
     estimatedMinutes: 50,
     basePrice: 20,
   },
+  {
+    fromNameEn: 'UIU',
+    toNameEn: 'DIU',
+    distanceKm: 6,
+    estimatedMinutes: 25,
+    basePrice: 35,
+  },
 ];

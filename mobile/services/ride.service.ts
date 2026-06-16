@@ -2,6 +2,7 @@ import { apiClient } from '@/services/api.client';
 import { ApiBooking, ApiHealth, ApiOperator, ApiPaginatedBookings, ApiRide, ApiSeat } from '@/services/api.types';
 import { mapApiBooking, mapApiOperator, mapApiRideToDetail, mapApiRideToSearchResult } from '@/services/mappers';
 import { Booking, Operator, RideDetail, SearchResult } from '@/types';
+import { localDateKey } from '@/utils/captain-route';
 
 export const rideService = {
   async checkHealth(): Promise<ApiHealth> {
@@ -9,14 +10,14 @@ export const rideService = {
   },
 
   async searchRides(
-    fromLocationId: string,
-    toLocationId: string,
-    date: string,
+    from: string,
+    to: string,
+    date = localDateKey(),
     serviceType?: string,
   ): Promise<SearchResult[]> {
     const rides = await apiClient.get<ApiRide[]>('/rides/search', {
-      fromLocationId,
-      toLocationId,
+      fromName: from.trim(),
+      toName: to.trim(),
       date,
       serviceType,
     });

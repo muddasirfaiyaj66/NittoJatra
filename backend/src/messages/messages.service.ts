@@ -136,7 +136,7 @@ export class MessagesService {
   }
 
   async listForOperator() {
-    const rideIds = await this.ridesService.findTodayIds();
+    const rideIds = await this.ridesService.findScheduledRideIds();
     if (rideIds.length === 0) {
       return [];
     }

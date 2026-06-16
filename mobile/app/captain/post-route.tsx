@@ -5,8 +5,10 @@ import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientButton } from '@/components/ui';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { driverService } from '@/services/driver.service';
 import { recentPlacesService } from '@/services/recent-places.service';
 import { useDriverStore } from '@/store/driver.store';
+import { parseCaptainDepartureTime, localDateKey, resolveCaptainServiceType } from '@/utils/captain-route';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -23,21 +25,48 @@ export default function PostRouteWizard() {
 
   const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   const fetchDashboard = useDriverStore((state) => state.fetchDashboard);
+  const upsertPublishedRide = useDriverStore((state) => state.upsertPublishedRide);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const next = () => {
+  const next = async () => {
     if (step < 4) {
       setStep((s) => (s + 1) as Step);
       return;
     }
 
-    const fromLabel = start.trim() || 'Mirpur';
-    const toLabel = dest.trim() || 'Motijheel';
-    void recentPlacesService.add(toLabel, 'Captain route');
-    void fetchDashboard();
-    Alert.alert('Route Saved', `${fromLabel} → ${toLabel} is ready on today's schedule hub.`, [
-      { text: 'View Schedule', onPress: () => router.replace('/captain/(tabs)/schedule') },
-      { text: 'OK', onPress: () => router.back() },
-    ]);
+    const fromLabel = start.trim() || 'Custom Start';
+    const toLabel = dest.trim() || 'Custom Destination';
+
+    setIsSubmitting(true);
+    try {
+      const parsedPrice = Number.parseInt(price, 10);
+      if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+        Alert.alert('Invalid price', 'Enter a valid price per seat.');
+        return;
+      }
+
+      const ride = await driverService.publishRoute({
+        fromName: fromLabel,
+        toName: toLabel,
+        departureTime: parseCaptainDepartureTime(time),
+        price: parsedPrice,
+        totalSeats: seats,
+        serviceType: resolveCaptainServiceType(ac, womenOnly),
+      });
+
+      upsertPublishedRide(ride);
+      void recentPlacesService.add(toLabel, 'Captain route');
+      await fetchDashboard(localDateKey(new Date(ride.departureTime)));
+
+      Alert.alert('Route Saved', `${fromLabel} → ${toLabel} is ready on today's schedule hub.`, [
+        { text: 'View Schedule', onPress: () => router.replace('/captain/(tabs)/schedule') },
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch (e) {
+      Alert.alert('Could not publish route', (e as Error).message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -124,7 +153,12 @@ export default function PostRouteWizard() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <GradientButton title={step === 4 ? 'PUBLISH ROUTE ›' : 'CONTINUE ›'} onPress={next} />
+          <GradientButton
+            title={step === 4 ? 'PUBLISH ROUTE ›' : 'CONTINUE ›'}
+            onPress={() => void next()}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          />
         </View>
       </SafeAreaView>
     </View>

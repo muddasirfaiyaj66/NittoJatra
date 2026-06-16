@@ -7,7 +7,10 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { RoutesService } from '../routes/routes.service';
+import { LocationsService } from '../locations/locations.service';
+import { OperatorsService } from '../operators/operators.service';
 import { CreateRideDto } from './dto/create-ride.dto';
+import { PublishRideDto } from './dto/publish-ride.dto';
 import { SearchRidesDto } from './dto/search-rides.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 import { generateSeatMap } from './helpers/seat-map.helper';
@@ -35,6 +38,8 @@ export class RidesService {
   constructor(
     @InjectModel(Ride.name) private readonly rideModel: Model<RideDocument>,
     private readonly routesService: RoutesService,
+    private readonly locationsService: LocationsService,
+    private readonly operatorsService: OperatorsService,
   ) {}
 
   async findToday(date?: string) {
@@ -66,10 +71,50 @@ export class RidesService {
     return rides.map((ride) => String(ride._id));
   }
 
+  async findScheduledRideIds(fromDate?: string): Promise<string[]> {
+    const day = fromDate ?? new Date().toISOString().slice(0, 10);
+    const { start } = this.getDayBounds(day);
+    const rides = await this.rideModel
+      .find({
+        departureTime: { $gte: start },
+        status: { $ne: 'cancelled' },
+      })
+      .select('_id')
+      .exec();
+
+    return rides.map((ride) => String(ride._id));
+  }
+
   async search(dto: SearchRidesDto) {
+    let fromLocationId = dto.fromLocationId;
+    let toLocationId = dto.toLocationId;
+
+    if ((!fromLocationId || !toLocationId) && dto.fromName && dto.toName) {
+      const fromLocation = await this.locationsService.resolveDocumentByName(
+        dto.fromName,
+      );
+      const toLocation = await this.locationsService.resolveDocumentByName(
+        dto.toName,
+      );
+
+      if (!fromLocation || !toLocation) {
+        this.logger.log(
+          `No locations found for "${dto.fromName}" → "${dto.toName}"`,
+        );
+        return [];
+      }
+
+      fromLocationId = String(fromLocation._id);
+      toLocationId = String(toLocation._id);
+    }
+
+    if (!fromLocationId || !toLocationId) {
+      return [];
+    }
+
     const route = await this.routesService.findDocumentByLocationPair(
-      dto.fromLocationId,
-      dto.toLocationId,
+      fromLocationId,
+      toLocationId,
     );
 
     if (!route) {
@@ -202,6 +247,38 @@ export class RidesService {
     const populated = await ride.populate(POPULATE_OPTIONS);
     this.logger.log(`Ride created for route ${dto.routeId}`);
     return toRideResponse(populated);
+  }
+
+  async publishForOperator(dto: PublishRideDto) {
+    const fromLocation = await this.locationsService.findOrCreateByName(
+      dto.fromName,
+    );
+    const toLocation = await this.locationsService.findOrCreateByName(
+      dto.toName,
+    );
+
+    const route = await this.routesService.findOrCreateByLocationPair(
+      String(fromLocation._id),
+      String(toLocation._id),
+      { basePrice: dto.price },
+    );
+
+    const operator = await this.operatorsService.findDocumentForServiceType(
+      dto.serviceType,
+    );
+
+    if (!operator) {
+      throw new NotFoundException('No active operator is available');
+    }
+
+    return this.create({
+      routeId: String(route._id),
+      operatorId: String(operator._id),
+      departureTime: dto.departureTime,
+      serviceType: dto.serviceType,
+      totalSeats: dto.totalSeats,
+      price: dto.price,
+    });
   }
 
   async update(id: string, dto: UpdateRideDto) {

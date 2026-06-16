@@ -1,18 +1,18 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { MapHeader } from '@/components/shared/MapHeader';
 import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { locationService } from '@/services/location.service';
-import { matchLocationByName } from '@/services/mappers';
 import { rideService } from '@/services/ride.service';
 import { SearchResult } from '@/types';
+import { localDateKey } from '@/utils/captain-route';
 
 export default function SearchResultsScreen() {
   const { from, to } = useLocalSearchParams<{ from?: string; to?: string }>();
-  const fromLabel = from ?? 'Mirpur';
-  const toLabel = to ?? 'Motijheel';
+  const fromLabel = from?.trim() || 'Mirpur';
+  const toLabel = to?.trim() || 'Motijheel';
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,25 +21,10 @@ export default function SearchResultsScreen() {
     setLoading(true);
     setError(null);
     try {
-      const locations = await locationService.getAll();
-      const fromLocation = matchLocationByName(locations, fromLabel);
-      const toLocation = matchLocationByName(locations, toLabel);
-
-      if (!fromLocation || !toLocation) {
-        setResults([]);
-        setError('Could not match locations to the Dhaka area list. Try Mirpur, Motijheel, Shahbag, etc.');
-        return;
-      }
-
-      const today = new Date().toISOString().slice(0, 10);
-      const rides = await rideService.searchRides(
-        fromLocation.id,
-        toLocation.id,
-        today,
-      );
+      const rides = await rideService.searchRides(fromLabel, toLabel, localDateKey());
       setResults(rides);
       if (rides.length === 0) {
-        setError('No rides found for this route today. Try Mirpur → Motijheel.');
+        setError(`No rides found for ${fromLabel} → ${toLabel} today. Ask a captain to publish this route.`);
       }
     } catch (e) {
       setError((e as Error).message);
@@ -49,9 +34,11 @@ export default function SearchResultsScreen() {
     }
   }, [fromLabel, toLabel]);
 
-  useEffect(() => {
-    void loadResults();
-  }, [loadResults]);
+  useFocusEffect(
+    useCallback(() => {
+      void loadResults();
+    }, [loadResults]),
+  );
 
   return (
     <View style={styles.root}>

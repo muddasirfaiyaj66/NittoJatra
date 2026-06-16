@@ -93,14 +93,15 @@ export const authService = {
   },
 
   async updateUser(current: User, patch: Partial<User>): Promise<User> {
-    const updated = await userService.updateProfile(
-      {
-        fullName: patch.name,
-        phone: patch.phone,
-        gender: patch.gender,
-      },
-      current.role,
-    );
+    const payload: Parameters<typeof userService.updateProfile>[0] = {};
+    if (patch.name !== undefined) payload.fullName = patch.name;
+    if (patch.phone !== undefined) payload.phone = patch.phone;
+    if (patch.gender !== undefined) payload.gender = patch.gender;
+    if (patch.vehicle !== undefined) payload.vehicleModel = patch.vehicle;
+    if (patch.vehiclePlate !== undefined) payload.vehiclePlate = patch.vehiclePlate;
+    if (patch.vehicleType !== undefined) payload.vehicleType = patch.vehicleType;
+
+    const updated = await userService.updateProfile(payload, current.role);
     return { ...updated, ...patch, id: updated.id, role: current.role };
   },
 
