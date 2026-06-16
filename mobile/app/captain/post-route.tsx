@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientButton } from '@/components/ui';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { recentPlacesService } from '@/services/recent-places.service';
+import { useDriverStore } from '@/store/driver.store';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -20,10 +22,22 @@ export default function PostRouteWizard() {
   const [womenOnly, setWomenOnly] = useState(false);
 
   const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const fetchDashboard = useDriverStore((state) => state.fetchDashboard);
 
   const next = () => {
-    if (step < 4) setStep((s) => (s + 1) as Step);
-    else router.back();
+    if (step < 4) {
+      setStep((s) => (s + 1) as Step);
+      return;
+    }
+
+    const fromLabel = start.trim() || 'Mirpur';
+    const toLabel = dest.trim() || 'Motijheel';
+    void recentPlacesService.add(toLabel, 'Captain route');
+    void fetchDashboard();
+    Alert.alert('Route Saved', `${fromLabel} → ${toLabel} is ready on today's schedule hub.`, [
+      { text: 'View Schedule', onPress: () => router.replace('/captain/(tabs)/schedule') },
+      { text: 'OK', onPress: () => router.back() },
+    ]);
   };
 
   return (

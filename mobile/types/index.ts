@@ -186,12 +186,21 @@ export interface PaymentMethodItem {
 
 export interface MessageThread {
   id: string;
+  bookingRef?: string;
   name: string;
   lastMessage: string;
   time: string;
   unread: number;
   online?: boolean;
   initial: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  body: string;
+  senderRole: 'rider' | 'operator' | 'system';
+  createdAt: string;
+  isMine: boolean;
 }
 
 export interface AppNotification {

@@ -6,13 +6,27 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { MapHeader } from '@/components/shared/MapHeader';
 import { StatusDot } from '@/components/ui';
 import { Colors, Gradients, Radius, Spacing, Typography } from '@/constants/theme';
+import { chatRoute } from '@/constants/routes';
 import { bookingService } from '@/services/booking.service';
+import { messageService } from '@/services/message.service';
 import { Booking } from '@/types';
 
 export default function LiveTrackingScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId?: string }>();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(Boolean(bookingId));
+  const [openingChat, setOpeningChat] = useState(false);
+
+  const openChat = async () => {
+    if (!bookingId || openingChat) return;
+    setOpeningChat(true);
+    try {
+      const thread = await messageService.ensureFromBooking(bookingId);
+      router.push(chatRoute(thread.id, thread.name));
+    } finally {
+      setOpeningChat(false);
+    }
+  };
 
   useEffect(() => {
     if (!bookingId) return;
@@ -78,8 +92,17 @@ export default function LiveTrackingScreen() {
                 <Text style={styles.plate}>Departs {booking?.departureTime ?? 'soon'}</Text>
               </View>
               <View style={styles.driverActions}>
-                <Pressable accessibilityRole="button" accessibilityLabel="Chat driver" style={styles.actionBtn}>
-                  <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Chat driver"
+                  onPress={() => void openChat()}
+                  style={styles.actionBtn}
+                >
+                  {openingChat ? (
+                    <ActivityIndicator color={Colors.primary} size="small" />
+                  ) : (
+                    <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
+                  )}
                 </Pressable>
                 <Pressable accessibilityRole="button" accessibilityLabel="Call driver" style={styles.actionBtn}>
                   <Ionicons name="call-outline" size={18} color={Colors.primary} />

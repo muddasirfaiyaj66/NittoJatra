@@ -118,3 +118,33 @@ export interface ApiHealth {
   mongo: string;
   uptime: number;
 }
+
+export interface ApiConversation {
+  _id: string;
+  bookingRef: string;
+  title: string;
+  participantName: string;
+  lastMessage: string;
+  lastMessageAt: string;
+  unreadCount: number;
+  online: boolean;
+}
+
+export interface ApiMessage {
+  _id: string;
+  senderRole: 'rider' | 'operator' | 'system' | string;
+  body: string;
+  createdAt?: string;
+}
+
+export interface ApiPaginatedMessages {
+  data: ApiMessage[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}

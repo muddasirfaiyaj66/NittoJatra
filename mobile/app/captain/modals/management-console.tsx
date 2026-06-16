@@ -1,14 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientButton } from '@/components/ui';
+import { messageService } from '@/services/message.service';
 import { Colors, formatTaka, Radius, Spacing, Typography } from '@/constants/theme';
+import { chatRoute } from '@/constants/routes';
 import { useDriverStore } from '@/store/driver.store';
 
 export default function ManagementConsoleModal() {
   const schedule = useDriverStore((s) => s.schedules[0]);
   const riders = useDriverStore((s) => s.riders);
+  const [openingChatId, setOpeningChatId] = useState<string | null>(null);
+
+  const openChat = async (bookingRef: string, riderName: string) => {
+    if (openingChatId) return;
+    setOpeningChatId(bookingRef);
+    try {
+      const thread = await messageService.ensureFromBooking(bookingRef);
+      router.push(chatRoute(thread.id, riderName || thread.name));
+    } finally {
+      setOpeningChatId(null);
+    }
+  };
 
   if (!schedule) {
     return (
@@ -55,7 +70,13 @@ export default function ManagementConsoleModal() {
                   <Text style={styles.plan}>{r.plan} • {formatTaka(r.amount)}</Text>
                 </View>
                 <Pressable accessibilityRole="button" accessibilityLabel={`Call ${r.name}`}><Ionicons name="call-outline" size={18} color={Colors.primary} /></Pressable>
-                <Pressable accessibilityRole="button" accessibilityLabel={`Chat ${r.name}`}><Ionicons name="chatbubble-outline" size={18} color={Colors.primary} /></Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Chat ${r.name}`}
+                  onPress={() => void openChat(r.id, r.name)}
+                >
+                  <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
+                </Pressable>
               </View>
             ))
           )}

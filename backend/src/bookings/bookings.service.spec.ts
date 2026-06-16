@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
+import { MessagesService } from '../messages/messages.service';
 import { RoutesService } from '../routes/routes.service';
 import { RidesService } from '../rides/rides.service';
 import { UsersService } from '../users/users.service';
@@ -82,6 +83,10 @@ describe('BookingsService', () => {
     incrementPopularity: jest.fn(),
   };
 
+  const messagesService = {
+    ensureForBooking: jest.fn().mockResolvedValue({}),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -90,6 +95,7 @@ describe('BookingsService', () => {
         { provide: RidesService, useValue: ridesService },
         { provide: UsersService, useValue: usersService },
         { provide: RoutesService, useValue: routesService },
+        { provide: MessagesService, useValue: messagesService },
       ],
     }).compile();
 

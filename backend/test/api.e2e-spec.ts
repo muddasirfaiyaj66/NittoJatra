@@ -249,6 +249,21 @@ describe('NittoJatra REST API (e2e)', () => {
         })
         .expect(403);
     });
+
+    it('PATCH /api/v1/operators/:id rejects non-admin', async () => {
+      await request(app.getHttpServer())
+        .patch(`/api/v1/operators/${operatorId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ name: 'Hacked Op' })
+        .expect(403);
+    });
+
+    it('DELETE /api/v1/operators/:id rejects non-admin', async () => {
+      await request(app.getHttpServer())
+        .delete(`/api/v1/operators/${operatorId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(403);
+    });
   });
 
   describe('Routes', () => {
@@ -295,6 +310,21 @@ describe('NittoJatra REST API (e2e)', () => {
           estimatedMinutes: 30,
           basePrice: 25,
         })
+        .expect(403);
+    });
+
+    it('PATCH /api/v1/routes/:id rejects non-admin', async () => {
+      await request(app.getHttpServer())
+        .patch(`/api/v1/routes/${routeId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ basePrice: 99 })
+        .expect(403);
+    });
+
+    it('DELETE /api/v1/routes/:id rejects non-admin', async () => {
+      await request(app.getHttpServer())
+        .delete(`/api/v1/routes/${routeId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
         .expect(403);
     });
   });
@@ -356,10 +386,45 @@ describe('NittoJatra REST API (e2e)', () => {
         })
         .expect(403);
     });
+
+    it('PATCH /api/v1/rides/:id rejects non-admin', async () => {
+      await request(app.getHttpServer())
+        .patch(`/api/v1/rides/${rideId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ price: 99 })
+        .expect(403);
+    });
+
+    it('DELETE /api/v1/rides/:id rejects non-admin', async () => {
+      await request(app.getHttpServer())
+        .delete(`/api/v1/rides/${rideId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(403);
+    });
   });
 
   describe('Bookings', () => {
     let seatNumber = '';
+
+    it('POST /api/v1/bookings rejects missing token', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/bookings')
+        .send({
+          rideId: '000000000000000000000000',
+          seats: ['A1'],
+          passengerName: 'Ghost',
+          passengerPhone: '+8801700000000',
+          passengerEmail: 'ghost@example.com',
+          paymentMethod: 'bkash',
+        })
+        .expect(401);
+    });
+
+    it('GET /api/v1/bookings/dashboard rejects missing token', async () => {
+      await request(app.getHttpServer())
+        .get('/api/v1/bookings/dashboard')
+        .expect(401);
+    });
 
     it('POST /api/v1/bookings', async () => {
       const seats = await request(app.getHttpServer())
@@ -429,6 +494,42 @@ describe('NittoJatra REST API (e2e)', () => {
       expect(res.body.data.paymentStatus).toBe('paid');
     });
 
+    it('Messages — list, read, and send', async () => {
+      const listRes = await request(app.getHttpServer())
+        .get('/api/v1/messages/conversations')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(Array.isArray(listRes.body.data)).toBe(true);
+      expect(listRes.body.data.length).toBeGreaterThan(0);
+      expect(listRes.body.data[0].bookingRef).toBe(bookingId);
+
+      const conversationId = listRes.body.data[0]._id;
+
+      const byBookingRes = await request(app.getHttpServer())
+        .get(`/api/v1/messages/conversations/booking/${bookingId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(byBookingRes.body.data._id).toBe(conversationId);
+
+      const messagesRes = await request(app.getHttpServer())
+        .get(`/api/v1/messages/conversations/${conversationId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(messagesRes.body.data.data.length).toBeGreaterThan(0);
+
+      const sendRes = await request(app.getHttpServer())
+        .post(`/api/v1/messages/conversations/${conversationId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ body: 'Hello captain, I am ready for pickup.' })
+        .expect(201);
+
+      expect(sendRes.body.data.body).toBe('Hello captain, I am ready for pickup.');
+      expect(sendRes.body.data.senderRole).toBe('rider');
+    });
+
     it('PATCH /api/v1/bookings/:bookingId/cancel', async () => {
       const res = await request(app.getHttpServer())
         .patch(`/api/v1/bookings/${bookingId}/cancel`)
@@ -437,6 +538,28 @@ describe('NittoJatra REST API (e2e)', () => {
         .expect(200);
 
       expect(res.body.data.status).toBe('cancelled');
+    });
+  });
+
+  describe('Demo accounts', () => {
+    it('POST /api/v1/auth/login demo rider', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: 'rider@nittojatra.com', password: 'Demo1234!' })
+        .expect(200);
+
+      expect(res.body.data.accessToken).toBeDefined();
+      expect(res.body.data.user.email).toBe('rider@nittojatra.com');
+    });
+
+    it('POST /api/v1/auth/login demo captain', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: 'captain@nittojatra.com', password: 'Demo1234!' })
+        .expect(200);
+
+      expect(res.body.data.accessToken).toBeDefined();
+      expect(res.body.data.user.role).toBe('operator');
     });
   });
 
@@ -452,27 +575,20 @@ describe('NittoJatra REST API (e2e)', () => {
       refreshToken = res.body.data.refreshToken;
     });
 
+    it('DELETE /api/v1/users/me deactivates account', async () => {
+      await request(app.getHttpServer())
+        .delete('/api/v1/users/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(userId).toBeTruthy();
+    });
+
     it('POST /api/v1/auth/logout', async () => {
       await request(app.getHttpServer())
         .post('/api/v1/auth/logout')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
-    });
-
-    it('DELETE /api/v1/users/me deactivates account', async () => {
-      const login = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
-        .send({ email: user.email, password: user.password })
-        .expect(200);
-
-      const token = login.body.data.accessToken;
-
-      await request(app.getHttpServer())
-        .delete('/api/v1/users/me')
-        .set('Authorization', `Bearer ${token}`)
-        .expect(200);
-
-      expect(userId).toBeTruthy();
     });
   });
 });

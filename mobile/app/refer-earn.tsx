@@ -5,12 +5,14 @@ import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientButton } from '@/components/ui';
 import { Colors, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-
-const REFERRAL_CODE = 'NITTO-AHMED42';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ReferEarnScreen() {
+  const { user } = useAuth();
+  const referralCode = `NITTO-${(user?.id ?? 'GUEST').slice(-6).toUpperCase()}`;
+
   const share = async () => {
-    await Share.share({ message: `Join NittoJatra with my code ${REFERRAL_CODE} and get a free ride!` });
+    await Share.share({ message: `Join NittoJatra with my code ${referralCode} and get a free ride!` });
   };
 
   return (
@@ -34,7 +36,7 @@ export default function ReferEarnScreen() {
 
         <View style={[styles.codeCard, Shadows.card]}>
           <Text style={styles.codeLabel}>YOUR REFERRAL CODE</Text>
-          <Text style={styles.code}>{REFERRAL_CODE}</Text>
+          <Text style={styles.code}>{referralCode}</Text>
           <GradientButton title="SHARE CODE" onPress={share} />
         </View>
 
