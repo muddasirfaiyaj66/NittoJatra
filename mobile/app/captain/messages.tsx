@@ -1,1 +1,1 @@
-export { default } from '@/app/messages';
+export { default } from '@/app/messages/index';

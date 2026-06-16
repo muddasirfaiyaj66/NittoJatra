@@ -14,3 +14,10 @@ export const ROUTES = {
 export function homeRouteForRole(role: UserRole): Href {
   return role === 'driver' ? ROUTES.driverHome : ROUTES.riderHome;
 }
+
+export function chatRoute(conversationId: string, name?: string): Href {
+  return {
+    pathname: '/messages/[id]',
+    params: name ? { id: conversationId, name } : { id: conversationId },
+  } as unknown as Href;
+}

@@ -13,6 +13,7 @@ import { LocationsModule } from './locations/locations.module';
 import { OperatorsModule } from './operators/operators.module';
 import { RoutesModule } from './routes/routes.module';
 import { RidesModule } from './rides/rides.module';
+import { MessagesModule } from './messages/messages.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -38,6 +39,7 @@ import { UsersModule } from './users/users.module';
     RoutesModule,
     RidesModule,
     BookingsModule,
+    MessagesModule,
     DatabaseModule,
     HealthModule,
   ],

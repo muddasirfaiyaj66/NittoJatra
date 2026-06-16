@@ -11,6 +11,7 @@ import { Model } from 'mongoose';
 import { RoutesService } from '../routes/routes.service';
 import { RidesService } from '../rides/rides.service';
 import { UsersService } from '../users/users.service';
+import { MessagesService } from '../messages/messages.service';
 import { BookingListQueryDto } from './dto/booking-list-query.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -50,6 +51,7 @@ export class BookingsService {
     private readonly ridesService: RidesService,
     private readonly usersService: UsersService,
     private readonly routesService: RoutesService,
+    private readonly messagesService: MessagesService,
   ) {}
 
   async create(userId: string, dto: CreateBookingDto) {
@@ -102,6 +104,7 @@ export class BookingsService {
 
     const populated = await booking.populate(POPULATE_OPTIONS);
     this.logger.log(`Booking created: ${booking.bookingId}`);
+    await this.messagesService.ensureForBooking(populated);
     return toBookingResponse(populated);
   }
 
@@ -236,6 +239,7 @@ export class BookingsService {
 
     const populated = await booking.populate(POPULATE_OPTIONS);
     this.logger.log(`Payment confirmed: ${bookingId}`);
+    await this.messagesService.ensureForBooking(populated);
     return toBookingResponse(populated);
   }
 }

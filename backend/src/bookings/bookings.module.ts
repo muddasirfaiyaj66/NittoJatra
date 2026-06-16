@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from '../auth/auth.module';
+import { MessagesModule } from '../messages/messages.module';
 import { RoutesModule } from '../routes/routes.module';
 import { RidesModule } from '../rides/rides.module';
 import { UsersModule } from '../users/users.module';
@@ -15,6 +16,7 @@ import { BookingsService } from './bookings.service';
     RidesModule,
     UsersModule,
     RoutesModule,
+    MessagesModule,
   ],
   controllers: [BookingsController],
   providers: [BookingsService],

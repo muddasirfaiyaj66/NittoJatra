@@ -494,6 +494,42 @@ describe('NittoJatra REST API (e2e)', () => {
       expect(res.body.data.paymentStatus).toBe('paid');
     });
 
+    it('Messages — list, read, and send', async () => {
+      const listRes = await request(app.getHttpServer())
+        .get('/api/v1/messages/conversations')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(Array.isArray(listRes.body.data)).toBe(true);
+      expect(listRes.body.data.length).toBeGreaterThan(0);
+      expect(listRes.body.data[0].bookingRef).toBe(bookingId);
+
+      const conversationId = listRes.body.data[0]._id;
+
+      const byBookingRes = await request(app.getHttpServer())
+        .get(`/api/v1/messages/conversations/booking/${bookingId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(byBookingRes.body.data._id).toBe(conversationId);
+
+      const messagesRes = await request(app.getHttpServer())
+        .get(`/api/v1/messages/conversations/${conversationId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(messagesRes.body.data.data.length).toBeGreaterThan(0);
+
+      const sendRes = await request(app.getHttpServer())
+        .post(`/api/v1/messages/conversations/${conversationId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ body: 'Hello captain, I am ready for pickup.' })
+        .expect(201);
+
+      expect(sendRes.body.data.body).toBe('Hello captain, I am ready for pickup.');
+      expect(sendRes.body.data.senderRole).toBe('rider');
+    });
+
     it('PATCH /api/v1/bookings/:bookingId/cancel', async () => {
       const res = await request(app.getHttpServer())
         .patch(`/api/v1/bookings/${bookingId}/cancel`)
