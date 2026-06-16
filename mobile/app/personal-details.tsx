@@ -29,7 +29,6 @@ export default function PersonalDetailsScreen() {
     try {
       await updateUser({
         name: name.trim(),
-        email: email.trim(),
         phone: phone.trim(),
         emergencyContact: emergency.trim(),
       });
@@ -71,7 +70,10 @@ export default function PersonalDetailsScreen() {
         <Text style={styles.sectionLabel}>CONTACT INFORMATION</Text>
         <View style={[styles.formCard, Shadows.card]}>
           <Field label="Full Name" value={name} onChangeText={setName} />
-          <Field label="Email Address" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+          <View style={[styles.field, styles.fieldBorder]}>
+            <Text style={styles.fieldLabel}>Email Address</Text>
+            <Text style={styles.input}>{email}</Text>
+          </View>
           <Field label="Phone Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
           <Field label="Emergency Contact" value={emergency} onChangeText={setEmergency} keyboardType="phone-pad" isLast />
         </View>
