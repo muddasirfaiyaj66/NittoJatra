@@ -90,6 +90,16 @@ async function refreshAccessToken(): Promise<string | null> {
   return body.data.accessToken;
 }
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
+function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  controller: AbortController,
+): Promise<Response> {
+  return fetch(url, { ...init, signal: controller.signal });
+}
+
 export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {},
@@ -110,34 +120,47 @@ export async function apiRequest<T>(
     }
   }
 
-  let response = await fetch(buildUrl(path, query), {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  if (response.status === 401 && auth) {
-    const newToken = await refreshAccessToken();
-    if (newToken) {
-      headers.Authorization = `Bearer ${newToken}`;
-      response = await fetch(buildUrl(path, query), {
-        method,
-        headers,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
-      });
+  try {
+    const reqInit: RequestInit = {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    };
+
+    let response = await fetchWithTimeout(buildUrl(path, query), reqInit, controller);
+
+    if (response.status === 401 && auth) {
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        headers.Authorization = `Bearer ${newToken}`;
+        response = await fetchWithTimeout(buildUrl(path, query), { ...reqInit, headers }, controller);
+      }
     }
-  }
 
-  if (!response.ok) {
-    throw new ApiError(await parseError(response), response.status);
-  }
+    if (!response.ok) {
+      throw new ApiError(await parseError(response), response.status);
+    }
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
+    if (response.status === 204) {
+      return undefined as T;
+    }
 
-  const payload = (await response.json()) as ApiSuccessResponse<T>;
-  return payload.data;
+    const payload = (await response.json()) as ApiSuccessResponse<T>;
+    return payload.data;
+  } catch (error) {
+    if ((error as Error).name === 'AbortError') {
+      throw new ApiError(
+        'Request timed out. Please check your connection and try again.',
+        408,
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export const apiClient = {
