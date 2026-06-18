@@ -134,7 +134,7 @@ export default function FinancialHubScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Cash out"
-              onPress={() => router.push('/captain/modals/withdraw-funds')}
+              onPress={() => router.push('/driver/modals/withdraw-funds')}
               style={styles.cashOutBtn}
             >
               <Text style={styles.cashOutText}>↗ CASH OUT</Text>

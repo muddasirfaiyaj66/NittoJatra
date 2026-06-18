@@ -62,7 +62,7 @@ function RootNavigator() {
           <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="rider" />
-          <Stack.Screen name="captain" />
+          <Stack.Screen name="driver" />
           <Stack.Screen name="ride/[id]" options={{ presentation: 'card' }} />
           <Stack.Screen name="ride/results" options={{ presentation: 'card' }} />
           <Stack.Screen name="ride/live-tracking" options={{ presentation: 'card' }} />

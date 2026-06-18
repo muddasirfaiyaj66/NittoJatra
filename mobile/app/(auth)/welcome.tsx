@@ -87,12 +87,12 @@ export default function WelcomeScreen() {
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="I'm a Captain"
+              accessibilityLabel="I'm a Driver"
               onPress={() => goLogin('driver')}
               style={[styles.roleBtn, styles.roleBtnAlt]}
             >
               <Ionicons name="car" size={20} color={Colors.indigo400} />
-              <Text style={[styles.roleText, styles.roleTextAlt]}>I&apos;m a Captain</Text>
+              <Text style={[styles.roleText, styles.roleTextAlt]}>I&apos;m a Driver</Text>
             </Pressable>
           </Animated.View>
         ) : (

@@ -49,7 +49,7 @@ export default function SavedZonesScreen() {
       </SafeAreaView>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.sectionLabel}>CAPTAIN ZONES</Text>
+        <Text style={styles.sectionLabel}>DRIVER ZONES</Text>
         {loading ? (
           <ActivityIndicator color={Colors.primary} style={{ marginTop: Spacing.xl }} />
         ) : zones.length === 0 ? (

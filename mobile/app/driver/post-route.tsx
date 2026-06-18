@@ -55,14 +55,14 @@ export default function PostRouteWizard() {
       });
 
       upsertPublishedRide(ride);
-      void recentPlacesService.add(toLabel, 'Captain route');
+      void recentPlacesService.add(toLabel, 'Driver route');
       // Refresh in background — don't block the success alert on a slow/failing network.
       // upsertPublishedRide already added the ride optimistically; useFocusEffect in
       // _layout.tsx will re-fetch when the user navigates to the schedule tab.
       void fetchDashboard(localDateKey(new Date(ride.departureTime)));
 
       Alert.alert('Route Saved', `${fromLabel} → ${toLabel} is ready on today's schedule hub.`, [
-        { text: 'View Schedule', onPress: () => router.replace('/captain/(tabs)/schedule') },
+        { text: 'View Schedule', onPress: () => router.replace('/driver/(tabs)/schedule') },
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (e) {

@@ -24,7 +24,7 @@ export default function SearchResultsScreen() {
       const rides = await rideService.searchRides(fromLabel, toLabel, localDateKey());
       setResults(rides);
       if (rides.length === 0) {
-        setError(`No rides found for ${fromLabel} → ${toLabel} today. Ask a captain to publish this route.`);
+        setError(`No rides found for ${fromLabel} → ${toLabel} today. Ask a driver to publish this route.`);
       }
     } catch (e) {
       setError((e as Error).message);

@@ -225,14 +225,14 @@ export function mapApiBooking(booking: ApiBooking): Booking {
     operator: booking.ride.operator.name,
     amount: booking.totalAmount,
     discount: booking.discount,
-    driver: `${booking.ride.operator.name} Captain`,
+    driver: `${booking.ride.operator.name} Driver`,
   };
 }
 
 export function mapBookingToUpcomingRide(booking: Booking): RiderUpcomingRide {
   return {
     id: booking.id,
-    driverName: booking.driver ?? `${booking.operator} Captain`,
+    driverName: booking.driver ?? `${booking.operator} Driver`,
     rating: 4.9,
     vehicle: `${booking.operator} Service`,
     badge: booking.departureTime,

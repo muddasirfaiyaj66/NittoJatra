@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { homeRouteForRole, ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function CaptainLayout() {
+export default function DriverLayout() {
   const { role, isAuthenticated, hasHydrated } = useAuth();
 
   useEffect(() => {

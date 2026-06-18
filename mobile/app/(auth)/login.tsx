@@ -153,7 +153,7 @@ export default function LoginScreen() {
 
                 <Text style={styles.demoHint}>
                   Rider: rider@nittojatra.com{'\n'}
-                  Captain: captain@nittojatra.com{'\n'}
+                  Driver: captain@nittojatra.com{'\n'}
                   Password: demo1234
                 </Text>
 

@@ -46,7 +46,7 @@ export default function LiveTrackingScreen() {
   }, [bookingId]);
 
   const operatorName = booking?.operator ?? 'NittoJatra';
-  const driverName = booking?.driver ?? `${operatorName} Captain`;
+  const driverName = booking?.driver ?? `${operatorName} Driver`;
   const routeLabel = booking ? `${booking.route.from} → ${booking.route.to}` : 'Live route tracking';
 
   return (

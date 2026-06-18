@@ -18,7 +18,7 @@ const DRIVER_AVATAR = require('../../../assets/figma/avatar-driver.png');
 
 const PREFERENCE_ITEMS: ProfileMenuItem[] = [
   { icon: 'person-outline', title: 'Personal Information', subtitle: 'Update your professional identity', route: '/personal-details' },
-  { icon: 'car-outline', title: 'Vehicle Management', subtitle: 'Edit vehicle stats and documents', route: '/captain/modals/vehicle-management' },
+  { icon: 'car-outline', title: 'Vehicle Management', subtitle: 'Edit vehicle stats and documents', route: '/driver/modals/vehicle-management' },
   { icon: 'map-outline', title: 'Saved Zones', subtitle: 'Manage your safety/service areas', route: '/saved-zones' },
   { icon: 'shield-checkmark-outline', title: 'Safety & Verification', subtitle: 'NID, License & Verification', route: '/modals/verification-info' },
   { icon: 'lock-closed-outline', title: 'Account Security', subtitle: 'Password, 2FA, Security logs', route: '/account-security' },
@@ -63,7 +63,7 @@ export default function DriverProfileScreen() {
             <Text style={profileStyles.name}>{displayName}</Text>
             <View style={profileStyles.metaRow}>
               <View style={profileStyles.captainPill}>
-                <Text style={profileStyles.captainText}>Captain</Text>
+                <Text style={profileStyles.captainText}>Driver</Text>
               </View>
               <Text style={profileStyles.dot}>•</Text>
               <Text style={profileStyles.vehicle}>{vehicle}</Text>
@@ -78,14 +78,14 @@ export default function DriverProfileScreen() {
           </ProfileGlassCard>
         </View>
 
-        <Pressable accessibilityRole="button" accessibilityLabel="Level 5 Captain" style={profileStyles.bannerWrap}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Level 5 Driver" style={profileStyles.bannerWrap}>
           <LinearGradient colors={['#4F46E5', '#9333EA']} style={profileStyles.levelBanner}>
             <View style={profileStyles.bannerOrb} />
             <View style={profileStyles.bannerIcon}>
               <Ionicons name="medal" size={24} color="#FBBF24" />
             </View>
             <View style={profileStyles.bannerText}>
-              <Text style={profileStyles.levelTitle}>Level 5 Captain</Text>
+              <Text style={profileStyles.levelTitle}>Level 5 Driver</Text>
               <Text style={profileStyles.levelSub}>You are in the top 5% of drivers!</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={Colors.textPrimary} />

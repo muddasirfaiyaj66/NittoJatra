@@ -17,9 +17,16 @@ export default function DriverDashboardScreen() {
   const schedules = useDriverStore((s) => s.schedules);
   const activeRiders = useDriverStore((s) => s.activeRiders);
   const payout = useDriverStore((s) => s.payout);
-  const firstName = (user?.name ?? 'Captain').split(' ')[0];
+  const firstName = (user?.name ?? 'Driver').split(' ')[0];
   const balance = payout || user?.driverBalance || 0;
   const rating = user?.rating ?? 4.9;
+
+  const stats = [
+    { label: 'ACTIVE RIDERS', value: String(activeRiders), icon: 'people', color: '#EEF2FF', iconColor: Colors.primary },
+    { label: 'RATING', value: rating.toFixed(1), icon: 'star', color: '#FEF3C7', iconColor: Colors.gold },
+    { label: 'MONTHLY ROUTINGS', value: String(schedules.length), icon: 'git-route', color: '#FDF2F8', iconColor: Colors.accent },
+    { label: 'TOTAL TRIPS', value: String(user?.totalTrips ?? 14), icon: 'car', color: '#ECFDF5', iconColor: Colors.accentEmerald },
+  ];
 
   return (
     <View style={styles.root}>
@@ -41,7 +48,7 @@ export default function DriverDashboardScreen() {
                 <View style={styles.headerText}>
                   <View style={styles.captainRow}>
                     <View style={styles.captainBadge}>
-                      <Text style={styles.captainLabel}>CAPTAIN</Text>
+                      <Text style={styles.captainLabel}>DRIVER</Text>
                     </View>
                     <Ionicons name="star" size={10} color={Colors.gold} />
                     <Text style={styles.ratingInline}>{rating.toFixed(1)}</Text>
@@ -50,11 +57,11 @@ export default function DriverDashboardScreen() {
                 </View>
               </View>
               <View style={styles.headerActions}>
-                <Pressable accessibilityRole="button" accessibilityLabel="Messages" onPress={() => router.push('/captain/messages')} style={styles.iconBtn}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Messages" onPress={() => router.push('/driver/messages')} style={styles.iconBtn}>
                   <Ionicons name="chatbubble-outline" size={20} color={Colors.white} />
                   <View style={styles.notifDotGreen} />
                 </Pressable>
-                <Pressable accessibilityRole="button" accessibilityLabel="Notifications" onPress={() => router.push('/captain/notifications')} style={styles.iconBtn}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Notifications" onPress={() => router.push('/driver/notifications')} style={styles.iconBtn}>
                   <Ionicons name="notifications-outline" size={20} color={Colors.white} />
                   <View style={styles.notifDotRed} />
                 </Pressable>
@@ -72,7 +79,7 @@ export default function DriverDashboardScreen() {
                   <Ionicons name="wallet" size={20} color={Colors.white} />
                 </View>
               </View>
-              <Pressable accessibilityRole="button" accessibilityLabel="View earnings" onPress={() => router.push('/captain/(tabs)/earnings')} style={styles.growthBar}>
+              <Pressable accessibilityRole="button" accessibilityLabel="View earnings" onPress={() => router.push('/driver/(tabs)/earnings')} style={styles.growthBar}>
                 <View style={styles.growthIconWrap}>
                   <Ionicons name="trending-up" size={16} color={Colors.accentEmerald} />
                 </View>
@@ -88,20 +95,17 @@ export default function DriverDashboardScreen() {
 
         <View style={styles.body}>
           <View style={styles.statsRow}>
-            <View style={[styles.statCard, Shadows.card]}>
-              <View style={styles.statIconWrap}>
-                <Ionicons name="people" size={20} color={Colors.primary} />
+            {stats.map((s, index) => (
+              <View key={index} style={[styles.statCard, Shadows.card]}>
+                <View style={[styles.statIconWrap, { backgroundColor: s.color }]}>
+                  <Ionicons name={s.icon as any} size={20} color={s.iconColor} />
+                </View>
+                <View>
+                  <Text style={styles.statValue}>{s.value}</Text>
+                  <Text style={styles.statLabel}>{s.label}</Text>
+                </View>
               </View>
-              <Text style={styles.statValue}>{activeRiders}</Text>
-              <Text style={styles.statLabel}>ACTIVE RIDER</Text>
-            </View>
-            <View style={[styles.statCard, Shadows.card]}>
-              <View style={styles.statIconWrap}>
-                <Ionicons name="star" size={20} color={Colors.gold} />
-              </View>
-              <Text style={styles.statValue}>{rating.toFixed(1)}</Text>
-              <Text style={styles.statLabel}>RATING</Text>
-            </View>
+            ))}
           </View>
 
           <Pressable accessibilityRole="button" accessibilityLabel="Post new route" onPress={() => router.push(ROUTES.driverPostRoute)} style={[styles.postCard, Shadows.card]}>
@@ -117,9 +121,58 @@ export default function DriverDashboardScreen() {
             <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
           </Pressable>
 
+          {/* Today's Shift Tracker Card (Small Feature Dashboard Widget) */}
+          <View style={[styles.shiftCard, Shadows.card]}>
+            <View style={styles.shiftHeader}>
+              <View style={styles.shiftTitleCol}>
+                <Text style={styles.shiftOverline}>TODAY&apos;S SHIFT</Text>
+                <Text style={styles.shiftTitle}>Active Duty Tracker</Text>
+              </View>
+              <View style={styles.dutyBadge}>
+                <View style={styles.dutyDot} />
+                <Text style={styles.dutyText}>ON DUTY</Text>
+              </View>
+            </View>
+
+            {/* Goal Progress bar */}
+            <View style={styles.goalRow}>
+              <Text style={styles.goalText}>Ride Goal: 3 / 5 completed</Text>
+              <Text style={styles.goalPct}>60%</Text>
+            </View>
+            <View style={styles.goalTrack}>
+              <LinearGradient
+                colors={['#4F46E5', '#10B981']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.goalFill, { width: '60%' }]}
+              />
+            </View>
+
+            {/* Grid of daily stats */}
+            <View style={styles.shiftStatsGrid}>
+              <View style={styles.shiftStatBox}>
+                <Ionicons name="speedometer-outline" size={16} color={Colors.primary} />
+                <Text style={styles.shiftStatVal}>84.5 km</Text>
+                <Text style={styles.shiftStatLbl}>Distance</Text>
+              </View>
+              <View style={styles.shiftStatDivider} />
+              <View style={styles.shiftStatBox}>
+                <Ionicons name="time-outline" size={16} color={Colors.accentEmerald} />
+                <Text style={styles.shiftStatVal}>6.2 hrs</Text>
+                <Text style={styles.shiftStatLbl}>Duration</Text>
+              </View>
+              <View style={styles.shiftStatDivider} />
+              <View style={styles.shiftStatBox}>
+                <Ionicons name="leaf-outline" size={16} color="#D97706" />
+                <Text style={styles.shiftStatVal}>98%</Text>
+                <Text style={styles.shiftStatLbl}>Eco Score</Text>
+              </View>
+            </View>
+          </View>
+
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Active Commitments</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="View all routes" onPress={() => router.push('/captain/(tabs)/schedule')}>
+            <Pressable accessibilityRole="button" accessibilityLabel="View all routes" onPress={() => router.push('/driver/(tabs)/schedule')}>
               <Text style={styles.viewAll}>VIEW ALL</Text>
             </Pressable>
           </View>
@@ -132,7 +185,7 @@ export default function DriverDashboardScreen() {
               key={s.id}
               accessibilityRole="button"
               accessibilityLabel={s.name}
-              onPress={() => router.push('/captain/modals/management-console')}
+              onPress={() => router.push('/driver/modals/management-console')}
               style={[styles.scheduleCard, Shadows.card]}
             >
               <View style={styles.scheduleTop}>
@@ -324,22 +377,21 @@ const styles = StyleSheet.create({
   growthSub: { fontFamily: Typography.fonts.bold, fontSize: 10, color: '#C7D2FE', letterSpacing: Typography.letterSpacing.stat },
   growthMain: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.white, letterSpacing: Typography.letterSpacing.stat },
   body: { paddingHorizontal: Spacing.xl, paddingTop: 32, gap: 32 },
-  statsRow: { flexDirection: 'row', gap: Spacing.md },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md, justifyContent: 'space-between' },
   statCard: {
-    flex: 1,
-    minHeight: 128,
+    width: '47%',
+    minHeight: 120,
     backgroundColor: Colors.surface,
     borderRadius: 24,
-    padding: 21,
+    padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderColor: 'rgba(241,245,249,0.8)',
     justifyContent: 'space-between',
   },
   statIconWrap: {
     width: 40,
     height: 40,
     borderRadius: Radius.md,
-    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.sm,
@@ -417,5 +469,110 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     paddingVertical: Spacing.lg,
+  },
+  shiftCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.card,
+    padding: 21,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    gap: 16,
+  },
+  shiftHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  shiftTitleCol: {
+    gap: 2,
+  },
+  shiftOverline: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: 9,
+    color: Colors.textMuted,
+    letterSpacing: 1.2,
+  },
+  shiftTitle: {
+    fontFamily: Typography.fonts.black,
+    fontSize: 16,
+    color: Colors.textPrimary,
+    letterSpacing: -0.4,
+  },
+  dutyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: Radius.full,
+  },
+  dutyDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.accentEmerald,
+  },
+  dutyText: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: 9,
+    color: '#047857',
+    letterSpacing: 0.5,
+  },
+  goalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  goalText: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  goalPct: {
+    fontFamily: Typography.fonts.black,
+    fontSize: 12,
+    color: Colors.primary,
+  },
+  goalTrack: {
+    height: 8,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  goalFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  shiftStatsGrid: {
+    flexDirection: 'row',
+    backgroundColor: '#F8FAFC',
+    borderRadius: Radius.lg,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  shiftStatBox: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 4,
+  },
+  shiftStatVal: {
+    fontFamily: Typography.fonts.black,
+    fontSize: 13,
+    color: Colors.textPrimary,
+  },
+  shiftStatLbl: {
+    fontFamily: Typography.fonts.medium,
+    fontSize: 9,
+    color: Colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  shiftStatDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#E2E8F0',
   },
 });
