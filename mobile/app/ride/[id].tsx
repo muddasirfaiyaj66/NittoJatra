@@ -281,7 +281,7 @@ export default function RideDetailScreen() {
                 {p.discount > 0 ? (
                   <Text style={styles.planDiscount}>(−{p.discount}%)</Text>
                 ) : (
-                  <Text style={styles.planDiscount}>Standard Fare</Text>
+                  <Text style={styles.planStandard}>Standard Fare</Text>
                 )}
               </Pressable>
             );
@@ -351,6 +351,7 @@ const styles = StyleSheet.create({
   planSelected: { borderColor: Colors.primary },
   planName: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.sm, color: Colors.textPrimary },
   planPrice: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.primary, marginVertical: 4 },
-  planDiscount: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.xs, color: Colors.accentEmerald },
+  planDiscount: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.xs, color: Colors.danger },
+  planStandard: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.xs, color: Colors.textSecondary },
   bookBtn: { marginTop: Spacing.md },
 });
