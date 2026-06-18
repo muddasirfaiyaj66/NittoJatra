@@ -43,7 +43,9 @@ export class BookingsController {
   }
 
   @Get('dashboard')
-  @ApiOperation({ summary: 'List bookings for rides departing today (captain dashboard)' })
+  @ApiOperation({
+    summary: 'List bookings for rides departing today (captain dashboard)',
+  })
   @ApiResponse({ status: 200, description: 'Paginated booking list' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findDashboard(@Query() query: BookingListQueryDto) {

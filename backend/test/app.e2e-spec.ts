@@ -51,7 +51,9 @@ describe('Booking flow (e2e)', () => {
     mongoConnection = (await connect(mongoServer.getUri())).connection;
 
     for (let attempt = 0; attempt < 20; attempt += 1) {
-      const locations = await request(app.getHttpServer()).get('/api/v1/locations');
+      const locations = await request(app.getHttpServer()).get(
+        '/api/v1/locations',
+      );
       if (locations.body.data?.length > 0) {
         break;
       }

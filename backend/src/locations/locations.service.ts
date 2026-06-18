@@ -18,7 +18,8 @@ function scoreLocationMatch(query: string, location: LocationDocument): number {
 
   let score = 0;
   if (nameEn === normalized || name === normalized) score += 100;
-  if (nameEn.startsWith(normalized) || normalized.startsWith(nameEn)) score += 50;
+  if (nameEn.startsWith(normalized) || normalized.startsWith(nameEn))
+    score += 50;
   if (name.startsWith(normalized) || normalized.startsWith(name)) score += 40;
   if (nameEn.includes(normalized) || normalized.includes(nameEn)) score += 25;
   if (name.includes(normalized) || normalized.includes(name)) score += 20;
@@ -59,7 +60,9 @@ export class LocationsService {
     return this.resolveDocumentByName(rawName);
   }
 
-  async resolveDocumentByName(rawName: string): Promise<LocationDocument | null> {
+  async resolveDocumentByName(
+    rawName: string,
+  ): Promise<LocationDocument | null> {
     const query = rawName.trim();
     if (!query) {
       return null;

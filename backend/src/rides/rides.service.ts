@@ -49,7 +49,9 @@ export class RidesService {
       .find({
         departureTime: { $gte: start, $lte: end },
         status: { $ne: 'cancelled' },
-        seatMap: { $elemMatch: { status: { $in: ['available', 'women-only'] } } },
+        seatMap: {
+          $elemMatch: { status: { $in: ['available', 'women-only'] } },
+        },
       })
       .populate(POPULATE_OPTIONS)
       .sort({ departureTime: 1 })
@@ -239,7 +241,9 @@ export class RidesService {
     const ride = await this.rideModel.create({
       route: new Types.ObjectId(dto.routeId),
       operator: new Types.ObjectId(dto.operatorId),
-      ...(driverUserId ? { driverUserId: new Types.ObjectId(driverUserId) } : {}),
+      ...(driverUserId
+        ? { driverUserId: new Types.ObjectId(driverUserId) }
+        : {}),
       departureTime,
       arrivalTime,
       serviceType: dto.serviceType,

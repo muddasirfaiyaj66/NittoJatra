@@ -83,7 +83,11 @@ export class RoutesService {
   async findOrCreateByLocationPair(
     fromId: string,
     toId: string,
-    defaults: { basePrice: number; distanceKm?: number; estimatedMinutes?: number },
+    defaults: {
+      basePrice: number;
+      distanceKm?: number;
+      estimatedMinutes?: number;
+    },
   ) {
     const existing = await this.findDocumentByLocationPair(fromId, toId);
     if (existing) {

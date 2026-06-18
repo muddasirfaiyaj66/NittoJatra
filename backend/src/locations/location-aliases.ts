@@ -1,7 +1,17 @@
 /** Common Dhaka place abbreviations → search terms (lowercase). */
 export const LOCATION_ALIAS_GROUPS: string[][] = [
-  ['uiu', 'united international university', 'united international', 'uiu campus'],
-  ['diu', 'daffodil international university', 'daffodil university', 'daffodil'],
+  [
+    'uiu',
+    'united international university',
+    'united international',
+    'uiu campus',
+  ],
+  [
+    'diu',
+    'daffodil international university',
+    'daffodil university',
+    'daffodil',
+  ],
   ['bracu', 'brac university', 'brac'],
   ['nsu', 'north south university', 'north south'],
   ['iub', 'independent university bangladesh', 'independent university'],

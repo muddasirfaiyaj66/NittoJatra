@@ -135,8 +135,8 @@ export class DatabaseSeeder implements OnApplicationBootstrap {
   }
 
   private async seedRides() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
 
     for (const entry of RIDES_SEED) {
       const fromLocation = await this.locationModel
@@ -171,9 +171,8 @@ export class DatabaseSeeder implements OnApplicationBootstrap {
       }
 
       const departureTime = new Date(today);
-      departureTime.setHours(entry.departureHour, entry.departureMinute, 0, 0);
-      const arrivalTime = new Date(departureTime);
-      arrivalTime.setMinutes(arrivalTime.getMinutes() + route.estimatedMinutes);
+      departureTime.setUTCHours(entry.departureHour, entry.departureMinute, 0, 0);
+      const arrivalTime = new Date(departureTime.getTime() + route.estimatedMinutes * 60 * 1000);
 
       const totalSeats = entry.totalSeats ?? 32;
       const price = route.basePrice + (entry.priceOffset ?? 0);
@@ -210,7 +209,9 @@ export class DatabaseSeeder implements OnApplicationBootstrap {
     for (const entry of DEMO_USERS_SEED) {
       const role =
         entry.email === 'captain@nittojatra.com' ? 'operator' : 'user';
-      const exists = await this.userModel.findOne({ email: entry.email }).exec();
+      const exists = await this.userModel
+        .findOne({ email: entry.email })
+        .exec();
       const password = await bcrypt.hash(entry.password, rounds);
 
       if (exists) {

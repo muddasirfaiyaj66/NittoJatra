@@ -28,7 +28,7 @@ type Step = 'credentials' | 'identity' | 'vehicle' | 'success';
 const STEPS: Step[] = ['credentials', 'identity', 'vehicle', 'success'];
 
 export default function RegisterScreen() {
-  const { register, isLoading, role, setLoginRole } = useAuth();
+  const { register, isLoading, setLoginRole } = useAuth();
   const [step, setStep] = useState<Step>('credentials');
   const [selectedRole, setSelectedRole] = useState(0);
 

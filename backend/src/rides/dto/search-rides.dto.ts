@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsMongoId, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsMongoId,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 const SERVICE_TYPES = ['ac', 'non-ac', 'women-special', 'express'] as const;
 

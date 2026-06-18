@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -33,6 +32,8 @@ export default function RiderHomeScreen() {
   const stats = [
     { label: 'TOTAL RIDES', value: String(user?.totalTrips ?? 0), icon: 'car', color: '#EEF2FF', iconColor: Colors.primary },
     { label: 'SAVINGS', value: formatTaka(user?.totalSpent ?? 0), icon: 'wallet', color: '#ECFDF5', iconColor: Colors.accentEmerald },
+    { label: 'REDEMPTION COINS', value: String(user?.points ?? 0), icon: 'sparkles', color: '#FEF3C7', iconColor: '#D97706' },
+    { label: 'MONTHLY ROUTINGS', value: String(user?.activePlans ?? 2), icon: 'git-route', color: '#FDF2F8', iconColor: Colors.accent },
   ];
 
   return (
@@ -116,11 +117,6 @@ export default function RiderHomeScreen() {
                   <Text style={styles.premiumRoute}>
                     {activePlan.route.from} <Text style={styles.premiumArrow}>→</Text> {activePlan.route.to}
                   </Text>
-                </View>
-                <View style={styles.ringWrap}>
-                  <View style={styles.ring}>
-                    <Text style={styles.ringText}>{planProgress}%</Text>
-                  </View>
                 </View>
               </View>
               <View style={styles.usageBlock}>

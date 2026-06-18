@@ -10,10 +10,7 @@ import { Booking, BookingDocument } from '../bookings/schemas/booking.schema';
 import { paginate } from '../common/helpers/pagination.helper';
 import { RidesService } from '../rides/rides.service';
 import { CreateMessageDto } from './dto/create-message.dto';
-import {
-  toConversationResponse,
-  toMessageResponse,
-} from './messages.mapper';
+import { toConversationResponse, toMessageResponse } from './messages.mapper';
 import {
   Conversation,
   ConversationDocument,
@@ -228,11 +225,7 @@ export class MessagesService {
     return toMessageResponse(message);
   }
 
-  async ensureFromBookingRef(
-    bookingRef: string,
-    userId: string,
-    role: string,
-  ) {
+  async ensureFromBookingRef(bookingRef: string, userId: string, role: string) {
     const booking = await this.bookingModel
       .findOne({ bookingId: bookingRef })
       .populate(BOOKING_POPULATE)
@@ -242,8 +235,14 @@ export class MessagesService {
       throw new NotFoundException('Booking not found');
     }
 
-    if (role !== 'operator' && role !== 'admin' && String(booking.user) !== userId) {
-      throw new ForbiddenException('You do not have access to this booking chat');
+    if (
+      role !== 'operator' &&
+      role !== 'admin' &&
+      String(booking.user) !== userId
+    ) {
+      throw new ForbiddenException(
+        'You do not have access to this booking chat',
+      );
     }
 
     const conversation = await this.ensureForBooking(booking);

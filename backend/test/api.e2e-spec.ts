@@ -37,7 +37,9 @@ describe('NittoJatra REST API (e2e)', () => {
 
   async function waitForSeed() {
     for (let attempt = 0; attempt < 20; attempt += 1) {
-      const locations = await request(app.getHttpServer()).get('/api/v1/locations');
+      const locations = await request(app.getHttpServer()).get(
+        '/api/v1/locations',
+      );
       if (locations.body.data?.length > 0) {
         return;
       }
@@ -459,13 +461,15 @@ describe('NittoJatra REST API (e2e)', () => {
 
       expect(Array.isArray(res.body.data)).toBe(true);
       expect(res.body.data.length).toBeGreaterThan(0);
-      expect(res.body.data.every((ride: any) => ride.driverUserId === loginRes.body.data.user._id)).toBe(true);
+      expect(
+        res.body.data.every(
+          (ride: any) => ride.driverUserId === loginRes.body.data.user._id,
+        ),
+      ).toBe(true);
     });
 
     it('GET /api/v1/rides/my rejects missing token', async () => {
-      await request(app.getHttpServer())
-        .get('/api/v1/rides/my')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/v1/rides/my').expect(401);
     });
 
     it('POST /api/v1/rides/publish creates custom locations', async () => {
@@ -649,7 +653,9 @@ describe('NittoJatra REST API (e2e)', () => {
         .send({ body: 'Hello captain, I am ready for pickup.' })
         .expect(201);
 
-      expect(sendRes.body.data.body).toBe('Hello captain, I am ready for pickup.');
+      expect(sendRes.body.data.body).toBe(
+        'Hello captain, I am ready for pickup.',
+      );
       expect(sendRes.body.data.senderRole).toBe('rider');
     });
 

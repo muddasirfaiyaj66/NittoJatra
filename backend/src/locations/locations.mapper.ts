@@ -13,5 +13,8 @@ export function toLocationResponse(
   const dto = plainToInstance(LocationResponseDto, obj, {
     excludeExtraneousValues: true,
   });
-  return assignDocumentId(dto, obj as { _id?: { toString(): string } | string });
+  return assignDocumentId(
+    dto,
+    obj as { _id?: { toString(): string } | string },
+  );
 }

@@ -19,7 +19,7 @@ export default function PersonalDetailsScreen() {
   const defaultName = isDriver ? 'Karim Uddin' : 'Ahmed Rahman';
   const defaultEmail = isDriver ? 'captain@example.com' : 'rider@example.com';
   const [name, setName] = useState(user?.name ?? defaultName);
-  const [email, setEmail] = useState(user?.email ?? defaultEmail);
+  const email = user?.email ?? defaultEmail;
   const [phone, setPhone] = useState(user?.phone ?? '+8801712345678');
   const [emergency, setEmergency] = useState(user?.emergencyContact ?? '+8801700000000');
   const [emergencyEmail, setEmergencyEmail] = useState(user?.emergencyContactEmail ?? '');

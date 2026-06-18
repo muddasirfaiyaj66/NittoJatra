@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View, Modal, TextInput, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -270,7 +269,7 @@ export default function MyRidesScreen() {
                         ))}
                       </View>
                       {reviewedBookings[selectedBooking.id].comment ? (
-                        <Text style={styles.submittedComment}>"{reviewedBookings[selectedBooking.id].comment}"</Text>
+                        <Text style={styles.submittedComment}>{`"${reviewedBookings[selectedBooking.id].comment}"`}</Text>
                       ) : null}
                       <Text style={styles.submittedAlertText}>Review submitted successfully!</Text>
                     </View>

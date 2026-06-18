@@ -11,7 +11,7 @@ export function toRideResponse(ride: RideDocument | Record<string, unknown>) {
       ? (ride as RideDocument).toObject()
       : ride;
   if (obj && obj.driverUserId) {
-    obj.driverUserId = obj.driverUserId.toString();
+    obj.driverUserId = (obj.driverUserId as { toString(): string }).toString();
   }
   const dto = plainToInstance(RideResponseDto, obj, {
     excludeExtraneousValues: true,

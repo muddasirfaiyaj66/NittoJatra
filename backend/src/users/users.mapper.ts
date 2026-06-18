@@ -11,5 +11,8 @@ export function toUserResponse(user: UserDocument | Record<string, unknown>) {
   const dto = plainToInstance(UserResponseDto, obj, {
     excludeExtraneousValues: true,
   });
-  return assignDocumentId(dto, obj as { _id?: { toString(): string } | string });
+  return assignDocumentId(
+    dto,
+    obj as { _id?: { toString(): string } | string },
+  );
 }

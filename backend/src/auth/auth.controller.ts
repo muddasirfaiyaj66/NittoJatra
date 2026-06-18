@@ -31,7 +31,9 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
-  @Throttle({ default: { limit: process.env.NODE_ENV === 'test' ? 100 : 5, ttl: 60000 } })
+  @Throttle({
+    default: { limit: process.env.NODE_ENV === 'test' ? 100 : 5, ttl: 60000 },
+  })
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiBody({ type: RegisterDto })
@@ -42,7 +44,9 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: process.env.NODE_ENV === 'test' ? 100 : 5, ttl: 60000 } })
+  @Throttle({
+    default: { limit: process.env.NODE_ENV === 'test' ? 100 : 5, ttl: 60000 },
+  })
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)

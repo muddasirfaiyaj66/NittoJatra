@@ -19,7 +19,9 @@ export function toConversationResponse(
   });
   assignDocumentId(dto, obj as { _id?: { toString(): string } | string });
 
-  const unreadForUser = Number((obj as { unreadForUser?: number }).unreadForUser ?? 0);
+  const unreadForUser = Number(
+    (obj as { unreadForUser?: number }).unreadForUser ?? 0,
+  );
   const unreadForOperator = Number(
     (obj as { unreadForOperator?: number }).unreadForOperator ?? 0,
   );
@@ -43,5 +45,8 @@ export function toMessageResponse(
   const dto = plainToInstance(MessageResponseDto, obj, {
     excludeExtraneousValues: true,
   });
-  return assignDocumentId(dto, obj as { _id?: { toString(): string } | string });
+  return assignDocumentId(
+    dto,
+    obj as { _id?: { toString(): string } | string },
+  );
 }
