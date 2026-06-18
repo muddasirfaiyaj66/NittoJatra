@@ -209,6 +209,7 @@ function mapBookingStatus(status: string): BookingStatus {
 export function mapApiBooking(booking: ApiBooking): Booking {
   return {
     id: booking.bookingId,
+    rideId: booking.ride._id,
     status: mapBookingStatus(booking.status),
     route: {
       from: booking.ride.route.fromLocation.nameEn,

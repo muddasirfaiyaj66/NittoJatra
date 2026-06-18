@@ -131,6 +131,7 @@ export interface Booking {
   operator: string;
   amount: number;
   driver?: string;
+  rideId?: string;
 }
 
 export interface RiderUpcomingRide {

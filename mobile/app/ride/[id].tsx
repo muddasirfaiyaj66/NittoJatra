@@ -1,31 +1,61 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MapHeader } from '@/components/shared/MapHeader';
 import { GradientButton } from '@/components/ui';
 import { Colors, formatTaka, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { rideService } from '@/services/ride.service';
+import { bookingService } from '@/services/booking.service';
+import { messageService } from '@/services/message.service';
+import { chatRoute } from '@/constants/routes';
+import { useAuth } from '@/hooks/useAuth';
 import { RideDetail } from '@/types';
 import { usePaymentStore } from '@/store/payment.store';
+
+const OPERATOR_PHONES: Record<string, string> = {
+  'BRTC City Bus': '+8801711111111',
+  'Dhaka Chaka': '+8801722222222',
+  'Nagar Paribahan': '+8801733333333',
+  'Probaho': '+8801744444444',
+  'Sajeda Transport': '+8801755555555',
+  'Dhaka Metro Shuttle': '+8801766666666',
+  'Demo Captain': '+8801722222222',
+  'Driver2': '+8801522120845',
+};
 
 export default function RideDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const rideId = id ?? '';
+  const { user } = useAuth();
   const [detail, setDetail] = useState<RideDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState('single');
   const { setTotal, setRideId, setSelectedSeats, reset } = usePaymentStore();
+  const [bookingRef, setBookingRef] = useState<string | null>(null);
+  const [openingChat, setOpeningChat] = useState(false);
 
   const loadRide = useCallback(async () => {
     if (!rideId) return;
     setLoading(true);
     setError(null);
     try {
-      const ride = await rideService.getRideById(rideId);
+      const [ride, userBookings] = await Promise.all([
+        rideService.getRideById(rideId),
+        bookingService.getMyBookings().catch(() => []),
+      ]);
       setDetail(ride);
       setSelectedPlan(ride.subscriptionPlans.find((p) => p.selected)?.id ?? 'single');
+
+      const activeBooking = userBookings.find(
+        (b) => b.rideId === rideId && b.status !== 'cancelled',
+      );
+      if (activeBooking) {
+        setBookingRef(activeBooking.id);
+      } else {
+        setBookingRef(null);
+      }
     } catch (e) {
       setDetail(null);
       setError((e as Error).message);
@@ -37,6 +67,56 @@ export default function RideDetailScreen() {
   useEffect(() => {
     void loadRide();
   }, [loadRide]);
+
+  const handleChat = async () => {
+    let currentBookingRef = bookingRef;
+    if (openingChat) return;
+    setOpeningChat(true);
+    try {
+      if (!currentBookingRef) {
+        // Find first available seat
+        let seats: string[] = ['A1'];
+        try {
+          const seatMap = await rideService.getSeatMap(rideId);
+          const available = seatMap?.find(
+            (s) => s.status === 'available' || s.status === 'women-only',
+          );
+          if (available) {
+            seats = [available.seatNumber];
+          }
+        } catch {
+          // ignore
+        }
+
+        // Create booking under the hood
+        const booking = await bookingService.createBooking({
+          rideId,
+          seats,
+          passengerName: user?.name || 'Passenger',
+          passengerPhone: user?.phone || '+8801712345678',
+          passengerEmail: user?.email || 'passenger@nittojatra.com',
+          paymentMethod: 'cash',
+        });
+        currentBookingRef = booking.id;
+        setBookingRef(booking.id);
+      }
+
+      const thread = await messageService.ensureFromBooking(currentBookingRef);
+      router.push(chatRoute(thread.id, thread.name));
+    } catch {
+      Alert.alert('Error', 'Failed to open chat. Please try again.');
+    } finally {
+      setOpeningChat(false);
+    }
+  };
+
+  const handleCall = () => {
+    const operatorName = detail?.operatorName || '';
+    const phone = OPERATOR_PHONES[operatorName] || '+8801722222222';
+    void Linking.openURL(`tel:${phone}`).catch(() => {
+      Alert.alert('Error', 'Unable to initiate a call on this device.');
+    });
+  };
 
   if (loading || !detail) {
     return (
@@ -134,11 +214,28 @@ export default function RideDetailScreen() {
         </View>
 
         <View style={styles.actionRow}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Chat driver" style={styles.darkBtn}>
-            <Ionicons name="chatbubble-outline" size={18} color={Colors.white} />
-            <Text style={styles.darkBtnText}>Chat</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Chat driver"
+            onPress={handleChat}
+            disabled={openingChat}
+            style={styles.darkBtn}
+          >
+            {openingChat ? (
+              <ActivityIndicator size="small" color={Colors.white} />
+            ) : (
+              <>
+                <Ionicons name="chatbubble-outline" size={18} color={Colors.white} />
+                <Text style={styles.darkBtnText}>Chat</Text>
+              </>
+            )}
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Call driver" style={styles.darkBtn}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Call driver"
+            onPress={handleCall}
+            style={styles.darkBtn}
+          >
             <Ionicons name="call-outline" size={18} color={Colors.white} />
             <Text style={styles.darkBtnText}>Call</Text>
           </Pressable>
