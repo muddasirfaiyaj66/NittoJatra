@@ -6,21 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 
-const SAFETY_TIPS = [
-  {
-    title: 'Check Ride Details',
-    desc: 'Always verify car plate number and drive identity.',
-  },
-  {
-    title: 'Share Your Trip',
-    desc: 'Use the "Share Ride" feature to let loved ones know your location.',
-  },
-  {
-    title: 'Wear Seatbelt',
-    desc: 'Sit back and buckle up for a safe journey',
-  },
-];
-
 export default function SafetyScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
@@ -109,18 +94,6 @@ export default function SafetyScreen() {
             )}
           </View>
 
-          <Text style={styles.sectionTitle}>Safety Tips</Text>
-          {SAFETY_TIPS.map((tip) => (
-            <View key={tip.title} style={[styles.tipCard, Shadows.card]}>
-              <View style={styles.tipIcon}>
-                <Ionicons name="shield-checkmark" size={20} color={Colors.accentEmerald} />
-              </View>
-              <View style={styles.tipText}>
-                <Text style={styles.tipTitle}>{tip.title}</Text>
-                <Text style={styles.tipDesc}>{tip.desc}</Text>
-              </View>
-            </View>
-          ))}
         </ScrollView>
       </LinearGradient>
     </View>
@@ -346,40 +319,5 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 24,
     marginBottom: 16,
-  },
-  tipCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-    padding: 16,
-    marginHorizontal: 20,
-    marginBottom: 12,
-    gap: 16,
-    minHeight: 80,
-  },
-  tipIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F0FDF4',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tipText: { flex: 1, gap: 4 },
-  tipTitle: {
-    fontFamily: Typography.fonts.bold,
-    fontSize: 15,
-    color: '#111827',
-    letterSpacing: -0.375,
-    lineHeight: 22.5,
-  },
-  tipDesc: {
-    fontFamily: Typography.fonts.regular,
-    fontSize: Typography.fontSizes.base,
-    color: '#4B5563',
-    letterSpacing: -0.3,
-    lineHeight: 20,
   },
 });
