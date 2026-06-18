@@ -46,11 +46,11 @@ function formatDuration(minutes: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function mapBackendRole(role: string, clientRole: UserRole): UserRole {
+function mapBackendRole(role: string): UserRole {
   if (role === 'operator') {
     return 'driver';
   }
-  return clientRole;
+  return 'rider';
 }
 
 function mapTier(points: number): User['tier'] {
@@ -59,8 +59,8 @@ function mapTier(points: number): User['tier'] {
   return 'BRONZE';
 }
 
-export function mapApiUser(apiUser: ApiUser, clientRole: UserRole = 'rider'): User {
-  const role = mapBackendRole(apiUser.role, clientRole);
+export function mapApiUser(apiUser: ApiUser, _clientRole?: UserRole): User {
+  const role = mapBackendRole(apiUser.role);
   return {
     id: apiUser._id,
     name: apiUser.fullName,
@@ -158,10 +158,34 @@ export function mapApiRideToDetail(ride: ApiRide): RideDetail {
     subscriptionPlans: [
       {
         id: 'single',
-        name: 'Single Trip',
+        name: 'Single Ride',
         price: ride.price,
         discount: 0,
         selected: true,
+      },
+      {
+        id: '1week',
+        name: '1 Week Ride',
+        price: Math.round(ride.price * 5 * 0.95),
+        discount: 5,
+      },
+      {
+        id: '2weeks',
+        name: '2 Week Ride',
+        price: Math.round(ride.price * 10 * 0.90),
+        discount: 10,
+      },
+      {
+        id: '1month',
+        name: '1 Month Ride',
+        price: Math.round(ride.price * 20 * 0.85),
+        discount: 15,
+      },
+      {
+        id: '2months',
+        name: '2 Months Ride',
+        price: Math.round(ride.price * 40 * 0.80),
+        discount: 20,
       },
     ],
   };
@@ -185,6 +209,7 @@ function mapBookingStatus(status: string): BookingStatus {
 export function mapApiBooking(booking: ApiBooking): Booking {
   return {
     id: booking.bookingId,
+    rideId: booking.ride._id,
     status: mapBookingStatus(booking.status),
     route: {
       from: booking.ride.route.fromLocation.nameEn,

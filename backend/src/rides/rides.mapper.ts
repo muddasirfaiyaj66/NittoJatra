@@ -10,6 +10,9 @@ export function toRideResponse(ride: RideDocument | Record<string, unknown>) {
     typeof (ride as RideDocument).toObject === 'function'
       ? (ride as RideDocument).toObject()
       : ride;
+  if (obj && obj.driverUserId) {
+    obj.driverUserId = obj.driverUserId.toString();
+  }
   const dto = plainToInstance(RideResponseDto, obj, {
     excludeExtraneousValues: true,
   });

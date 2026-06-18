@@ -443,6 +443,29 @@ describe('NittoJatra REST API (e2e)', () => {
       expect(res.body.data.route.fromLocation.nameEn).toBe('Mirpur');
       expect(res.body.data.totalSeats).toBe(4);
       expect(res.body.data.price).toBe(120);
+      expect(res.body.data.driverUserId).toBe(loginRes.body.data.user._id);
+    });
+
+    it('GET /api/v1/rides/my returns driver-owned rides', async () => {
+      const loginRes = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: 'captain@nittojatra.com', password: 'Demo1234!' })
+        .expect(200);
+
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/rides/my')
+        .set('Authorization', `Bearer ${loginRes.body.data.accessToken}`)
+        .expect(200);
+
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.data.length).toBeGreaterThan(0);
+      expect(res.body.data.every((ride: any) => ride.driverUserId === loginRes.body.data.user._id)).toBe(true);
+    });
+
+    it('GET /api/v1/rides/my rejects missing token', async () => {
+      await request(app.getHttpServer())
+        .get('/api/v1/rides/my')
+        .expect(401);
     });
 
     it('POST /api/v1/rides/publish creates custom locations', async () => {

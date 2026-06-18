@@ -20,6 +20,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { PublishRideDto } from './dto/publish-ride.dto';
 import { RideResponseDto } from './dto/ride-response.dto';
@@ -81,8 +82,25 @@ export class RidesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Route not found' })
-  publish(@Body() dto: PublishRideDto) {
-    return this.ridesService.publishForOperator(dto);
+  publish(
+    @CurrentUser() user: { userId: string },
+    @Body() dto: PublishRideDto,
+  ) {
+    return this.ridesService.publishForOperator(dto, user.userId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('my')
+  @ApiOperation({ summary: "List current driver's own posted rides" })
+  @ApiQuery({ name: 'date', required: false, example: '2026-06-18' })
+  @ApiResponse({ status: 200, type: [RideResponseDto] })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  findMyRides(
+    @CurrentUser() user: { userId: string },
+    @Query('date') date?: string,
+  ) {
+    return this.ridesService.findByDriver(user.userId, date);
   }
 
   @Public()

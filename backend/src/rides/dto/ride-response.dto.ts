@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose, Type } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { OperatorResponseDto } from '../../operators/dto/operator-response.dto';
 import { RouteResponseDto } from '../../routes/dto/route-response.dto';
 import { SeatDto } from './seat.dto';
@@ -48,6 +48,10 @@ export class RideResponseDto {
   @Expose()
   @ApiProperty({ example: 'scheduled' })
   status: string;
+
+  @Expose()
+  @ApiPropertyOptional({ example: '65f1a2b3c4d5e6f7a8b9c0d3' })
+  driverUserId?: string;
 
   @Expose()
   @ApiProperty()

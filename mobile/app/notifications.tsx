@@ -18,18 +18,25 @@ const ICON_MAP = {
 export default function NotificationsScreen() {
   const bookings = useBookingStore((s) => s.bookings);
   const [readIds, setReadIds] = useState<string[]>([]);
+  const [deletedIds, setDeletedIds] = useState<string[]>([]);
 
   const notifications = useMemo(
     () =>
-      buildNotificationsFromBookings(bookings).map((notification) => ({
-        ...notification,
-        unread: notification.unread && !readIds.includes(notification.id),
-      })),
-    [bookings, readIds],
+      buildNotificationsFromBookings(bookings)
+        .map((notification) => ({
+          ...notification,
+          unread: notification.unread && !readIds.includes(notification.id),
+        }))
+        .filter((notification) => !deletedIds.includes(notification.id)),
+    [bookings, readIds, deletedIds],
   );
 
   const markAllRead = () => {
     setReadIds(notifications.map((notification) => notification.id));
+  };
+
+  const deleteNotification = (id: string) => {
+    setDeletedIds((prev) => [...prev, id]);
   };
 
   return (
@@ -47,24 +54,36 @@ export default function NotificationsScreen() {
       </SafeAreaView>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {notifications.map((n) => {
-          const cfg = ICON_MAP[n.type];
-          return (
-            <View key={n.id} style={[styles.card, Shadows.card]}>
-              <View style={[styles.iconTile, { backgroundColor: cfg.color }]}>
-                <Ionicons name={cfg.icon as keyof typeof Ionicons.glyphMap} size={22} color={cfg.iconColor} />
-              </View>
-              <View style={styles.cardContent}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.cardTitle}>{n.title}</Text>
-                  {n.unread && <StatusDot size={8} color={Colors.primary} />}
+        {notifications.length === 0 ? (
+          <Text style={styles.emptyText}>No notifications yet.</Text>
+        ) : (
+          notifications.map((n) => {
+            const cfg = ICON_MAP[n.type];
+            return (
+              <View key={n.id} style={[styles.card, Shadows.card]}>
+                <View style={[styles.iconTile, { backgroundColor: cfg.color }]}>
+                  <Ionicons name={cfg.icon as keyof typeof Ionicons.glyphMap} size={22} color={cfg.iconColor} />
                 </View>
-                <Text style={styles.cardBody}>{n.body}</Text>
-                <Text style={styles.cardTime}>{n.timeAgo}</Text>
+                <View style={styles.cardContent}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>{n.title}</Text>
+                    {n.unread && <StatusDot size={8} color={Colors.primary} />}
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Delete notification"
+                      onPress={() => deleteNotification(n.id)}
+                      style={styles.deleteBtn}
+                    >
+                      <Ionicons name="trash-outline" size={16} color={Colors.textMuted} />
+                    </Pressable>
+                  </View>
+                  <Text style={styles.cardBody}>{n.body}</Text>
+                  <Text style={styles.cardTime}>{n.timeAgo}</Text>
+                </View>
               </View>
-            </View>
-          );
-        })}
+            );
+          })
+        )}
         <Text style={styles.footer}>START OF TIMELINE</Text>
       </ScrollView>
     </View>
@@ -86,5 +105,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.base, color: Colors.textPrimary, flex: 1 },
   cardBody: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary, marginTop: 4 },
   cardTime: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, marginTop: Spacing.xs },
+  deleteBtn: { padding: Spacing.xs, marginLeft: Spacing.xs },
+  emptyText: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary, textAlign: 'center', marginTop: Spacing.xl },
   footer: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.xs, color: Colors.textMuted, textAlign: 'center', letterSpacing: 1, marginTop: Spacing.xl },
 });

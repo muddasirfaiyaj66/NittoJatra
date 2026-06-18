@@ -33,8 +33,6 @@ export default function RiderHomeScreen() {
   const stats = [
     { label: 'TOTAL RIDES', value: String(user?.totalTrips ?? 0), icon: 'car', color: '#EEF2FF', iconColor: Colors.primary },
     { label: 'SAVINGS', value: formatTaka(user?.totalSpent ?? 0), icon: 'wallet', color: '#ECFDF5', iconColor: Colors.accentEmerald },
-    { label: 'CO₂ SAVED', value: user?.co2Saved ?? `${Math.max(0, (user?.totalTrips ?? 0) * 2.8).toFixed(1)}kg`, icon: 'leaf', color: '#F0FDF4', iconColor: Colors.accentEmerald },
-    { label: 'ACTIVE PLANS', value: String(upcoming.length), icon: 'ticket', color: '#FAF5FF', iconColor: Colors.purple500 },
   ];
 
   return (

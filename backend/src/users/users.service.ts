@@ -29,10 +29,10 @@ export class UsersService {
 
   async create(dto: CreateUserDto) {
     const existing = await this.userModel.findOne({
-      $or: [{ email: dto.email.toLowerCase() }, { phone: dto.phone }],
+      email: dto.email.toLowerCase(),
     });
     if (existing) {
-      throw new ConflictException('Email or phone already registered');
+      throw new ConflictException('Email already registered');
     }
 
     const password = await bcrypt.hash(dto.password, this.bcryptRounds);

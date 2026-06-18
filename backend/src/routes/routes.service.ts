@@ -57,8 +57,8 @@ export class RoutesService {
   async findByLocationPair(fromId: string, toId: string) {
     const route = await this.routeModel
       .findOne({
-        fromLocation: new Types.ObjectId(fromId),
-        toLocation: new Types.ObjectId(toId),
+        fromLocation: { $in: [fromId, new Types.ObjectId(fromId)] },
+        toLocation: { $in: [toId, new Types.ObjectId(toId)] },
         isActive: true,
       })
       .populate(POPULATE_OPTIONS)
@@ -73,8 +73,8 @@ export class RoutesService {
   async findDocumentByLocationPair(fromId: string, toId: string) {
     return this.routeModel
       .findOne({
-        fromLocation: new Types.ObjectId(fromId),
-        toLocation: new Types.ObjectId(toId),
+        fromLocation: { $in: [fromId, new Types.ObjectId(fromId)] },
+        toLocation: { $in: [toId, new Types.ObjectId(toId)] },
         isActive: true,
       })
       .exec();
@@ -91,8 +91,8 @@ export class RoutesService {
     }
 
     const route = await this.routeModel.create({
-      fromLocation: fromId,
-      toLocation: toId,
+      fromLocation: new Types.ObjectId(fromId),
+      toLocation: new Types.ObjectId(toId),
       distanceKm: defaults.distanceKm ?? 10,
       estimatedMinutes: defaults.estimatedMinutes ?? 30,
       basePrice: defaults.basePrice,
@@ -111,8 +111,8 @@ export class RoutesService {
 
   async create(dto: CreateRouteDto) {
     const route = await this.routeModel.create({
-      fromLocation: dto.fromLocationId,
-      toLocation: dto.toLocationId,
+      fromLocation: new Types.ObjectId(dto.fromLocationId),
+      toLocation: new Types.ObjectId(dto.toLocationId),
       distanceKm: dto.distanceKm,
       estimatedMinutes: dto.estimatedMinutes,
       basePrice: dto.basePrice,

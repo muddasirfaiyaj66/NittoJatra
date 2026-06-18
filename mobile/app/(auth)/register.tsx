@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -34,6 +35,7 @@ export default function RegisterScreen() {
   const userRole: UserRole = selectedRole === 0 ? 'rider' : 'driver';
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [nid, setNid] = useState('');
@@ -48,21 +50,45 @@ export default function RegisterScreen() {
   };
 
   const next = () => {
-    if (step === 'credentials') setStep('identity');
-    else if (step === 'identity') setStep(userRole === 'driver' ? 'vehicle' : 'success');
-    else if (step === 'vehicle') setStep('success');
+    if (step === 'credentials') {
+      if (!email.trim() || !email.includes('@')) {
+        Alert.alert('Validation Error', 'Please enter a valid Email Address.');
+        return;
+      }
+      if (!password || password.length < 6) {
+        Alert.alert('Validation Error', 'Password must be at least 6 characters.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        Alert.alert('Validation Error', 'Passwords do not match.');
+        return;
+      }
+      setStep('identity');
+    }
+    else if (step === 'identity') {
+      setStep(userRole === 'driver' ? 'vehicle' : 'success');
+    }
+    else if (step === 'vehicle') {
+      setStep('success');
+    }
   };
 
   const handleFinish = async () => {
-    await register({
-      name: name || 'New User',
-      email: email || 'new@nittojatra.com',
-      phone: '+8801700000000',
-      password: password || 'password123',
-      gender: 'other',
-      role: userRole,
-    });
-    navigateToRoleHome(useAuthStore.getState().role);
+    try {
+      await register({
+        name: name.trim() || undefined,
+        email: email.trim(),
+        phone: phone.trim() || undefined,
+        password: password,
+        role: userRole,
+      });
+      navigateToRoleHome(useAuthStore.getState().role);
+    } catch (e: any) {
+      Alert.alert(
+        'Registration Failed',
+        e.message || 'Email already registered. Please check your credentials.'
+      );
+    }
   };
 
   return (
@@ -96,32 +122,67 @@ export default function RegisterScreen() {
               <View style={styles.stepContent}>
                 <Text style={styles.stepLabel}>I AM A</Text>
                 <SegmentedControl dark options={['RIDER', 'DRIVER']} selected={selectedRole} onChange={handleRoleChange} />
-                {(['Full Legal Name', 'Email Address'] as const).map((label, i) => (
-                  <View key={label} style={styles.inputWrap}>
-                    <TextInput
-                      accessibilityLabel={label}
-                      placeholder={label}
-                      placeholderTextColor={Colors.textMuted}
-                      value={i === 0 ? name : email}
-                      onChangeText={i === 0 ? setName : setEmail}
-                      style={styles.input}
-                      autoCapitalize={i === 0 ? 'words' : 'none'}
-                    />
-                  </View>
-                ))}
-                {(['Create Password', 'Confirm Password'] as const).map((label, i) => (
-                  <View key={label} style={styles.inputWrap}>
-                    <TextInput
-                      accessibilityLabel={label}
-                      placeholder={label}
-                      placeholderTextColor={Colors.textMuted}
-                      secureTextEntry
-                      value={i === 0 ? password : confirmPassword}
-                      onChangeText={i === 0 ? setPassword : setConfirmPassword}
-                      style={styles.input}
-                    />
-                  </View>
-                ))}
+                
+                <View style={styles.inputWrap}>
+                  <TextInput
+                    accessibilityLabel="Full Legal Name"
+                    placeholder="Full Legal Name"
+                    placeholderTextColor={Colors.textMuted}
+                    value={name}
+                    onChangeText={setName}
+                    style={styles.input}
+                    autoCapitalize="words"
+                  />
+                </View>
+
+                <View style={styles.inputWrap}>
+                  <TextInput
+                    accessibilityLabel="Email Address"
+                    placeholder="Email Address"
+                    placeholderTextColor={Colors.textMuted}
+                    value={email}
+                    onChangeText={setEmail}
+                    style={styles.input}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                  />
+                </View>
+
+                <View style={styles.inputWrap}>
+                  <TextInput
+                    accessibilityLabel="Phone Number"
+                    placeholder="Phone Number"
+                    placeholderTextColor={Colors.textMuted}
+                    value={phone}
+                    onChangeText={setPhone}
+                    style={styles.input}
+                    keyboardType="phone-pad"
+                  />
+                </View>
+
+                <View style={styles.inputWrap}>
+                  <TextInput
+                    accessibilityLabel="Create Password"
+                    placeholder="Create Password"
+                    placeholderTextColor={Colors.textMuted}
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                    style={styles.input}
+                  />
+                </View>
+
+                <View style={styles.inputWrap}>
+                  <TextInput
+                    accessibilityLabel="Confirm Password"
+                    placeholder="Confirm Password"
+                    placeholderTextColor={Colors.textMuted}
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    style={styles.input}
+                  />
+                </View>
                 <GradientButton title="CONTINUE" variant="register" onPress={next} />
               </View>
             )}

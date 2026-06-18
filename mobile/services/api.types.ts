@@ -83,6 +83,7 @@ export interface ApiRide {
   price: number;
   seatMap?: ApiSeat[];
   status: string;
+  driverUserId?: string;
 }
 
 export interface ApiBooking {

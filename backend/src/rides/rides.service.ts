@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { RoutesService } from '../routes/routes.service';
 import { LocationsService } from '../locations/locations.service';
 import { OperatorsService } from '../operators/operators.service';
@@ -49,6 +49,7 @@ export class RidesService {
       .find({
         departureTime: { $gte: start, $lte: end },
         status: { $ne: 'cancelled' },
+        seatMap: { $elemMatch: { status: { $in: ['available', 'women-only'] } } },
       })
       .populate(POPULATE_OPTIONS)
       .sort({ departureTime: 1 })
@@ -126,9 +127,11 @@ export class RidesService {
 
     const { start, end } = this.getDayBounds(dto.date);
     const filter: Record<string, unknown> = {
-      route: route._id,
+      route: { $in: [String(route._id), route._id] },
       departureTime: { $gte: start, $lte: end },
       status: { $ne: 'cancelled' },
+      // Only return rides that have at least one bookable seat
+      seatMap: { $elemMatch: { status: { $in: ['available', 'women-only'] } } },
     };
 
     if (dto.serviceType) {
@@ -224,7 +227,7 @@ export class RidesService {
     return seat;
   }
 
-  async create(dto: CreateRideDto) {
+  async create(dto: CreateRideDto, driverUserId?: string) {
     const route = await this.routesService.findDocumentById(dto.routeId);
     const departureTime = new Date(dto.departureTime);
     const arrivalTime = new Date(departureTime);
@@ -234,8 +237,9 @@ export class RidesService {
     const seatMap = generateSeatMap(totalSeats, dto.serviceType);
 
     const ride = await this.rideModel.create({
-      route: dto.routeId,
-      operator: dto.operatorId,
+      route: new Types.ObjectId(dto.routeId),
+      operator: new Types.ObjectId(dto.operatorId),
+      ...(driverUserId ? { driverUserId: new Types.ObjectId(driverUserId) } : {}),
       departureTime,
       arrivalTime,
       serviceType: dto.serviceType,
@@ -249,7 +253,7 @@ export class RidesService {
     return toRideResponse(populated);
   }
 
-  async publishForOperator(dto: PublishRideDto) {
+  async publishForOperator(dto: PublishRideDto, driverUserId?: string) {
     const fromLocation = await this.locationsService.findOrCreateByName(
       dto.fromName,
     );
@@ -271,14 +275,37 @@ export class RidesService {
       throw new NotFoundException('No active operator is available');
     }
 
-    return this.create({
-      routeId: String(route._id),
-      operatorId: String(operator._id),
-      departureTime: dto.departureTime,
-      serviceType: dto.serviceType,
-      totalSeats: dto.totalSeats,
-      price: dto.price,
-    });
+    return this.create(
+      {
+        routeId: String(route._id),
+        operatorId: String(operator._id),
+        departureTime: dto.departureTime,
+        serviceType: dto.serviceType,
+        totalSeats: dto.totalSeats,
+        price: dto.price,
+      },
+      driverUserId,
+    );
+  }
+
+  async findByDriver(driverUserId: string, date?: string) {
+    const filter: Record<string, unknown> = {
+      driverUserId: new Types.ObjectId(driverUserId),
+      status: { $ne: 'cancelled' },
+    };
+
+    if (date) {
+      const { start, end } = this.getDayBounds(date);
+      filter.departureTime = { $gte: start, $lte: end };
+    }
+
+    const rides = await this.rideModel
+      .find(filter)
+      .populate(POPULATE_OPTIONS)
+      .sort({ departureTime: 1 })
+      .exec();
+
+    return rides.map(toRideResponse);
   }
 
   async update(id: string, dto: UpdateRideDto) {
@@ -326,8 +353,8 @@ export class RidesService {
   }
 
   private getDayBounds(dateStr: string) {
-    const start = new Date(`${dateStr}T00:00:00`);
-    const end = new Date(`${dateStr}T23:59:59.999`);
+    const start = new Date(`${dateStr}T00:00:00.000Z`);
+    const end = new Date(`${dateStr}T23:59:59.999Z`);
     return { start, end };
   }
 }

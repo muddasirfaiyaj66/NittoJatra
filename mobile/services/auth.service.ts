@@ -13,22 +13,21 @@ function resolveLoginRole(email: string, selectedRole: UserRole): UserRole {
   return FIXED_ROLE_EMAILS[email.trim().toLowerCase()] ?? selectedRole;
 }
 
-function normalizePhone(phone: string): string {
+function normalizePhone(phone?: string): string | undefined {
+  if (!phone) return undefined;
   const trimmed = phone.trim();
+  if (!trimmed) return undefined;
   if (/^\+8801[3-9]\d{8}$/.test(trimmed)) {
     return trimmed;
   }
   if (/^01[3-9]\d{8}$/.test(trimmed)) {
     return `+88${trimmed}`;
   }
-  return '+8801712345678';
+  return trimmed;
 }
 
 function normalizePassword(password: string): string {
-  if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/.test(password) && password.length >= 8) {
-    return password;
-  }
-  return 'Demo1234!';
+  return password;
 }
 
 async function persistAuth(payload: ApiAuthPayload, clientRole: UserRole): Promise<User> {
@@ -55,24 +54,31 @@ export const authService = {
       password,
     });
 
-    const user = await persistAuth(payload, effectiveRole);
-    if (effectiveRole === 'driver' && user.role !== 'driver') {
-      return { ...user, role: 'driver' };
+    const dbRole = payload.user.role;
+    const expectedDbRole = effectiveRole === 'driver' ? 'operator' : 'user';
+    if (dbRole !== expectedDbRole) {
+      const dbRoleLabel = dbRole === 'operator' ? 'Driver' : 'Rider';
+      throw new Error(
+        `Role mismatch: This account is registered as a ${dbRoleLabel}. Please use the ${dbRoleLabel} tab to log in.`
+      );
     }
+
+    const user = await persistAuth(payload, effectiveRole);
     return user;
   },
 
   async register(data: RegisterData): Promise<User> {
-    if (!data.email?.trim() || !data.password || !data.name?.trim()) {
-      throw new Error('Please fill in all required fields.');
+    if (!data.email?.trim() || !data.password) {
+      throw new Error('Email and password are required.');
     }
 
     const payload = await apiClient.post<ApiAuthPayload>('/auth/register', {
-      fullName: data.name.trim(),
+      ...(data.name?.trim() ? { fullName: data.name.trim() } : {}),
       email: data.email.trim().toLowerCase(),
-      phone: normalizePhone(data.phone),
+      ...(data.phone ? { phone: normalizePhone(data.phone) } : {}),
       password: normalizePassword(data.password),
-      gender: data.gender,
+      ...(data.gender ? { gender: data.gender } : {}),
+      role: data.role === 'driver' ? 'operator' : 'user',
     });
 
     return persistAuth(payload, data.role);

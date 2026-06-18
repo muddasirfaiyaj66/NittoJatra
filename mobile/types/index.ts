@@ -27,11 +27,11 @@ export interface User {
 }
 
 export interface RegisterData {
-  name: string;
-  phone: string;
+  name?: string;
+  phone?: string;
   email: string;
   password: string;
-  gender: Gender;
+  gender?: Gender;
   role: UserRole;
 }
 
@@ -131,6 +131,7 @@ export interface Booking {
   operator: string;
   amount: number;
   driver?: string;
+  rideId?: string;
 }
 
 export interface RiderUpcomingRide {
