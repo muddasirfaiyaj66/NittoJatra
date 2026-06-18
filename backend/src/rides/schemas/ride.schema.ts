@@ -12,6 +12,9 @@ export class Ride {
   @Prop({ type: Types.ObjectId, ref: 'Operator', required: true })
   operator: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'User', required: false })
+  driverUserId?: Types.ObjectId;
+
   @Prop({ required: true })
   departureTime: Date;
 

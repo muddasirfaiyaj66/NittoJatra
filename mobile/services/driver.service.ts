@@ -26,7 +26,7 @@ export interface DriverDashboardData {
 export const driverService = {
   async getDashboard(date = localDateKey()): Promise<DriverDashboardData> {
     const [rides, bookingsResult] = await Promise.all([
-      apiClient.get<ApiRide[]>('/rides/today', { date }),
+      apiClient.get<ApiRide[]>('/rides/my', { date }, true),
       apiClient.get<ApiPaginatedBookings>(
         '/bookings/dashboard',
         { date, page: 1, limit: 50 },

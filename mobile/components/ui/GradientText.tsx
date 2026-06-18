@@ -64,5 +64,5 @@ const styles = StyleSheet.create({
     backgroundClip: 'text',
     WebkitBackgroundClip: 'text',
     color: 'transparent',
-  },
+  } as any,
 });

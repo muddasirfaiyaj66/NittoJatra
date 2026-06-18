@@ -227,7 +227,7 @@ export class RidesService {
     return seat;
   }
 
-  async create(dto: CreateRideDto) {
+  async create(dto: CreateRideDto, driverUserId?: string) {
     const route = await this.routesService.findDocumentById(dto.routeId);
     const departureTime = new Date(dto.departureTime);
     const arrivalTime = new Date(departureTime);
@@ -239,6 +239,7 @@ export class RidesService {
     const ride = await this.rideModel.create({
       route: dto.routeId,
       operator: dto.operatorId,
+      ...(driverUserId ? { driverUserId } : {}),
       departureTime,
       arrivalTime,
       serviceType: dto.serviceType,
@@ -252,7 +253,7 @@ export class RidesService {
     return toRideResponse(populated);
   }
 
-  async publishForOperator(dto: PublishRideDto) {
+  async publishForOperator(dto: PublishRideDto, driverUserId?: string) {
     const fromLocation = await this.locationsService.findOrCreateByName(
       dto.fromName,
     );
@@ -274,14 +275,37 @@ export class RidesService {
       throw new NotFoundException('No active operator is available');
     }
 
-    return this.create({
-      routeId: String(route._id),
-      operatorId: String(operator._id),
-      departureTime: dto.departureTime,
-      serviceType: dto.serviceType,
-      totalSeats: dto.totalSeats,
-      price: dto.price,
-    });
+    return this.create(
+      {
+        routeId: String(route._id),
+        operatorId: String(operator._id),
+        departureTime: dto.departureTime,
+        serviceType: dto.serviceType,
+        totalSeats: dto.totalSeats,
+        price: dto.price,
+      },
+      driverUserId,
+    );
+  }
+
+  async findByDriver(driverUserId: string, date?: string) {
+    const filter: Record<string, unknown> = {
+      driverUserId,
+      status: { $ne: 'cancelled' },
+    };
+
+    if (date) {
+      const { start, end } = this.getDayBounds(date);
+      filter.departureTime = { $gte: start, $lte: end };
+    }
+
+    const rides = await this.rideModel
+      .find(filter)
+      .populate(POPULATE_OPTIONS)
+      .sort({ departureTime: 1 })
+      .exec();
+
+    return rides.map(toRideResponse);
   }
 
   async update(id: string, dto: UpdateRideDto) {
