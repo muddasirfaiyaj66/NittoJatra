@@ -17,8 +17,8 @@ export const userService = {
       vehicleModel?: string;
       vehiclePlate?: string;
       vehicleType?: string;
-      emergencyContact?: string;
-      emergencyContactEmail?: string;
+      emergencyContact?: string | null;
+      emergencyContactEmail?: string | null;
       walletBalance?: number;
       walletTransactions?: any[];
     },

@@ -155,10 +155,72 @@ describe('NittoJatra REST API (e2e)', () => {
       const res = await request(app.getHttpServer())
         .patch('/api/v1/users/me')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({ fullName: 'Updated API User' })
+        .send({
+          fullName: 'Updated API User',
+          vehicleModel: 'Tesla Model 3',
+          vehiclePlate: 'Dhaka Metro-HA-12-3456',
+          emergencyContact: '+8801799999999',
+          emergencyContactEmail: 'emergency-test@nittojatra.com',
+        })
         .expect(200);
 
       expect(res.body.data.fullName).toBe('Updated API User');
+      expect(res.body.data.vehicleModel).toBe('Tesla Model 3');
+      expect(res.body.data.vehiclePlate).toBe('Dhaka Metro-HA-12-3456');
+      expect(res.body.data.emergencyContact).toBe('+8801799999999');
+      expect(res.body.data.emergencyContactEmail).toBe('emergency-test@nittojatra.com');
+
+      // Verify persistence via GET /me
+      const getRes = await request(app.getHttpServer())
+        .get('/api/v1/users/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(getRes.body.data.fullName).toBe('Updated API User');
+      expect(getRes.body.data.vehicleModel).toBe('Tesla Model 3');
+      expect(getRes.body.data.emergencyContactEmail).toBe('emergency-test@nittojatra.com');
+    });
+
+    it('PATCH /api/v1/users/me rejects invalid phone format', async () => {
+      await request(app.getHttpServer())
+        .patch('/api/v1/users/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ phone: '12345' })
+        .expect(400);
+    });
+
+    it('PATCH /api/v1/users/me rejects invalid email format', async () => {
+      await request(app.getHttpServer())
+        .patch('/api/v1/users/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ emergencyContactEmail: 'not-an-email' })
+        .expect(400);
+    });
+
+    it('PATCH /api/v1/users/me accepts null for optional fields', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/api/v1/users/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          emergencyContact: null,
+          emergencyContactEmail: null,
+        })
+        .expect(200);
+
+      expect(res.body.data.emergencyContact).toBeNull();
+      expect(res.body.data.emergencyContactEmail).toBeNull();
+    });
+
+    it('PATCH /api/v1/users/me accepts empty string for optional email', async () => {
+      const res = await request(app.getHttpServer())
+        .patch('/api/v1/users/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          emergencyContactEmail: '',
+        })
+        .expect(200);
+
+      expect(res.body.data.emergencyContactEmail).toBe('');
     });
 
     it('PATCH /api/v1/users/me/password', async () => {

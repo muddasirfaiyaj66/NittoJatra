@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GradientButton } from '@/components/ui';
 import { Colors, Gradients, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
@@ -35,6 +35,8 @@ export default function PersonalDetailsScreen() {
         emergencyContactEmail: emergencyEmail.trim(),
       });
       router.back();
+    } catch (e) {
+      Alert.alert('Save failed', (e as Error).message || 'Could not save personal details.');
     } finally {
       setSaving(false);
     }

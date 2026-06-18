@@ -101,13 +101,17 @@ export const authService = {
   async updateUser(current: User, patch: Partial<User>): Promise<User> {
     const payload: Parameters<typeof userService.updateProfile>[0] = {};
     if (patch.name !== undefined) payload.fullName = patch.name;
-    if (patch.phone !== undefined) payload.phone = patch.phone;
+    if (patch.phone !== undefined) payload.phone = normalizePhone(patch.phone);
     if (patch.gender !== undefined) payload.gender = patch.gender;
     if (patch.vehicle !== undefined) payload.vehicleModel = patch.vehicle;
     if (patch.vehiclePlate !== undefined) payload.vehiclePlate = patch.vehiclePlate;
     if (patch.vehicleType !== undefined) payload.vehicleType = patch.vehicleType;
-    if (patch.emergencyContact !== undefined) payload.emergencyContact = patch.emergencyContact;
-    if (patch.emergencyContactEmail !== undefined) payload.emergencyContactEmail = patch.emergencyContactEmail;
+    if (patch.emergencyContact !== undefined) {
+      payload.emergencyContact = patch.emergencyContact.trim() ? normalizePhone(patch.emergencyContact) : null;
+    }
+    if (patch.emergencyContactEmail !== undefined) {
+      payload.emergencyContactEmail = patch.emergencyContactEmail.trim() || null;
+    }
     if (patch.walletBalance !== undefined) payload.walletBalance = patch.walletBalance;
     if (patch.walletTransactions !== undefined) payload.walletTransactions = patch.walletTransactions;
 

@@ -6,6 +6,7 @@ import {
   IsString,
   Matches,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -61,6 +62,12 @@ export class CreateUserDto {
 
   @ApiPropertyOptional({ example: 'emergency@example.com' })
   @IsOptional()
+  @ValidateIf(
+    (o) =>
+      o.emergencyContactEmail !== '' &&
+      o.emergencyContactEmail !== null &&
+      o.emergencyContactEmail !== undefined,
+  )
   @IsEmail()
-  emergencyContactEmail?: string;
+  emergencyContactEmail?: string | null;
 }
