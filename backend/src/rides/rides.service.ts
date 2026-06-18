@@ -49,6 +49,7 @@ export class RidesService {
       .find({
         departureTime: { $gte: start, $lte: end },
         status: { $ne: 'cancelled' },
+        seatMap: { $elemMatch: { status: { $in: ['available', 'women-only'] } } },
       })
       .populate(POPULATE_OPTIONS)
       .sort({ departureTime: 1 })
@@ -129,6 +130,8 @@ export class RidesService {
       route: route._id,
       departureTime: { $gte: start, $lte: end },
       status: { $ne: 'cancelled' },
+      // Only return rides that have at least one bookable seat
+      seatMap: { $elemMatch: { status: { $in: ['available', 'women-only'] } } },
     };
 
     if (dto.serviceType) {

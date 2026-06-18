@@ -46,11 +46,11 @@ function formatDuration(minutes: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function mapBackendRole(role: string, clientRole: UserRole): UserRole {
+function mapBackendRole(role: string): UserRole {
   if (role === 'operator') {
     return 'driver';
   }
-  return clientRole;
+  return 'rider';
 }
 
 function mapTier(points: number): User['tier'] {
@@ -59,8 +59,8 @@ function mapTier(points: number): User['tier'] {
   return 'BRONZE';
 }
 
-export function mapApiUser(apiUser: ApiUser, clientRole: UserRole = 'rider'): User {
-  const role = mapBackendRole(apiUser.role, clientRole);
+export function mapApiUser(apiUser: ApiUser, _clientRole?: UserRole): User {
+  const role = mapBackendRole(apiUser.role);
   return {
     id: apiUser._id,
     name: apiUser.fullName,

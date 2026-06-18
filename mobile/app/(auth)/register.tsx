@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -49,21 +50,45 @@ export default function RegisterScreen() {
   };
 
   const next = () => {
-    if (step === 'credentials') setStep('identity');
-    else if (step === 'identity') setStep(userRole === 'driver' ? 'vehicle' : 'success');
-    else if (step === 'vehicle') setStep('success');
+    if (step === 'credentials') {
+      if (!email.trim() || !email.includes('@')) {
+        Alert.alert('Validation Error', 'Please enter a valid Email Address.');
+        return;
+      }
+      if (!password || password.length < 6) {
+        Alert.alert('Validation Error', 'Password must be at least 6 characters.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        Alert.alert('Validation Error', 'Passwords do not match.');
+        return;
+      }
+      setStep('identity');
+    }
+    else if (step === 'identity') {
+      setStep(userRole === 'driver' ? 'vehicle' : 'success');
+    }
+    else if (step === 'vehicle') {
+      setStep('success');
+    }
   };
 
   const handleFinish = async () => {
-    await register({
-      name: name || 'New User',
-      email: email || 'new@nittojatra.com',
-      phone: phone || '+8801700000000',
-      password: password || 'password123',
-      gender: 'other',
-      role: userRole,
-    });
-    navigateToRoleHome(useAuthStore.getState().role);
+    try {
+      await register({
+        name: name.trim() || undefined,
+        email: email.trim(),
+        phone: phone.trim() || undefined,
+        password: password,
+        role: userRole,
+      });
+      navigateToRoleHome(useAuthStore.getState().role);
+    } catch (e: any) {
+      Alert.alert(
+        'Registration Failed',
+        e.message || 'Email already registered. Please check your credentials.'
+      );
+    }
   };
 
   return (

@@ -9,31 +9,35 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'Ahmed Rahman' })
+  @ApiPropertyOptional({ example: 'Ahmed Rahman' })
+  @IsOptional()
   @IsString()
-  fullName: string;
+  fullName?: string;
 
   @ApiProperty({ example: 'ahmed@nittojatra.com' })
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: '+8801712345678' })
+  @ApiPropertyOptional({ example: '+8801712345678' })
+  @IsOptional()
   @Matches(/^\+8801[3-9]\d{8}$/, {
     message: 'phone must be a valid Bangladesh number (+8801XXXXXXXXX)',
   })
-  phone: string;
+  phone?: string;
 
-  @ApiProperty({ example: 'SecurePass1!' })
-  @MinLength(8)
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/, {
-    message:
-      'password must include upper, lower, number, and special character',
-  })
+  @ApiProperty({ example: 'myPassword123' })
+  @MinLength(6)
   password: string;
 
-  @ApiProperty({ enum: ['male', 'female', 'other'], example: 'male' })
+  @ApiPropertyOptional({ enum: ['male', 'female', 'other'], example: 'male' })
+  @IsOptional()
   @IsEnum(['male', 'female', 'other'])
-  gender: string;
+  gender?: string;
+
+  @ApiPropertyOptional({ enum: ['user', 'admin', 'operator'], example: 'user' })
+  @IsOptional()
+  @IsEnum(['user', 'admin', 'operator'])
+  role?: string;
 
   @ApiPropertyOptional({ example: 'Toyota Axio 2018' })
   @IsOptional()
