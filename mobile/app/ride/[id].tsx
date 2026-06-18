@@ -165,19 +165,30 @@ export default function RideDetailScreen() {
 
         <Text style={styles.sectionTitle}>Subscription Plans</Text>
         <View style={styles.plansRow}>
-          {detail.subscriptionPlans.map((p) => (
-            <Pressable
-              key={p.id}
-              accessibilityRole="button"
-              accessibilityLabel={`${p.name} plan ${formatTaka(p.price)}`}
-              onPress={() => setSelectedPlan(p.id)}
-              style={[styles.planCard, selectedPlan === p.id && styles.planSelected]}
-            >
-              <Text style={styles.planName}>{p.name}</Text>
-              <Text style={styles.planPrice}>{formatTaka(p.price)}</Text>
-              <Text style={styles.planDiscount}>(−{p.discount}%)</Text>
-            </Pressable>
-          ))}
+          {detail.subscriptionPlans.map((p) => {
+            const isSingle = p.id === 'single';
+            return (
+              <Pressable
+                key={p.id}
+                accessibilityRole="button"
+                accessibilityLabel={`${p.name} plan ${formatTaka(p.price)}`}
+                onPress={() => setSelectedPlan(p.id)}
+                style={[
+                  styles.planCard,
+                  isSingle && styles.planCardFull,
+                  selectedPlan === p.id && styles.planSelected,
+                ]}
+              >
+                <Text style={styles.planName}>{p.name}</Text>
+                <Text style={styles.planPrice}>{formatTaka(p.price)}</Text>
+                {p.discount > 0 ? (
+                  <Text style={styles.planDiscount}>(−{p.discount}%)</Text>
+                ) : (
+                  <Text style={styles.planDiscount}>Standard Fare</Text>
+                )}
+              </Pressable>
+            );
+          })}
         </View>
 
         <GradientButton title="BOOK THIS RIDE" onPress={handleBook} style={styles.bookBtn} />
@@ -237,8 +248,9 @@ const styles = StyleSheet.create({
   reviewTime: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.xs, color: Colors.textMuted },
   reviewStars: { color: Colors.gold, fontSize: 12, marginVertical: 2 },
   reviewQuote: { fontFamily: Typography.fonts.medium, fontSize: Typography.fontSizes.sm, color: Colors.textSecondary, fontStyle: 'italic' },
-  plansRow: { flexDirection: 'row', gap: Spacing.sm },
-  planCard: { flex: 1, backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.md, borderWidth: 2, borderColor: Colors.border, alignItems: 'center' },
+  plansRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, justifyContent: 'space-between' },
+  planCard: { width: '48%', backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.md, borderWidth: 2, borderColor: Colors.border, alignItems: 'center', marginBottom: Spacing.xs },
+  planCardFull: { width: '100%', marginBottom: Spacing.xs },
   planSelected: { borderColor: Colors.primary },
   planName: { fontFamily: Typography.fonts.bold, fontSize: Typography.fontSizes.sm, color: Colors.textPrimary },
   planPrice: { fontFamily: Typography.fonts.black, fontSize: Typography.fontSizes.base, color: Colors.primary, marginVertical: 4 },

@@ -158,10 +158,34 @@ export function mapApiRideToDetail(ride: ApiRide): RideDetail {
     subscriptionPlans: [
       {
         id: 'single',
-        name: 'Single Trip',
+        name: 'Single Ride',
         price: ride.price,
         discount: 0,
         selected: true,
+      },
+      {
+        id: '1week',
+        name: '1 Week Ride',
+        price: Math.round(ride.price * 5 * 0.95),
+        discount: 5,
+      },
+      {
+        id: '2weeks',
+        name: '2 Week Ride',
+        price: Math.round(ride.price * 10 * 0.90),
+        discount: 10,
+      },
+      {
+        id: '1month',
+        name: '1 Month Ride',
+        price: Math.round(ride.price * 20 * 0.85),
+        discount: 15,
+      },
+      {
+        id: '2months',
+        name: '2 Months Ride',
+        price: Math.round(ride.price * 40 * 0.80),
+        discount: 20,
       },
     ],
   };
