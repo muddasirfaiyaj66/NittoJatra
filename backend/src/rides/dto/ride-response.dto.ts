@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Exclude, Expose, Type } from 'class-transformer';
+import { Exclude, Expose, Transform, Type } from 'class-transformer';
 import { OperatorResponseDto } from '../../operators/dto/operator-response.dto';
 import { RouteResponseDto } from '../../routes/dto/route-response.dto';
 import { SeatDto } from './seat.dto';

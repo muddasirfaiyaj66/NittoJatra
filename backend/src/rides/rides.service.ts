@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { RoutesService } from '../routes/routes.service';
 import { LocationsService } from '../locations/locations.service';
 import { OperatorsService } from '../operators/operators.service';
@@ -127,7 +127,7 @@ export class RidesService {
 
     const { start, end } = this.getDayBounds(dto.date);
     const filter: Record<string, unknown> = {
-      route: route._id,
+      route: { $in: [String(route._id), route._id] },
       departureTime: { $gte: start, $lte: end },
       status: { $ne: 'cancelled' },
       // Only return rides that have at least one bookable seat
@@ -237,9 +237,9 @@ export class RidesService {
     const seatMap = generateSeatMap(totalSeats, dto.serviceType);
 
     const ride = await this.rideModel.create({
-      route: dto.routeId,
-      operator: dto.operatorId,
-      ...(driverUserId ? { driverUserId } : {}),
+      route: new Types.ObjectId(dto.routeId),
+      operator: new Types.ObjectId(dto.operatorId),
+      ...(driverUserId ? { driverUserId: new Types.ObjectId(driverUserId) } : {}),
       departureTime,
       arrivalTime,
       serviceType: dto.serviceType,
@@ -290,7 +290,7 @@ export class RidesService {
 
   async findByDriver(driverUserId: string, date?: string) {
     const filter: Record<string, unknown> = {
-      driverUserId,
+      driverUserId: new Types.ObjectId(driverUserId),
       status: { $ne: 'cancelled' },
     };
 
@@ -353,8 +353,8 @@ export class RidesService {
   }
 
   private getDayBounds(dateStr: string) {
-    const start = new Date(`${dateStr}T00:00:00`);
-    const end = new Date(`${dateStr}T23:59:59.999`);
+    const start = new Date(`${dateStr}T00:00:00.000Z`);
+    const end = new Date(`${dateStr}T23:59:59.999Z`);
     return { start, end };
   }
 }
