@@ -62,4 +62,12 @@ export class UserResponseDto {
   @Expose()
   @ApiProperty()
   updatedAt?: Date;
+
+  @Expose()
+  @ApiPropertyOptional({ example: '+8801712345678' })
+  emergencyContact?: string;
+
+  @Expose()
+  @ApiPropertyOptional({ example: 'emergency@example.com' })
+  emergencyContactEmail?: string;
 }

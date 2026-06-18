@@ -17,6 +17,8 @@ export const userService = {
       vehicleModel?: string;
       vehiclePlate?: string;
       vehicleType?: string;
+      emergencyContact?: string;
+      emergencyContactEmail?: string;
     },
     clientRole: UserRole = 'rider',
   ): Promise<User> {

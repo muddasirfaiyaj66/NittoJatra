@@ -9,6 +9,7 @@ import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 export default function AddTrustedContactModal() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
 
   return (
     <View style={styles.root}>
@@ -25,6 +26,8 @@ export default function AddTrustedContactModal() {
           <TextInput accessibilityLabel="Contact name" placeholder="Full name" placeholderTextColor={Colors.textMuted} value={name} onChangeText={setName} style={styles.input} />
           <Text style={styles.label}>Phone Number</Text>
           <TextInput accessibilityLabel="Phone number" placeholder="01XXXXXXXXX" placeholderTextColor={Colors.textMuted} value={phone} onChangeText={setPhone} keyboardType="phone-pad" style={styles.input} />
+          <Text style={styles.label}>Email Address</Text>
+          <TextInput accessibilityLabel="Email address" placeholder="contact@example.com" placeholderTextColor={Colors.textMuted} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
           <GradientButton title="Save Contact" onPress={() => router.back()} />
         </View>
       </SafeAreaView>

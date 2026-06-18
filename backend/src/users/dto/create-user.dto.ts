@@ -53,4 +53,14 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   vehicleType?: string;
+
+  @ApiPropertyOptional({ example: '+8801712345678' })
+  @IsOptional()
+  @IsString()
+  emergencyContact?: string;
+
+  @ApiPropertyOptional({ example: 'emergency@example.com' })
+  @IsOptional()
+  @IsEmail()
+  emergencyContactEmail?: string;
 }

@@ -31,6 +31,8 @@ export interface ApiUser {
   vehicleModel?: string;
   vehiclePlate?: string;
   vehicleType?: string;
+  emergencyContact?: string;
+  emergencyContactEmail?: string;
   createdAt?: string;
   updatedAt?: string;
 }

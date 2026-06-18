@@ -24,6 +24,7 @@ export interface User {
   driverBalance?: number;
   activeRiders?: number;
   emergencyContact?: string;
+  emergencyContactEmail?: string;
 }
 
 export interface RegisterData {

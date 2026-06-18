@@ -22,6 +22,7 @@ export default function PersonalDetailsScreen() {
   const [email, setEmail] = useState(user?.email ?? defaultEmail);
   const [phone, setPhone] = useState(user?.phone ?? '+8801712345678');
   const [emergency, setEmergency] = useState(user?.emergencyContact ?? '+8801700000000');
+  const [emergencyEmail, setEmergencyEmail] = useState(user?.emergencyContactEmail ?? '');
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -31,6 +32,7 @@ export default function PersonalDetailsScreen() {
         name: name.trim(),
         phone: phone.trim(),
         emergencyContact: emergency.trim(),
+        emergencyContactEmail: emergencyEmail.trim(),
       });
       router.back();
     } finally {
@@ -75,7 +77,8 @@ export default function PersonalDetailsScreen() {
             <Text style={styles.input}>{email}</Text>
           </View>
           <Field label="Phone Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-          <Field label="Emergency Contact" value={emergency} onChangeText={setEmergency} keyboardType="phone-pad" isLast />
+          <Field label="Emergency Contact" value={emergency} onChangeText={setEmergency} keyboardType="phone-pad" />
+          <Field label="Emergency Contact Email" value={emergencyEmail} onChangeText={setEmergencyEmail} keyboardType="email-address" autoCapitalize="none" isLast />
         </View>
 
         <Text style={styles.sectionLabel}>RIDE STATS</Text>

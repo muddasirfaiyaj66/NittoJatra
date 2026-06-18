@@ -10,7 +10,15 @@ export default function SafetyScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const trustedContacts = user?.emergencyContact
-    ? [{ id: 'primary', name: 'Emergency Contact', phone: user.emergencyContact, initial: user.name.charAt(0) }]
+    ? [
+        {
+          id: 'primary',
+          name: 'Emergency Contact',
+          phone: user.emergencyContact,
+          email: user.emergencyContactEmail,
+          initial: user.name.charAt(0),
+        },
+      ]
     : [];
 
   const handleSos = () => {
@@ -84,6 +92,9 @@ export default function SafetyScreen() {
                     <View>
                       <Text style={styles.contactName}>{c.name}</Text>
                       <Text style={styles.contactPhone}>{c.phone}</Text>
+                      {c.email ? (
+                        <Text style={styles.contactEmail}>{c.email}</Text>
+                      ) : null}
                     </View>
                   </View>
                   <Pressable accessibilityRole="button" accessibilityLabel={`Delete ${c.name}`} style={styles.deleteBtn}>
@@ -302,6 +313,14 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     letterSpacing: -0.3,
     lineHeight: 16,
+  },
+  contactEmail: {
+    fontFamily: Typography.fonts.regular,
+    fontSize: Typography.fontSizes.sm,
+    color: '#6B7280',
+    letterSpacing: -0.3,
+    lineHeight: 16,
+    marginTop: 2,
   },
   emptyContact: {
     fontFamily: Typography.fonts.medium,

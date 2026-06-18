@@ -44,6 +44,12 @@ export class User {
   @Prop({ trim: true })
   vehicleType?: string;
 
+  @Prop({ required: false, trim: true })
+  emergencyContact?: string;
+
+  @Prop({ required: false, trim: true })
+  emergencyContactEmail?: string;
+
   @Prop({ select: false })
   refreshToken?: string;
 }
