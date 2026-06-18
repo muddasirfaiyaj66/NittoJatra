@@ -12,11 +12,16 @@ export default function MobileTransferModal() {
   const [phone, setPhone] = useState('');
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
-  const { total, reset } = usePaymentStore();
-  const { user } = useAuth();
+  const { total, reset, claimedCoins } = usePaymentStore();
+  const { user, updateUser } = useAuth();
   const walletBalance = Math.max(0, (user?.points ?? 0) * 10);
 
-  const confirm = () => {
+  const confirm = async () => {
+    if (claimedCoins > 0 && user) {
+      await updateUser({
+        points: Math.max(0, (user.points ?? 0) - claimedCoins),
+      });
+    }
     reset();
     router.dismissAll();
     router.push('/notifications');

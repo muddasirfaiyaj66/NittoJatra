@@ -108,6 +108,8 @@ export const authService = {
     if (patch.vehicleType !== undefined) payload.vehicleType = patch.vehicleType;
     if (patch.emergencyContact !== undefined) payload.emergencyContact = patch.emergencyContact;
     if (patch.emergencyContactEmail !== undefined) payload.emergencyContactEmail = patch.emergencyContactEmail;
+    if (patch.walletBalance !== undefined) payload.walletBalance = patch.walletBalance;
+    if (patch.walletTransactions !== undefined) payload.walletTransactions = patch.walletTransactions;
 
     const updated = await userService.updateProfile(payload, current.role);
     return { ...updated, ...patch, id: updated.id, role: current.role };

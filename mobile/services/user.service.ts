@@ -19,6 +19,8 @@ export const userService = {
       vehicleType?: string;
       emergencyContact?: string;
       emergencyContactEmail?: string;
+      walletBalance?: number;
+      walletTransactions?: any[];
     },
     clientRole: UserRole = 'rider',
   ): Promise<User> {

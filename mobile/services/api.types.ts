@@ -33,6 +33,8 @@ export interface ApiUser {
   vehicleType?: string;
   emergencyContact?: string;
   emergencyContactEmail?: string;
+  walletBalance?: number;
+  walletTransactions?: any[];
   createdAt?: string;
   updatedAt?: string;
 }

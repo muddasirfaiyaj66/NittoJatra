@@ -80,6 +80,8 @@ export function mapApiUser(apiUser: ApiUser, _clientRole?: UserRole): User {
     savedLocation: role === 'rider' ? 'Dhaka, Bangladesh' : undefined,
     emergencyContact: apiUser.emergencyContact ?? apiUser.phone,
     emergencyContactEmail: apiUser.emergencyContactEmail,
+    walletBalance: apiUser.walletBalance,
+    walletTransactions: apiUser.walletTransactions,
     driverBalance: role === 'driver' ? 0 : undefined,
     activeRiders: role === 'driver' ? 0 : undefined,
     vehicle: apiUser.vehicleModel,
@@ -222,6 +224,7 @@ export function mapApiBooking(booking: ApiBooking): Booking {
     seatCount: booking.seats.length,
     operator: booking.ride.operator.name,
     amount: booking.totalAmount,
+    discount: booking.discount,
     driver: `${booking.ride.operator.name} Captain`,
   };
 }

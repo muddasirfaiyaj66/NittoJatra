@@ -19,8 +19,18 @@ export default function VerifyOtpModal() {
   const [otp, setOtp] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { reset, rideId, paymentMethod, selectedSeats } = usePaymentStore();
+  const {
+    reset,
+    rideId,
+    paymentMethod,
+    selectedSeats,
+    claimedCoins,
+    coinDiscount,
+    promoCode,
+    promoDiscount,
+  } = usePaymentStore();
   const user = useAuthStore((s) => s.user);
+  const updateUser = useAuthStore((s) => s.updateUser);
   const addBooking = useBookingStore((s) => s.addBooking);
 
   const confirm = async () => {
@@ -42,9 +52,46 @@ export default function VerifyOtpModal() {
         passengerPhone: user.phone,
         passengerEmail: user.email,
         paymentMethod,
+        promoCode: promoCode || undefined,
       });
       await bookingService.confirmPayment(booking.id);
-      addBooking({ ...booking, status: 'upcoming' });
+
+      if (claimedCoins > 0) {
+        await updateUser({
+          points: Math.max(0, (user.points ?? 0) - claimedCoins),
+        });
+      }
+
+      const isBackendPromo = promoCode.toUpperCase() === 'NITTO10';
+      const localPromoDiscount = isBackendPromo ? 0 : promoDiscount;
+      const extraDiscount = coinDiscount + localPromoDiscount;
+      const finalAmount = Math.max(0, booking.amount - extraDiscount);
+
+      // Deduct from wallet balance if using wallet (represented as cash in payment store)
+      if (paymentMethod === 'cash') {
+        const currentBalance = user.walletBalance ?? 2540.5;
+        const currentTransactions = user.walletTransactions ?? [];
+        const tx = {
+          id: `tx-ride-${Date.now()}`,
+          label: `Ride Payment`,
+          amount: -finalAmount,
+          date: new Date().toISOString().slice(0, 10),
+          status: 'completed',
+        };
+        await updateUser({
+          walletBalance: Math.max(0, currentBalance - finalAmount),
+          walletTransactions: [tx, ...currentTransactions],
+        });
+      }
+
+      const finalBooking = {
+        ...booking,
+        discount: (booking.discount ?? 0) + extraDiscount,
+        amount: finalAmount,
+        status: 'upcoming' as const,
+      };
+
+      addBooking(finalBooking);
       reset();
       router.dismissAll();
       router.push('/notifications');

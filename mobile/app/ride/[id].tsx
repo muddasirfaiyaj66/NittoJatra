@@ -32,7 +32,7 @@ export default function RideDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState('single');
-  const { setTotal, setRideId, setSelectedSeats, reset } = usePaymentStore();
+  const { setTotal, setOriginalTotal, setRideId, setSelectedSeats, reset } = usePaymentStore();
   const [bookingRef, setBookingRef] = useState<string | null>(null);
   const [openingChat, setOpeningChat] = useState(false);
 
@@ -137,6 +137,7 @@ export default function RideDetailScreen() {
     reset();
     setRideId(rideId);
     setTotal(bookPrice);
+    setOriginalTotal(bookPrice);
     try {
       const seats = await rideService.getSeatMap(rideId);
       const available = seats?.find(

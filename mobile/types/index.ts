@@ -25,6 +25,8 @@ export interface User {
   activeRiders?: number;
   emergencyContact?: string;
   emergencyContactEmail?: string;
+  walletBalance?: number;
+  walletTransactions?: any[];
 }
 
 export interface RegisterData {
@@ -131,6 +133,7 @@ export interface Booking {
   seatCount: number;
   operator: string;
   amount: number;
+  discount?: number;
   driver?: string;
   rideId?: string;
 }
