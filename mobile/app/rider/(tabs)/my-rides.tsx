@@ -36,6 +36,10 @@ export default function MyRidesScreen() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [reviewedBookings, setReviewedBookings] = useState<Record<string, { rating: number; comment: string }>>({});
+  const [complaintCategory, setComplaintCategory] = useState('behavior');
+  const [complaintDescription, setComplaintDescription] = useState('');
+  const [complainedBookings, setComplainedBookings] = useState<Record<string, { category: string; description: string }>>({});
+  const [submittingComplaint, setSubmittingComplaint] = useState(false);
 
   useEffect(() => {
     void fetchBookings();
@@ -49,6 +53,13 @@ export default function MyRidesScreen() {
     } else {
       setRating(5);
       setComment('');
+    }
+    if (complainedBookings[booking.id]) {
+      setComplaintCategory(complainedBookings[booking.id].category);
+      setComplaintDescription(complainedBookings[booking.id].description);
+    } else {
+      setComplaintCategory('behavior');
+      setComplaintDescription('');
     }
   };
 
@@ -64,6 +75,42 @@ export default function MyRidesScreen() {
     } catch (e: any) {
       console.error('Submit review error:', e);
       Alert.alert('Error', e.message || 'Failed to submit review. Please try again.');
+    }
+  };
+
+  const handleSubmitComplaint = async () => {
+    if (!selectedBooking) return;
+    if (!complaintDescription.trim()) {
+      Alert.alert('Validation Error', 'Please describe your complaint in detail.');
+      return;
+    }
+    const againstUserId = selectedBooking.driverUserId || selectedBooking.operatorId;
+    if (!againstUserId) {
+      Alert.alert('Error', 'Cannot resolve driver/operator ID for this booking.');
+      return;
+    }
+    setSubmittingComplaint(true);
+    try {
+      await bookingService.submitComplaint({
+        bookingId: selectedBooking.bookingDbId || selectedBooking.id,
+        againstUserId,
+        byRole: 'rider',
+        category: complaintCategory,
+        description: complaintDescription,
+      });
+      setComplainedBookings((prev) => ({
+        ...prev,
+        [selectedBooking.id]: {
+          category: complaintCategory,
+          description: complaintDescription,
+        },
+      }));
+      Alert.alert('Complaint Filed', 'Your complaint has been successfully registered. We will investigate the issue.');
+    } catch (e: any) {
+      console.error('Submit complaint error:', e);
+      Alert.alert('Error', e.message || 'Failed to file complaint. Please try again.');
+    } finally {
+      setSubmittingComplaint(false);
     }
   };
 
@@ -310,6 +357,69 @@ export default function MyRidesScreen() {
 
                       <Pressable style={styles.submitBtn} onPress={handleSubmitReview}>
                         <Text style={styles.submitBtnText}>Submit Review</Text>
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
+
+                {/* Complaint / Report Section */}
+                <View style={styles.detailSection}>
+                  <Text style={styles.sectionHeading}>Report Driver / Complain</Text>
+                  
+                  {complainedBookings[selectedBooking.id] ? (
+                    <View style={styles.submittedReviewBox}>
+                      <View style={styles.complaintInfoRow}>
+                        <Ionicons name="warning-outline" size={20} color={Colors.danger} />
+                        <Text style={[styles.submittedAlertText, { color: Colors.danger }]}>Complaint Registered</Text>
+                      </View>
+                      <Text style={styles.complaintCategoryBadge}>Category: {complainedBookings[selectedBooking.id].category.toUpperCase()}</Text>
+                      <Text style={styles.submittedComment}>{`"${complainedBookings[selectedBooking.id].description}"`}</Text>
+                    </View>
+                  ) : (
+                    <View style={styles.reviewForm}>
+                      <Text style={styles.reviewPrompt}>Select Complaint Category:</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.complaintCategoryScroll}>
+                        {[
+                          { label: 'Driver Behavior', value: 'behavior' },
+                          { label: 'Safety & Driving', value: 'safety' },
+                          { label: 'Cleanliness', value: 'cleanliness' },
+                          { label: 'Delay / Timing', value: 'delay' },
+                          { label: 'Other Support', value: 'other' },
+                        ].map((cat) => (
+                          <Pressable
+                            key={cat.value}
+                            onPress={() => setComplaintCategory(cat.value)}
+                            style={[
+                              styles.catChip,
+                              complaintCategory === cat.value && styles.activeCatChip,
+                            ]}
+                          >
+                            <Text style={[styles.catChipLabel, complaintCategory === cat.value && styles.activeCatChipLabel]}>
+                              {cat.label}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </ScrollView>
+
+                      <TextInput
+                        style={styles.commentInput}
+                        placeholder="Please describe the issue in detail..."
+                        placeholderTextColor={Colors.textMuted}
+                        value={complaintDescription}
+                        onChangeText={setComplaintDescription}
+                        multiline
+                      />
+
+                      <Pressable
+                        style={[styles.submitBtn, { backgroundColor: Colors.danger }]}
+                        onPress={handleSubmitComplaint}
+                        disabled={submittingComplaint}
+                      >
+                        {submittingComplaint ? (
+                          <ActivityIndicator size="small" color={Colors.white} />
+                        ) : (
+                          <Text style={styles.submitBtnText}>Submit Complaint</Text>
+                        )}
                       </Pressable>
                     </View>
                   )}
@@ -620,5 +730,45 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSizes.sm,
     color: Colors.white,
     letterSpacing: 1,
+  },
+  complaintCategoryScroll: {
+    flexDirection: 'row',
+    marginBottom: Spacing.xs,
+  },
+  catChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: Colors.borderMid,
+    backgroundColor: '#F8FAFC',
+    marginRight: 8,
+  },
+  activeCatChip: {
+    backgroundColor: Colors.danger,
+    borderColor: Colors.danger,
+  },
+  catChipLabel: {
+    fontFamily: Typography.fonts.semibold,
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.textSecondary,
+  },
+  activeCatChipLabel: {
+    color: Colors.white,
+  },
+  complaintInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  complaintCategoryBadge: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: 10,
+    color: Colors.textSecondary,
+    backgroundColor: Colors.surfaceMuted2,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: Radius.sm,
+    alignSelf: 'center',
   },
 });

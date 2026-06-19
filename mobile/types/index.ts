@@ -136,6 +136,9 @@ export interface Booking {
   discount?: number;
   driver?: string;
   rideId?: string;
+  driverUserId?: string;
+  operatorId?: string;
+  bookingDbId?: string;
 }
 
 export interface RiderUpcomingRide {
@@ -239,6 +242,8 @@ export interface DriverRider {
   verified: boolean;
   plan: string;
   amount: number;
+  passengerUserId?: string;
+  bookingDbId?: string;
 }
 
 export type BadgeVariant =

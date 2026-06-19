@@ -50,6 +50,8 @@ export function mapApiBookingsToDriverRiders(bookings: ApiBooking[]): DriverRide
     verified: booking.paymentStatus === 'paid',
     plan: booking.status === 'confirmed' ? 'Confirmed' : booking.status,
     amount: booking.totalAmount,
+    passengerUserId: booking.user?._id,
+    bookingDbId: booking._id,
   }));
 }
 

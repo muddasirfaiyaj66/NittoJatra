@@ -1,3 +1,4 @@
+import { CreateComplaintInput } from '@/services/api.types';
 import { bookingApiService } from '@/services/ride.service';
 
 export interface CreateBookingInput {
@@ -29,5 +30,9 @@ export const bookingService = {
 
   submitReview(bookingId: string, rating: number, comment?: string) {
     return bookingApiService.submitReview(bookingId, rating, comment);
+  },
+
+  submitComplaint(input: CreateComplaintInput) {
+    return bookingApiService.submitComplaint(input);
   },
 };

@@ -257,6 +257,9 @@ export function mapApiBooking(booking: ApiBooking): Booking {
     amount: booking.totalAmount,
     discount: booking.discount,
     driver: `${booking.ride.operator.name} Driver`,
+    driverUserId: booking.ride.driverUserId,
+    operatorId: booking.ride.operator._id,
+    bookingDbId: booking._id,
   };
 }
 

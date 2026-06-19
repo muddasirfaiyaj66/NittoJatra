@@ -104,6 +104,11 @@ export interface ApiRide {
 export interface ApiBooking {
   _id: string;
   bookingId: string;
+  user: {
+    _id: string;
+    fullName: string;
+    phone: string;
+  };
   ride: ApiRide;
   seats: string[];
   passengerName: string;
@@ -166,4 +171,25 @@ export interface ApiPaginatedMessages {
     hasNext: boolean;
     hasPrev: boolean;
   };
+}
+
+export interface ApiComplaint {
+  _id: string;
+  booking: string;
+  byUser: string;
+  againstUser: string;
+  byRole: 'rider' | 'driver';
+  category: string;
+  description: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateComplaintInput {
+  bookingId: string;
+  againstUserId: string;
+  byRole: 'rider' | 'driver';
+  category: string;
+  description: string;
 }

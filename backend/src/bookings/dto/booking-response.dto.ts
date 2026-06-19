@@ -5,6 +5,10 @@ import { RideResponseDto } from '../../rides/dto/ride-response.dto';
 @Exclude()
 class BookingUserSummaryDto {
   @Expose()
+  @ApiProperty({ example: '65f1a2b3c4d5e6f7a8b9c0a1' })
+  _id: string;
+
+  @Expose()
   @ApiProperty({ example: 'Ahmed Rahman' })
   fullName: string;
 

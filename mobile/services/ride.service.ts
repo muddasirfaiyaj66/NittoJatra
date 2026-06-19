@@ -110,4 +110,8 @@ export const bookingApiService = {
     );
     return mapApiBooking(booking);
   },
+
+  async submitComplaint(input: any): Promise<any> {
+    return apiClient.post('/complaints', input, true);
+  },
 };
