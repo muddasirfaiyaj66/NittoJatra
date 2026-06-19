@@ -26,4 +26,8 @@ export const bookingService = {
   confirmPayment(bookingId: string) {
     return bookingApiService.confirmPayment(bookingId);
   },
+
+  submitReview(bookingId: string, rating: number, comment?: string) {
+    return bookingApiService.submitReview(bookingId, rating, comment);
+  },
 };

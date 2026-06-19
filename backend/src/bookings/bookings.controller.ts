@@ -21,13 +21,18 @@ import { BookingResponseDto } from './dto/booking-response.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { BookingsService } from './bookings.service';
+import { ReviewsService } from '../reviews/reviews.service';
+import { CreateReviewDto } from '../reviews/dto/create-review.dto';
 
 @ApiTags('bookings')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'bookings', version: '1' })
 export class BookingsController {
-  constructor(private readonly bookingsService: BookingsService) {}
+  constructor(
+    private readonly bookingsService: BookingsService,
+    private readonly reviewsService: ReviewsService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new booking' })
@@ -104,5 +109,21 @@ export class BookingsController {
       user.userId,
       user.role,
     );
+  }
+
+  @Post(':bookingId/review')
+  @ApiOperation({ summary: 'Submit a review for a booking' })
+  @ApiResponse({ status: 201, description: 'Review created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid booking status or request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
+  @ApiResponse({ status: 409, description: 'Already reviewed' })
+  createReview(
+    @CurrentUser() user: { userId: string },
+    @Param('bookingId') bookingId: string,
+    @Body() dto: CreateReviewDto,
+  ) {
+    return this.reviewsService.createReview(user.userId, bookingId, dto);
   }
 }

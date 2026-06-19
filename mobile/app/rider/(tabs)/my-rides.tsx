@@ -10,6 +10,7 @@ import { Colors, formatTaka, Gradients, Radius, Shadows, Spacing, Typography } f
 import { useBookingStore } from '@/store/booking.store';
 import { useAuth } from '@/hooks/useAuth';
 import { Booking } from '@/types';
+import { bookingService } from '@/services/booking.service';
 
 function formatHistoryDate(dateStr: string) {
   const d = new Date(`${dateStr}T12:00:00`);
@@ -51,13 +52,19 @@ export default function MyRidesScreen() {
     }
   };
 
-  const handleSubmitReview = () => {
+  const handleSubmitReview = async () => {
     if (!selectedBooking) return;
-    setReviewedBookings((prev) => ({
-      ...prev,
-      [selectedBooking.id]: { rating, comment },
-    }));
-    Alert.alert('Review Submitted', 'Thank you for reviewing the driver!');
+    try {
+      await bookingService.submitReview(selectedBooking.id, rating, comment || undefined);
+      setReviewedBookings((prev) => ({
+        ...prev,
+        [selectedBooking.id]: { rating, comment },
+      }));
+      Alert.alert('Review Submitted', 'Thank you for reviewing the driver!');
+    } catch (e: any) {
+      console.error('Submit review error:', e);
+      Alert.alert('Error', e.message || 'Failed to submit review. Please try again.');
+    }
   };
 
   const headerContent = (

@@ -84,6 +84,18 @@ export const bookingApiService = {
     return mapApiBooking(booking);
   },
 
+  async submitReview(
+    bookingId: string,
+    rating: number,
+    comment?: string,
+  ): Promise<any> {
+    return apiClient.post(
+      `/bookings/${bookingId}/review`,
+      { rating, comment },
+      true,
+    );
+  },
+
   async confirmPayment(bookingId: string): Promise<Booking> {
     const booking = await apiClient.patch<ApiBooking>(
       `/bookings/${bookingId}/confirm-payment`,

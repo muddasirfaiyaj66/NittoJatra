@@ -15,6 +15,7 @@ import { RoutesModule } from './routes/routes.module';
 import { RidesModule } from './rides/rides.module';
 import { MessagesModule } from './messages/messages.module';
 import { UsersModule } from './users/users.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { UsersModule } from './users/users.module';
     RidesModule,
     BookingsModule,
     MessagesModule,
+    ReviewsModule,
     DatabaseModule,
     HealthModule,
   ],

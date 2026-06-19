@@ -8,6 +8,7 @@ import { UsersModule } from '../users/users.module';
 import { Booking, BookingSchema } from './schemas/booking.schema';
 import { BookingsController } from './bookings.controller';
 import { BookingsService } from './bookings.service';
+import { ReviewsModule } from '../reviews/reviews.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { BookingsService } from './bookings.service';
     UsersModule,
     RoutesModule,
     MessagesModule,
+    ReviewsModule,
   ],
   controllers: [BookingsController],
   providers: [BookingsService],

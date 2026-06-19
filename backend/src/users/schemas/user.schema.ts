@@ -35,6 +35,12 @@ export class User {
   @Prop({ default: 0 })
   loyaltyPoints: number;
 
+  @Prop({ default: 5.0, min: 1, max: 5 })
+  rating: number;
+
+  @Prop({ default: 0 })
+  totalRatings: number;
+
   @Prop({ trim: true })
   vehicleModel?: string;
 
@@ -47,8 +53,8 @@ export class User {
   @Prop({ required: false, trim: true })
   emergencyContact?: string;
 
-  @Prop({ required: false, trim: true })
-  emergencyContactEmail?: string;
+  @Prop({ type: String, required: false, trim: true })
+  emergencyContactEmail?: string | null;
 
   @Prop({ select: false })
   refreshToken?: string;
