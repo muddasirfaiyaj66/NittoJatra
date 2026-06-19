@@ -137,6 +137,22 @@ export function mapApiRideToSearchResult(ride: ApiRide): SearchResult {
   };
 }
 
+function formatTimeAgo(dateStr?: string): string {
+  if (!dateStr) return 'Recently';
+  try {
+    const diffMs = new Date().getTime() - new Date(dateStr).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  } catch {
+    return 'Recently';
+  }
+}
+
 export function mapApiRideToDetail(ride: ApiRide): RideDetail {
   const search = mapApiRideToSearchResult(ride);
   return {
@@ -157,7 +173,22 @@ export function mapApiRideToDetail(ride: ApiRide): RideDetail {
         time: formatTime(ride.arrivalTime),
       },
     ],
-    reviews: [],
+    reviews: ride.reviews
+      ? ride.reviews.map((r) => {
+          const author =
+            typeof r.rider === 'object' && r.rider
+              ? r.rider.fullName
+              : 'Rider';
+          return {
+            id: r._id,
+            author,
+            initial: author.charAt(0).toUpperCase(),
+            rating: r.rating,
+            timeAgo: formatTimeAgo(r.createdAt),
+            quote: r.comment || 'No comment provided.',
+          };
+        })
+      : [],
     subscriptionPlans: [
       {
         id: 'single',

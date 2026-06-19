@@ -54,6 +54,10 @@ export class RideResponseDto {
   driverUserId?: string;
 
   @Expose()
+  @ApiPropertyOptional({ type: [Object] })
+  reviews?: any[];
+
+  @Expose()
   @ApiProperty()
   createdAt?: Date;
 

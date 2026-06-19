@@ -76,6 +76,16 @@ export interface ApiSeat {
   status: 'available' | 'booked' | 'women-only' | 'blocked';
 }
 
+export interface ApiReview {
+  _id: string;
+  rider: {
+    fullName: string;
+  } | string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+}
+
 export interface ApiRide {
   _id: string;
   route: ApiRoute;
@@ -88,6 +98,7 @@ export interface ApiRide {
   seatMap?: ApiSeat[];
   status: string;
   driverUserId?: string;
+  reviews?: ApiReview[];
 }
 
 export interface ApiBooking {

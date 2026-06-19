@@ -15,6 +15,7 @@ import { SearchRidesDto } from './dto/search-rides.dto';
 import { UpdateRideDto } from './dto/update-ride.dto';
 import { generateSeatMap } from './helpers/seat-map.helper';
 import { Ride, RideDocument } from './schemas/ride.schema';
+import { Review, ReviewDocument } from '../reviews/schemas/review.schema';
 import { toRideResponse } from './rides.mapper';
 
 const POPULATE_OPTIONS = [
@@ -37,6 +38,7 @@ export class RidesService {
 
   constructor(
     @InjectModel(Ride.name) private readonly rideModel: Model<RideDocument>,
+    @InjectModel(Review.name) private readonly reviewModel: Model<ReviewDocument>,
     private readonly routesService: RoutesService,
     private readonly locationsService: LocationsService,
     private readonly operatorsService: OperatorsService,
@@ -157,7 +159,40 @@ export class RidesService {
     if (!ride) {
       throw new NotFoundException('Ride not found');
     }
-    return toRideResponse(ride);
+
+    const reviews = await this.reviewModel
+      .find({
+        $or: [
+          ...(ride.driverUserId ? [{ driver: ride.driverUserId }] : []),
+          { operator: ride.operator._id ?? ride.operator },
+        ],
+      })
+      .populate('rider', 'fullName')
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .exec();
+
+    const reviewsObj = reviews.map((r) => {
+      const rObj = r.toObject();
+      return {
+        _id: String(rObj._id),
+        booking: String(rObj.booking),
+        rider: rObj.rider && typeof rObj.rider === 'object' ? {
+          _id: String((rObj.rider as any)._id),
+          fullName: (rObj.rider as any).fullName,
+        } : String(rObj.rider),
+        driver: rObj.driver ? String(rObj.driver) : undefined,
+        operator: String(rObj.operator),
+        rating: rObj.rating,
+        comment: rObj.comment,
+        createdAt: rObj.createdAt,
+      };
+    });
+
+    const rideObj = ride.toObject();
+    (rideObj as any).reviews = reviewsObj;
+
+    return toRideResponse(rideObj);
   }
 
   async findDocumentById(id: string) {

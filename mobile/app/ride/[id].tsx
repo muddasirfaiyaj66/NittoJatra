@@ -242,10 +242,10 @@ export default function RideDetailScreen() {
           </Pressable>
         </View>
 
-        {detail.reviews.length > 0 && (
-          <View style={[styles.reviewsCard, Shadows.card]}>
-            <Text style={styles.sectionTitle}>Rider Review</Text>
-            {detail.reviews.map((r) => (
+        <View style={[styles.reviewsCard, Shadows.card]}>
+          <Text style={styles.sectionTitle}>Rider Reviews</Text>
+          {detail.reviews.length > 0 ? (
+            detail.reviews.map((r) => (
               <View key={r.id} style={styles.reviewRow}>
                 <View style={styles.reviewAvatar}><Text style={styles.reviewInitial}>{r.initial}</Text></View>
                 <View style={styles.reviewContent}>
@@ -257,9 +257,13 @@ export default function RideDetailScreen() {
                   <Text style={styles.reviewQuote}>&ldquo;{r.quote}&rdquo;</Text>
                 </View>
               </View>
-            ))}
-          </View>
-        )}
+            ))
+          ) : (
+            <Text style={{ fontFamily: Typography.fonts.medium, color: Colors.textMuted, fontSize: Typography.fontSizes.sm, fontStyle: 'italic', marginVertical: Spacing.xs }}>
+              No reviews for this driver or operator yet.
+            </Text>
+          )}
+        </View>
 
         <Text style={styles.sectionTitle}>Subscription Plans</Text>
         <View style={styles.plansRow}>

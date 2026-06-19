@@ -6,6 +6,7 @@ import { LocationsService } from '../locations/locations.service';
 import { OperatorsService } from '../operators/operators.service';
 import { RidesService } from './rides.service';
 import { Ride } from './schemas/ride.schema';
+import { Review } from '../reviews/schemas/review.schema';
 
 describe('RidesService', () => {
   let service: RidesService;
@@ -46,6 +47,10 @@ describe('RidesService', () => {
     findByIdAndUpdate: jest.fn(),
   };
 
+  const reviewModel = {
+    find: jest.fn(),
+  };
+
   const routesService = {
     findDocumentByLocationPair: jest.fn(),
     findDocumentById: jest.fn(),
@@ -67,6 +72,10 @@ describe('RidesService', () => {
         {
           provide: getModelToken(Ride.name),
           useValue: rideModel,
+        },
+        {
+          provide: getModelToken(Review.name),
+          useValue: reviewModel,
         },
         {
           provide: RoutesService,
