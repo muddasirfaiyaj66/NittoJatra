@@ -32,7 +32,7 @@ export class Booking {
   @Prop({ required: true })
   baseFare: number;
 
-  @Prop({ default: 5 })
+  @Prop({ default: 0 })
   convenienceFee: number;
 
   @Prop({ default: 0 })

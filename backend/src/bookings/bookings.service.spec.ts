@@ -42,9 +42,9 @@ describe('BookingsService', () => {
     passengerPhone: '+8801712345678',
     passengerEmail: 'ahmed@nittojatra.com',
     baseFare: 25,
-    convenienceFee: 5,
+    convenienceFee: 0,
     discount: 0,
-    totalAmount: 30,
+    totalAmount: 25,
     status: 'pending',
     paymentStatus: 'unpaid',
     paymentMethod: 'bkash',
@@ -158,7 +158,7 @@ describe('BookingsService', () => {
       expect(bookingModel.create).toHaveBeenCalledWith(
         expect.objectContaining({
           discount: 3,
-          totalAmount: 27,
+          totalAmount: 22,
           promoCode: 'NITTO10',
         }),
       );

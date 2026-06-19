@@ -38,7 +38,7 @@ const POPULATE_OPTIONS = [
 ];
 
 const PROMO_NITTO10 = 'NITTO10';
-const CONVENIENCE_FEE = 5;
+const CONVENIENCE_FEE = 0;
 const MAX_PROMO_DISCOUNT = 50;
 
 @Injectable()
