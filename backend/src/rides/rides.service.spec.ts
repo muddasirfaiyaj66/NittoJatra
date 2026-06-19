@@ -129,6 +129,107 @@ describe('RidesService', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('applies timeSlot filter', async () => {
+      routesService.findDocumentByLocationPair.mockResolvedValue({
+        _id: mockRouteId,
+      });
+      rideModel.find.mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          sort: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue([mockRide]),
+          }),
+        }),
+      });
+
+      await service.search({
+        fromLocationId: 'from',
+        toLocationId: 'to',
+        date: '2026-06-09',
+        timeSlot: 'morning',
+      });
+
+      expect(rideModel.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          departureTime: {
+            $gte: new Date('2026-06-09T06:00:00.000Z'),
+            $lte: new Date('2026-06-09T11:59:59.999Z'),
+          },
+        }),
+      );
+    });
+
+    it('filters rides based on seatPreference', async () => {
+      routesService.findDocumentByLocationPair.mockResolvedValue({
+        _id: mockRouteId,
+      });
+
+      const windowRide = {
+        ...mockRide,
+        _id: 'ride-window',
+        seatMap: [{ seatNumber: 'A1', row: 1, column: 1, status: 'available' }],
+      };
+      const aisleRide = {
+        ...mockRide,
+        _id: 'ride-aisle',
+        seatMap: [{ seatNumber: 'A2', row: 1, column: 2, status: 'available' }],
+      };
+
+      rideModel.find.mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          sort: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue([windowRide, aisleRide]),
+          }),
+        }),
+      });
+
+      const result = await service.search({
+        fromLocationId: 'from',
+        toLocationId: 'to',
+        date: '2026-06-09',
+        seatPreference: 'window',
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]._id).toBe(windowRide._id);
+    });
+
+    it('filters rides based on genderRestriction', async () => {
+      routesService.findDocumentByLocationPair.mockResolvedValue({
+        _id: mockRouteId,
+      });
+
+      const maleDriverRide = {
+        ...mockRide,
+        _id: 'ride-male',
+        serviceType: 'ac',
+        driverUserId: { _id: 'driver1', gender: 'male' },
+      };
+      const femaleDriverRide = {
+        ...mockRide,
+        _id: 'ride-female',
+        serviceType: 'women-special',
+        driverUserId: { _id: 'driver2', gender: 'female' },
+      };
+
+      rideModel.find.mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          sort: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue([maleDriverRide, femaleDriverRide]),
+          }),
+        }),
+      });
+
+      const result = await service.search({
+        fromLocationId: 'from',
+        toLocationId: 'to',
+        date: '2026-06-09',
+        genderRestriction: 'female',
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]._id).toBe(femaleDriverRide._id);
+    });
   });
 
   describe('holdSeat', () => {

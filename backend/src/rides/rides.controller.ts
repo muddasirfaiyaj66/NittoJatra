@@ -43,6 +43,9 @@ export class RidesController {
   @ApiQuery({ name: 'toName', required: false, example: 'Motijheel' })
   @ApiQuery({ name: 'date', required: true, example: '2026-06-09' })
   @ApiQuery({ name: 'serviceType', required: false })
+  @ApiQuery({ name: 'timeSlot', required: false, enum: ['morning', 'afternoon', 'evening', 'night'] })
+  @ApiQuery({ name: 'seatPreference', required: false, enum: ['window', 'aisle', 'front', 'back'] })
+  @ApiQuery({ name: 'genderRestriction', required: false, enum: ['male', 'female'] })
   @ApiResponse({ status: 200, type: [RideResponseDto] })
   search(
     @Query('fromLocationId') fromLocationId?: string,
@@ -51,6 +54,9 @@ export class RidesController {
     @Query('toName') toName?: string,
     @Query('date') date?: string,
     @Query('serviceType') serviceType?: string,
+    @Query('timeSlot') timeSlot?: string,
+    @Query('seatPreference') seatPreference?: string,
+    @Query('genderRestriction') genderRestriction?: string,
   ) {
     const dto: SearchRidesDto = {
       fromLocationId,
@@ -59,6 +65,9 @@ export class RidesController {
       toName,
       date: date ?? new Date().toISOString().slice(0, 10),
       serviceType,
+      timeSlot,
+      seatPreference,
+      genderRestriction,
     };
     return this.ridesService.search(dto);
   }

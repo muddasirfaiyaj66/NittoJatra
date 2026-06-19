@@ -14,12 +14,18 @@ export const rideService = {
     to: string,
     date = localDateKey(),
     serviceType?: string,
+    timeSlot?: string,
+    seatPreference?: string,
+    genderRestriction?: string,
   ): Promise<SearchResult[]> {
     const rides = await apiClient.get<ApiRide[]>('/rides/search', {
       fromName: from.trim(),
       toName: to.trim(),
       date,
       serviceType,
+      timeSlot,
+      seatPreference,
+      genderRestriction,
     });
     return rides.map(mapApiRideToSearchResult);
   },

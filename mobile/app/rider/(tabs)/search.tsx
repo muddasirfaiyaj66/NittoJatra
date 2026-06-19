@@ -166,6 +166,9 @@ export default function FindScreen() {
   const [geocoding, setGeocoding] = useState(false);
   const [apiLocations, setApiLocations] = useState<DhakaLocation[]>([]);
   const [recentPlaces, setRecentPlaces] = useState<RecentPlace[]>([]);
+  const [timeSlot, setTimeSlot] = useState<string | undefined>(undefined);
+  const [seatPreference, setSeatPreference] = useState<string | undefined>(undefined);
+  const [genderRestriction, setGenderRestriction] = useState<string | undefined>(undefined);
   const coordLookup = useRef<Record<string, [number, number]>>({ ...DHAKA_LOCS });
   const webRef = useRef<WebView>(null);
   const mapReady = useRef(false);
@@ -394,7 +397,13 @@ export default function FindScreen() {
     void recentPlacesService.add(to || 'Motijheel').then(setRecentPlaces);
     router.push({
       pathname: '/ride/results',
-      params: { from: from || 'Mirpur', to: to || 'Motijheel' },
+      params: {
+        from: from || 'Mirpur',
+        to: to || 'Motijheel',
+        timeSlot: timeSlot || '',
+        seatPreference: seatPreference || '',
+        genderRestriction: genderRestriction || '',
+      },
     });
   };
 
@@ -446,86 +455,167 @@ export default function FindScreen() {
           <Text style={styles.title}>Where do you want to go?</Text>
         </View>
 
-        {/* Route Inputs */}
-        <View style={styles.routeStack}>
-          <LinearGradient
-            colors={[...Gradients.routeDivider]}
-            style={styles.routeDivider}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-          />
-          {/* FROM */}
-          <View style={[styles.routeCard, styles.routeCardFrom]}>
-            <View style={styles.fromDot} />
-            <View style={styles.routeInput}>
-              <Text style={styles.routeLabel}>FROM</Text>
-              <TextInput
-                accessibilityLabel="From location"
-                placeholder="Enter pickup location"
-                placeholderTextColor={Colors.textMuted}
-                value={from}
-                onChangeText={handleFromChange}
-                style={styles.input}
-                returnKeyType="next"
-              />
+        {/* Scrollable Content Zone */}
+        <ScrollView style={styles.scrollableContent} showsVerticalScrollIndicator={false}>
+          {/* Route Inputs */}
+          <View style={styles.routeStack}>
+            <LinearGradient
+              colors={[...Gradients.routeDivider]}
+              style={styles.routeDivider}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+            />
+            {/* FROM */}
+            <View style={[styles.routeCard, styles.routeCardFrom]}>
+              <View style={styles.fromDot} />
+              <View style={styles.routeInput}>
+                <Text style={styles.routeLabel}>FROM</Text>
+                <TextInput
+                  accessibilityLabel="From location"
+                  placeholder="Enter pickup location"
+                  placeholderTextColor={Colors.textMuted}
+                  value={from}
+                  onChangeText={handleFromChange}
+                  style={styles.input}
+                  returnKeyType="next"
+                />
+              </View>
+              {from.length > 0 && (
+                <Pressable onPress={() => { setFrom(''); fromCoords.current = null; fromLabel.current = ''; sendToMap(null, '', toCoords.current, toLabel.current); }}>
+                  <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+                </Pressable>
+              )}
             </View>
-            {from.length > 0 && (
-              <Pressable onPress={() => { setFrom(''); fromCoords.current = null; fromLabel.current = ''; sendToMap(null, '', toCoords.current, toLabel.current); }}>
-                <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
-              </Pressable>
-            )}
-          </View>
-          {/* TO */}
-          <View style={styles.routeCard}>
-            <View style={styles.toDot} />
-            <View style={styles.routeInput}>
-              <Text style={styles.routeLabel}>TO</Text>
-              <TextInput
-                accessibilityLabel="To location"
-                placeholder="Enter destination"
-                placeholderTextColor={Colors.textMuted}
-                value={to}
-                onChangeText={handleToChange}
-                style={styles.input}
-                returnKeyType="search"
-                onSubmitEditing={search}
-              />
+            {/* TO */}
+            <View style={styles.routeCard}>
+              <View style={styles.toDot} />
+              <View style={styles.routeInput}>
+                <Text style={styles.routeLabel}>TO</Text>
+                <TextInput
+                  accessibilityLabel="To location"
+                  placeholder="Enter destination"
+                  placeholderTextColor={Colors.textMuted}
+                  value={to}
+                  onChangeText={handleToChange}
+                  style={styles.input}
+                  returnKeyType="search"
+                  onSubmitEditing={search}
+                />
+              </View>
+              {to.length > 0 && (
+                <Pressable onPress={() => { setTo(''); toCoords.current = null; toLabel.current = ''; sendToMap(fromCoords.current, fromLabel.current, null, ''); }}>
+                  <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+                </Pressable>
+              )}
             </View>
-            {to.length > 0 && (
-              <Pressable onPress={() => { setTo(''); toCoords.current = null; toLabel.current = ''; sendToMap(fromCoords.current, fromLabel.current, null, ''); }}>
-                <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
-              </Pressable>
-            )}
           </View>
-        </View>
 
-        <Text style={styles.sectionLabel}>RECENT PLACES</Text>
-        <ScrollView style={styles.recentList} showsVerticalScrollIndicator={false}>
-          {(recentPlaces.length > 0
-            ? recentPlaces
-            : apiLocations.slice(0, 6).map((loc) => ({
-                id: loc.id,
-                name: loc.nameEn,
-                label: loc.zone,
-              }))
-          ).map((p) => (
-            <Pressable
-              key={p.id}
-              accessibilityRole="button"
-              accessibilityLabel={`${p.name}, ${p.label}`}
-              onPress={() => handleRecentPress(p.name)}
-              style={styles.recentRow}
-            >
-              <View style={styles.recentIcon}>
-                <Ionicons name="time-outline" size={18} color={Colors.textMuted} />
-              </View>
-              <View style={styles.recentText}>
-                <Text style={styles.recentName}>{p.name}</Text>
-                <Text style={styles.recentLabel}>{p.label}</Text>
-              </View>
-              <Ionicons name="arrow-up-outline" size={16} color={Colors.textMuted} style={{ transform: [{ rotate: '45deg' }] }} />
-            </Pressable>
-          ))}
+          {/* Filters Group */}
+          <View style={styles.filterSection}>
+            <Text style={styles.sectionLabel}>RIDE FILTERS</Text>
+
+            {/* Time Slot Chips */}
+            <Text style={styles.filterLabel}>Departure Time</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+              {[
+                { label: 'Any Time', value: undefined },
+                { label: 'Morning (6am-12pm)', value: 'morning' },
+                { label: 'Afternoon (12pm-6pm)', value: 'afternoon' },
+                { label: 'Evening (6pm-12am)', value: 'evening' },
+                { label: 'Night (12am-6am)', value: 'night' },
+              ].map((item) => (
+                <Pressable
+                  key={item.label}
+                  onPress={() => setTimeSlot(item.value)}
+                  style={[
+                    styles.filterChip,
+                    timeSlot === item.value && styles.activeFilterChip,
+                  ]}
+                >
+                  <Text style={[styles.chipLabel, timeSlot === item.value && styles.activeChipLabel]}>
+                    {item.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+
+            {/* Seat Preference Chips */}
+            <Text style={styles.filterLabel}>Seat Preference</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+              {[
+                { label: 'Any Seat', value: undefined },
+                { label: 'Window Seat', value: 'window' },
+                { label: 'Aisle Seat', value: 'aisle' },
+                { label: 'Front Row', value: 'front' },
+                { label: 'Back Row', value: 'back' },
+              ].map((item) => (
+                <Pressable
+                  key={item.label}
+                  onPress={() => setSeatPreference(item.value)}
+                  style={[
+                    styles.filterChip,
+                    seatPreference === item.value && styles.activeFilterChip,
+                  ]}
+                >
+                  <Text style={[styles.chipLabel, seatPreference === item.value && styles.activeChipLabel]}>
+                    {item.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+
+            {/* Gender Restriction Chips */}
+            <Text style={styles.filterLabel}>Gender Option</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+              {[
+                { label: 'Any Gender', value: undefined },
+                { label: 'Only Male Rides', value: 'male' },
+                { label: 'Only Female Rides', value: 'female' },
+              ].map((item) => (
+                <Pressable
+                  key={item.label}
+                  onPress={() => setGenderRestriction(item.value)}
+                  style={[
+                    styles.filterChip,
+                    genderRestriction === item.value && styles.activeFilterChip,
+                  ]}
+                >
+                  <Text style={[styles.chipLabel, genderRestriction === item.value && styles.activeChipLabel]}>
+                    {item.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+
+          <Text style={styles.sectionLabel}>RECENT PLACES</Text>
+          <View style={styles.recentContainer}>
+            {(recentPlaces.length > 0
+              ? recentPlaces
+              : apiLocations.slice(0, 6).map((loc) => ({
+                  id: loc.id,
+                  name: loc.nameEn,
+                  label: loc.zone,
+                }))
+            ).map((p) => (
+              <Pressable
+                key={p.id}
+                accessibilityRole="button"
+                accessibilityLabel={`${p.name}, ${p.label}`}
+                onPress={() => handleRecentPress(p.name)}
+                style={styles.recentRow}
+              >
+                <View style={styles.recentIcon}>
+                  <Ionicons name="time-outline" size={18} color={Colors.textMuted} />
+                </View>
+                <View style={styles.recentText}>
+                  <Text style={styles.recentName}>{p.name}</Text>
+                  <Text style={styles.recentLabel}>{p.label}</Text>
+                </View>
+                <Ionicons name="arrow-up-outline" size={16} color={Colors.textMuted} style={{ transform: [{ rotate: '45deg' }] }} />
+              </Pressable>
+            ))}
+          </View>
         </ScrollView>
 
         <SolidButton title="SEARCH AVAILABLE RIDE" onPress={search} style={styles.searchBtn} />
@@ -594,7 +684,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     paddingHorizontal: Spacing.xl,
-    paddingBottom: 100,
+    paddingBottom: 34,
     maxHeight: '70%',
     ...Shadows.sheet,
   },
@@ -743,5 +833,54 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
 
-  searchBtn: { marginTop: Spacing.base },
+  searchBtn: {
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  scrollableContent: {
+    flex: 1,
+    width: '100%',
+  },
+  recentContainer: {
+    width: '100%',
+    marginBottom: Spacing.sm,
+  },
+  filterSection: {
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+  },
+  filterLabel: {
+    fontFamily: Typography.fonts.bold,
+    fontSize: Typography.fontSizes.xs - 1,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  chipScroll: {
+    flexDirection: 'row',
+    marginBottom: Spacing.sm,
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: Colors.borderMid,
+    backgroundColor: '#F8FAFC',
+    marginRight: 8,
+  },
+  activeFilterChip: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  chipLabel: {
+    fontFamily: Typography.fonts.semibold,
+    fontSize: Typography.fontSizes.xs,
+    color: Colors.textSecondary,
+  },
+  activeChipLabel: {
+    color: Colors.white,
+  },
 });

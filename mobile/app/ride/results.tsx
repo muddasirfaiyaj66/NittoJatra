@@ -10,7 +10,13 @@ import { SearchResult } from '@/types';
 import { localDateKey } from '@/utils/captain-route';
 
 export default function SearchResultsScreen() {
-  const { from, to } = useLocalSearchParams<{ from?: string; to?: string }>();
+  const { from, to, timeSlot, seatPreference, genderRestriction } = useLocalSearchParams<{
+    from?: string;
+    to?: string;
+    timeSlot?: string;
+    seatPreference?: string;
+    genderRestriction?: string;
+  }>();
   const fromLabel = from?.trim() || 'Mirpur';
   const toLabel = to?.trim() || 'Motijheel';
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -21,10 +27,18 @@ export default function SearchResultsScreen() {
     setLoading(true);
     setError(null);
     try {
-      const rides = await rideService.searchRides(fromLabel, toLabel, localDateKey());
+      const rides = await rideService.searchRides(
+        fromLabel,
+        toLabel,
+        localDateKey(),
+        undefined,
+        timeSlot,
+        seatPreference,
+        genderRestriction,
+      );
       setResults(rides);
       if (rides.length === 0) {
-        setError(`No rides found for ${fromLabel} → ${toLabel} today. Ask a driver to publish this route.`);
+        setError(`No matching rides found for ${fromLabel} → ${toLabel} today with the selected filters.`);
       }
     } catch (e) {
       setError((e as Error).message);
@@ -32,7 +46,7 @@ export default function SearchResultsScreen() {
     } finally {
       setLoading(false);
     }
-  }, [fromLabel, toLabel]);
+  }, [fromLabel, toLabel, timeSlot, seatPreference, genderRestriction]);
 
   useFocusEffect(
     useCallback(() => {

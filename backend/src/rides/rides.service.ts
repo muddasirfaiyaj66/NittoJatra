@@ -30,6 +30,10 @@ const POPULATE_OPTIONS = [
     path: 'operator',
     select: 'name code brandColor rating primaryType serviceTypes',
   },
+  {
+    path: 'driverUserId',
+    select: 'fullName phone gender rating',
+  },
 ];
 
 @Injectable()
@@ -129,12 +133,28 @@ export class RidesService {
       return [];
     }
 
-    const { start, end } = this.getDayBounds(dto.date);
+    let { start, end } = this.getDayBounds(dto.date);
+    if (dto.timeSlot) {
+      const dateStr = dto.date;
+      if (dto.timeSlot === 'morning') {
+        start = new Date(`${dateStr}T06:00:00.000Z`);
+        end = new Date(`${dateStr}T11:59:59.999Z`);
+      } else if (dto.timeSlot === 'afternoon') {
+        start = new Date(`${dateStr}T12:00:00.000Z`);
+        end = new Date(`${dateStr}T17:59:59.999Z`);
+      } else if (dto.timeSlot === 'evening') {
+        start = new Date(`${dateStr}T18:00:00.000Z`);
+        end = new Date(`${dateStr}T23:59:59.999Z`);
+      } else if (dto.timeSlot === 'night') {
+        start = new Date(`${dateStr}T00:00:00.000Z`);
+        end = new Date(`${dateStr}T05:59:59.999Z`);
+      }
+    }
+
     const filter: Record<string, unknown> = {
       route: { $in: [String(route._id), route._id] },
       departureTime: { $gte: start, $lte: end },
       status: { $ne: 'cancelled' },
-      // Only return rides that have at least one bookable seat
       seatMap: { $elemMatch: { status: { $in: ['available', 'women-only'] } } },
     };
 
@@ -142,11 +162,49 @@ export class RidesService {
       filter.serviceType = dto.serviceType;
     }
 
-    const rides = await this.rideModel
+    let rides = await this.rideModel
       .find(filter)
       .populate(POPULATE_OPTIONS)
       .sort({ departureTime: 1 })
       .exec();
+
+    // Post-filter based on seat preference if specified
+    if (dto.seatPreference) {
+      rides = rides.filter((ride) => {
+        return ride.seatMap.some((seat) => {
+          const isBookable = seat.status === 'available' || seat.status === 'women-only';
+          if (!isBookable) return false;
+
+          switch (dto.seatPreference) {
+            case 'window':
+              return seat.column === 1 || seat.column === 4;
+            case 'aisle':
+              return seat.column === 2 || seat.column === 3;
+            case 'front':
+              return seat.row <= 2;
+            case 'back':
+              return seat.row >= 5;
+            default:
+              return true;
+          }
+        });
+      });
+    }
+
+    // Post-filter based on gender restriction if specified
+    if (dto.genderRestriction) {
+      rides = rides.filter((ride) => {
+        const driverGender = (ride.driverUserId as any)?.gender?.toLowerCase();
+        const isWomenSpecial = ride.serviceType === 'women-special';
+
+        if (dto.genderRestriction === 'female') {
+          return isWomenSpecial || driverGender === 'female';
+        } else if (dto.genderRestriction === 'male') {
+          return !isWomenSpecial && driverGender !== 'female';
+        }
+        return true;
+      });
+    }
 
     return rides.map(toRideResponse);
   }

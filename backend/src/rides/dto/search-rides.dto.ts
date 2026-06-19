@@ -9,6 +9,9 @@ import {
 } from 'class-validator';
 
 const SERVICE_TYPES = ['ac', 'non-ac', 'women-special', 'express'] as const;
+const TIME_SLOTS = ['morning', 'afternoon', 'evening', 'night'] as const;
+const SEAT_PREFERENCES = ['window', 'aisle', 'front', 'back'] as const;
+const GENDER_RESTRICTIONS = ['male', 'female'] as const;
 
 export class SearchRidesDto {
   @ApiProperty({ example: '65f1a2b3c4d5e6f7a8b9c0d1', required: false })
@@ -41,4 +44,19 @@ export class SearchRidesDto {
   @IsOptional()
   @IsEnum(SERVICE_TYPES)
   serviceType?: string;
+
+  @ApiProperty({ example: 'morning', required: false })
+  @IsOptional()
+  @IsEnum(TIME_SLOTS)
+  timeSlot?: string;
+
+  @ApiProperty({ example: 'window', required: false })
+  @IsOptional()
+  @IsEnum(SEAT_PREFERENCES)
+  seatPreference?: string;
+
+  @ApiProperty({ example: 'female', required: false })
+  @IsOptional()
+  @IsEnum(GENDER_RESTRICTIONS)
+  genderRestriction?: string;
 }
