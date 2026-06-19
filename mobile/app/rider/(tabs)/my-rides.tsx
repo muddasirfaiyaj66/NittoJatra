@@ -96,35 +96,38 @@ export default function MyRidesScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {tab === 0 ? (
-          activeBooking ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="View ride details"
-              onPress={() => handleSelectBooking(activeBooking)}
-              style={[styles.planCard, Shadows.card]}
-            >
-              <View style={styles.planHeader}>
-                <View style={styles.activeRow}>
-                  <StatusDot />
-                  <Text style={styles.activeLabel}>UPCOMING RIDE</Text>
+          upcoming.length > 0 ? (
+            upcoming.map((b) => (
+              <Pressable
+                key={b.id}
+                accessibilityRole="button"
+                accessibilityLabel="View ride details"
+                onPress={() => handleSelectBooking(b)}
+                style={[styles.planCard, Shadows.card]}
+              >
+                <View style={styles.planHeader}>
+                  <View style={styles.activeRow}>
+                    <StatusDot />
+                    <Text style={styles.activeLabel}>UPCOMING RIDE</Text>
+                  </View>
+                  <LinearGradient colors={[...Gradients.successBadge]} style={styles.ongoingBadge}>
+                    <Text style={styles.ongoingText}>BOOKED</Text>
+                  </LinearGradient>
                 </View>
-                <LinearGradient colors={[...Gradients.successBadge]} style={styles.ongoingBadge}>
-                  <Text style={styles.ongoingText}>BOOKED</Text>
-                </LinearGradient>
-              </View>
-              <Text style={styles.routeName}>{activeBooking.route.from} → {activeBooking.route.to}</Text>
-              <Text style={styles.schedule}>{formatHistoryDate(activeBooking.date)} • {activeBooking.departureTime}</Text>
-              <View style={styles.footerRow}>
-                <View style={styles.footerItem}>
-                  <Text style={styles.footerLabel}>Operator</Text>
-                  <Text style={styles.footerValue}>{activeBooking.operator.toUpperCase()}</Text>
+                <Text style={styles.routeName}>{b.route.from} → {b.route.to}</Text>
+                <Text style={styles.schedule}>{formatHistoryDate(b.date)} • {b.departureTime}</Text>
+                <View style={styles.footerRow}>
+                  <View style={styles.footerItem}>
+                    <Text style={styles.footerLabel}>Operator</Text>
+                    <Text style={styles.footerValue}>{b.operator.toUpperCase()}</Text>
+                  </View>
+                  <View style={styles.footerItem}>
+                    <Text style={styles.footerLabel}>SEATS</Text>
+                    <Text style={[styles.footerValue, { color: Colors.primary }]}>{b.seatCount}</Text>
+                  </View>
                 </View>
-                <View style={styles.footerItem}>
-                  <Text style={styles.footerLabel}>SEATS</Text>
-                  <Text style={[styles.footerValue, { color: Colors.primary }]}>{activeBooking.seatCount}</Text>
-                </View>
-              </View>
-            </Pressable>
+              </Pressable>
+            ))
           ) : (
             <View style={[styles.planCard, Shadows.card]}>
               <View style={styles.planHeader}>
